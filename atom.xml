@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://yao177.github.io</id>
-    <title>Gridea</title>
-    <updated>2020-08-26T08:29:29.881Z</updated>
+    <title>York Zhang</title>
+    <updated>2020-08-26T08:38:34.958Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://yao177.github.io"/>
     <link rel="self" href="https://yao177.github.io/atom.xml"/>
-    <subtitle>温故而知新</subtitle>
+    <subtitle>E·rror = m·ore * c²·ode</subtitle>
     <logo>https://yao177.github.io/images/avatar.png</logo>
     <icon>https://yao177.github.io/favicon.ico</icon>
-    <rights>All rights reserved 2020, Gridea</rights>
+    <rights>All rights reserved 2020, York Zhang</rights>
     <entry>
         <title type="html"><![CDATA[Hello Gridea]]></title>
         <id>https://yao177.github.io/post/hello-gridea/</id>
