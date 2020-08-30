@@ -1,0 +1,230 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>利用53端口绕过网络验证 | York Zhang</title>
+<link rel="shortcut icon" href="https://yao177.github.io/favicon.ico?v=1598775904235">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yao177.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="利用53端口绕过网络验证 | York Zhang - Atom Feed" href="https://yao177.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="利用53端口免验证使用DLUT-EDA&amp;wired-network &amp;&amp; 科学上网
+
+原理：
+通过dns_port:53端口免验证上网
+
+仅供测试，请在24小时内停止使用！
+
+
+绕过计费登陆系统
+
+高校通常开放53端..." />
+    <meta name="keywords" content="Net" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yao177.github.io">
+  <img class="avatar" src="https://yao177.github.io/images/avatar.png?v=1598775904235" alt="">
+  </a>
+  <h1 class="site-title">
+    York Zhang
+  </h1>
+  <p class="site-description">
+    <b>E</b>·rror = <b>m</b>·ore * <b>c²</b>·ode
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/yao177" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+    
+      
+    
+      
+        <a href="https://www.zhihu.com/people/yao-zi-73-1" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              利用53端口绕过网络验证
+            </h2>
+            <div class="post-info">
+              <span>
+                01-01-2018
+              </span>
+              <span>
+                3 min read
+              </span>
+              
+                <a href="https://yao177.github.io/tag/itE_k3EuY/" class="post-tag">
+                  # Net
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h1 id="利用53端口免验证使用dlut-edawired-network-科学上网">利用53端口免验证使用DLUT-EDA&amp;wired-network &amp;&amp; 科学上网</h1>
+<blockquote>
+<p>原理：<br>
+通过dns_port:53端口免验证上网</p>
+</blockquote>
+<p><em>仅供测试，请在24小时内停止使用！</em></p>
+<hr>
+<ul>
+<li>绕过计费登陆系统
+<ul>
+<li>高校通常开放53端口</li>
+<li>通过在校外搭建代理服务器(vpn/ss)，代理连接端口为53，协议为UDP(我校TCP也可)</li>
+</ul>
+</li>
+<li>代理服务器的搭建
+<ul>
+<li>推荐使用KVM框架的VPS搭建Shadowsocks</li>
+<li>可以先使用亚马逊的AWS免费一年的服务器适用搭建
+<ol>
+<li>每月免费流量仅为15GB，超出需自费</li>
+<li>注册后开启实例，选择免费组的<code>Ubuntu 16.04 64位</code>；开启后在管理控制台中，将安全组的入站规则改为<code>所有流量</code>，在弹性IP中申请一个弹性IP并和刚刚创建的实例关联地址</li>
+<li>使用pem密钥登陆，Mac使用<code>terminal</code>终端，win可能需要安装<code>Xshell</code>等SSH客户端</li>
+<li>以下操作均需要<code>$ sudo su</code>获得root权限</li>
+<li><code>$ wget --no-check-certificate https://github.com/teddysun/across/raw/master/bbr.sh &amp;&amp; chmod +x bbr.sh &amp;&amp; ./bbr.sh</code>一键安装最新内核并安装BBR脚本(开启Linux的TCP加速)，可以实现服务器带宽使用最大化，安装后按照提示重启服务器即可</li>
+<li><code>$ wget --no-check-certificate -O shadowsocks-libev-debian.sh https://raw.githubusercontent.com/teddysun/shadowsocks_install/master/shadowsocks-libev-debian.sh &amp;&amp; chmod +x shadowsocks-libev-debian.sh &amp;&amp; ./shadowsocks-libev-debian.sh 2&gt;&amp;1 | tee shadowsocks-libev-debian.log</code>安装<code>Shadowsocks-libev</code>版本，密码自定，端口选择<code>53</code>，加密方式自定(推荐<code>7</code>，即<code>aes-256-cfb</code>)，安装完成后会自动启动并加入开机启动</li>
+<li>配置文件在<code>/etc/shadowsocks-libev/config.json</code>，可以自行修改SS配置</li>
+<li>至此，服务器已经搭建好。客户端下载地址如下
+<ul>
+<li><a href="https://github.com/shadowsocks/shadowsocks-windows/releases/download/4.0.7/Shadowsocks-4.0.7.zip">Win版</a></li>
+<li><a href="https://github.com/shadowsocks/shadowsocks-iOS/releases/download/2.6.3/ShadowsocksX-2.6.3.dmg">Mac版</a></li>
+<li><a href="https://github.com/shadowsocks/shadowsocks-android/releases/download/v4.3.3/shadowsocks-nightly-4.3.3.apk">Android版</a></li>
+<li><s><a href="https://itunes.apple.com/cn/app/openwingy/id1294672758?mt=8">IOS版-OpenWingy</a></s></li>
+<li><a href="https://itunes.apple.com/us/app/potatso-lite/id1239860606?mt=8">IOS(备用)版-SuperWingy</a></li>
+<li><a href="https://itunes.apple.com/ca/app/xnode-%E6%99%BA%E8%83%BD%E7%BD%91%E7%BB%9C%E5%8A%A0%E9%80%9F%E5%99%A8/id1265578116?l=fr&amp;mt=8">IOS最新版-XNode(原Wingy)</a></li>
+<li><a href="https://github.com/shadowsocks/shadowsocks-chromeapp">Chrome-APP版</a></li>
+</ul>
+</li>
+<li>客户端配置：地址——服务器地址，端口——<code>53</code>，加密方式——配置时选择的加密方式，密码——自行设置的密码，本地端口——<code>1080</code>，开启全局模式，并启动代理即可</li>
+</ol>
+</li>
+<li>至此，服务器已搭建好，同时亦可番墙(破除GFW限制)
+<ol>
+<li>一些应用如QQ、网易云音乐需要在设置里手动设置代理，选择<code>sock5</code>代理，服务器地址为<code>127.0.0.1</code>，端口为<code>53</code>；另有一些应用如战网、Steam不支持设置代理，可以使用Proxifier实现强制应用代理，自行搜索教程即可</li>
+<li>有更多流量需要的推荐申请一个一年的AWS学生账户，送$75代金券，可以抵用流量；另有Vultr、搬瓦工、Linode等付费VPS，价格$5/mo左右，也可自行选择</li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+<p>PS：这里打个小推广，Vultr的VPS，价格很实惠，<a href="https://www.vultr.com/?ref=7646607">入口在此</a>。</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E5%88%A9%E7%94%A853%E7%AB%AF%E5%8F%A3%E5%85%8D%E9%AA%8C%E8%AF%81%E4%BD%BF%E7%94%A8dlut-edawired-network-%E7%A7%91%E5%AD%A6%E4%B8%8A%E7%BD%91">利用53端口免验证使用DLUT-EDA&amp;wired-network &amp;&amp; 科学上网</a></li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+
+        
+
+        <div class="site-footer">
+  <b>York</b>'s home | wish you a nice day!
+  <a class="rss" href="https://yao177.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

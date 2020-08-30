@@ -975,6 +975,10 @@ td {
   font-weight: bold;
 }
 
+      .main {
+        max-width: 60%;
+      }
+    
       .post-container .post .post-title {
         text-align: center;
       }
