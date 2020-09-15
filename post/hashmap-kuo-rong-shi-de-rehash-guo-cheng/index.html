@@ -1,0 +1,230 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>HashMap 扩容时的 rehash 过程 | York Zhang</title>
+<link rel="shortcut icon" href="https://yao177.github.io/favicon.ico?v=1600157589290">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yao177.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="HashMap 扩容时的 rehash 过程 | York Zhang - Atom Feed" href="https://yao177.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="分化链表
+(e.hash &amp; oldCap) == 0的元素放在低位链表，(e.hash &amp; oldCap) != 0的元素放在高位链表；低位链表在新桶的位置和旧桶中一样，高位链表在新桶的位置是原来的位置+旧容量
+Node&..." />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yao177.github.io">
+  <img class="avatar" src="https://yao177.github.io/images/avatar.png?v=1600157589290" alt="">
+  </a>
+  <h1 class="site-title">
+    York Zhang
+  </h1>
+  <p class="site-description">
+    <b>E</b>·rror = <b>m</b>·ore * <b>c²</b>·ode
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/yao177" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+    
+      
+    
+      
+        <a href="https://www.zhihu.com/people/yao-zi-73-1" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              HashMap 扩容时的 rehash 过程
+            </h2>
+            <div class="post-info">
+              <span>
+                09-15-2020
+              </span>
+              <span>
+                2 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h1 id="分化链表">分化链表</h1>
+<p><code>(e.hash &amp; oldCap) == 0</code>的元素放在低位链表，<code>(e.hash &amp; oldCap) != 0</code>的元素放在高位链表；低位链表在新桶的位置和旧桶中一样，高位链表在新桶的位置是原来的位置+旧容量</p>
+<pre><code class="language-java">Node&lt;K,V&gt; loHead = null, loTail = null;
+Node&lt;K,V&gt; hiHead = null, hiTail = null;
+Node&lt;K,V&gt; next;
+do {
+    next = e.next;
+    if ((e.hash &amp; oldCap) == 0) {
+        if (loTail == null)
+            loHead = e;
+        else
+            loTail.next = e;
+        loTail = e;
+    }
+    else {
+        if (hiTail == null)
+            hiHead = e;
+        else
+            hiTail.next = e;
+        hiTail = e;
+    }
+} while ((e = next) != null);
+if (loTail != null) {
+    loTail.next = null;
+    newTab[j] = loHead;
+}
+if (hiTail != null) {
+    hiTail.next = null;
+    newTab[j + oldCap] = hiHead;
+}
+</code></pre>
+<h3 id="原理">原理</h3>
+<p>首先，一个基础知识，对 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mn>2</mn><mi>n</mi></msup></mrow><annotation encoding="application/x-tex">2^n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.664392em;vertical-align:0em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.664392em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">n</span></span></span></span></span></span></span></span></span></span></span> 取模可以优化为对 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mn>2</mn><mrow><mi>n</mi><mo>−</mo><mn>1</mn></mrow></msup></mrow><annotation encoding="application/x-tex">2^{n-1}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141079999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">n</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span></span></span></span></span></span></span></span> 进行与运算，比较好理解，<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mn>2</mn><mrow><mi>n</mi><mo>−</mo><mn>1</mn></mrow></msup></mrow><annotation encoding="application/x-tex">2^{n-1}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141079999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">n</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span></span></span></span></span></span></span></span> 也就是 n-1 个 1 的二进制数，与运算之后就得到了原数二进制的后 n-1 位结果，也就是取模</p>
+<p>其次，分链时不需要像 JDK 1.7 那样重新计算 hash，只需要看新增的 bit 是 0 还是 1 就好了，0 的话索引不变，1 的话变为原索引 + 原容量，下面是一些计算</p>
+<pre><code class="language-java">oldCap = 1 &lt;&lt; k
+oldCap - 1 = 0b11...1 // k-1 个 1
+oldIndex = e.hash % oldCap
+				 = e.hash &amp; (oldCap - 1)
+newCap = oldCap &lt;&lt; 1
+newIndex = e.hash % newCap 
+				 = e.hash &amp; (newCap - 1) 
+				 = e.hash &amp; ((oldCap &lt;&lt; 1) - 1) 
+				 = e.hash &amp; (oldCap - 1) + e.hash &amp; oldCap
+</code></pre>
+<h1 id="拆树">拆树</h1>
+<p>拆树时本质上和分链是一样的，<code>HashMap.TreeNode</code>继承于<code>LinkedHashMap.Entry</code>继承于<code>HashMap.Node</code>，也就是说是有<code>next</code>引用的，而不是普通二叉树的前序/中序/后序遍历</p>
+<p>同样，拆树后也会和分链一样变成两个链表，然后再进行判断是否需要将新链表树化</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E5%88%86%E5%8C%96%E9%93%BE%E8%A1%A8">分化链表</a><br>
+*
+<ul>
+<li><a href="#%E5%8E%9F%E7%90%86">原理</a></li>
+</ul>
+</li>
+<li><a href="#%E6%8B%86%E6%A0%91">拆树</a></li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yao177.github.io/post/shi-yan-new-arraylist0-chu-shi-hua/">
+              <h3 class="post-title">
+                试验 new ArrayList(0) 初始化
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  <b>York</b>'s home | wish you a nice day!
+  <a class="rss" href="https://yao177.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

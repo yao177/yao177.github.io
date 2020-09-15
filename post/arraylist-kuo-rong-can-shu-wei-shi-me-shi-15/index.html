@@ -1,240 +1,106 @@
-<?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom">
-    <id>https://yao177.github.io</id>
-    <title>York Zhang</title>
-    <updated>2020-09-15T08:13:17.302Z</updated>
-    <generator>https://github.com/jpmonette/feed</generator>
-    <link rel="alternate" href="https://yao177.github.io"/>
-    <link rel="self" href="https://yao177.github.io/atom.xml"/>
-    <subtitle>&lt;b&gt;E&lt;/b&gt;·rror = &lt;b&gt;m&lt;/b&gt;·ore * &lt;b&gt;c²&lt;/b&gt;·ode</subtitle>
-    <logo>https://yao177.github.io/images/avatar.png</logo>
-    <icon>https://yao177.github.io/favicon.ico</icon>
-    <rights>All rights reserved 2020, York Zhang</rights>
-    <entry>
-        <title type="html"><![CDATA[Integer 在 HashSet 为何“有序”]]></title>
-        <id>https://yao177.github.io/post/integer-zai-hashset-wei-he-you-xu/</id>
-        <link href="https://yao177.github.io/post/integer-zai-hashset-wei-he-you-xu/">
-        </link>
-        <updated>2020-09-15T07:54:55.000Z</updated>
-        <content type="html"><![CDATA[<h1 id="现象">现象</h1>
-<p>今天试着把 Integer 作为 key 添加进 HashSet，居然……</p>
-<pre><code class="language-java">import java.util.*;
-  
-public class HashSetDemo {
-    public static void main(String[] args) {
-        
-        Set&lt;Integer&gt; hs = new HashSet&lt;Integer&gt;();
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ArrayList 扩容参数为什么是 1.5 | York Zhang</title>
+<link rel="shortcut icon" href="https://yao177.github.io/favicon.ico?v=1600157589290">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yao177.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="ArrayList 扩容参数为什么是 1.5 | York Zhang - Atom Feed" href="https://yao177.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
 
-        for (int i = 0; i &lt; 10000; i++) {
-            hs.add(i);
-        }
 
-        for (Integer s : hs) {
-            System.out.print(s + &quot; &quot;);
-        }
-    }
-}
-  
-// Results
-0 1 2 3 ... 9997 9998 9999
-</code></pre>
-<h1 id="分析">分析</h1>
-<p>很奇怪！</p>
-<p>Integer 的 hashCode 方法返回值就是本身（整数的值与整数本身一样唯一，所以它是一个足够好的散列）</p>
-<p>因此 (h = key.hashCode()) ^ (h &gt;&gt; 16) 和 key ^ (key &gt;&gt; 16) 的值是一样的，经过扰动函数（低位的随机性加强，更好地避免冲突）后。</p>
-<pre><code>a = 2         | 0000 0000 0000 0000 0000 0000 0000 0010
-a.hashCode()  | 0000 0000 0000 0000 0000 0000 0000 0010
-a &gt;&gt; 16       |                     0000 0000 0000 0000
-a ^ (a &gt;&gt; 16) | 0000 0000 0000 0000 0000 0000 0000 0010
-n = 2 ^ 4 - 1 | 0000 0000 0000 0000 0000 0000 0000 1111
-a &amp; n         | 0000 0000 0000 0000 0000 0000 0000 0010 ---- 2
------
-a = 18        | 0000 0000 0000 0000 0000 0000 0001 0010
-a.hashCode()  | 0000 0000 0000 0000 0000 0000 0001 0010
-a &gt;&gt; 16       |                     0000 0000 0000 0000
-a ^ (a &gt;&gt; 16) | 0000 0000 0000 0000 0000 0000 0001 0010
-n = 2 ^ 4 - 1 | 0000 0000 0000 0000 0000 0000 0000 1111
-a &amp; n         | 0000 0000 0000 0000 0000 0000 0000 0010 ---- 2
-</code></pre>
-<p>发现 2 和 18 的 hash 值都是 2，按理说应该要冲突的，却正常输出了</p>
-<pre><code class="language-java">import java.util.*;
-  
-public class HashSetDemo {
-    public static void main(String[] args) {
-        
-        Set&lt;Integer&gt; hs = new HashSet&lt;Integer&gt;();
 
-        for (int i = 0; i &lt;= 18; i++) {
-            hs.add(i);
-        
-        for (Integer s : hs) {
-            System.out.print(s + &quot; &quot;);
-        }
-    }
-}
-  
-// Results
-0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18
-</code></pre>
-<p>再试试</p>
-<pre><code class="language-java">import java.util.*;
-  
-public class HashSetDemo {
-    public static void main(String[] args) {
-        
-        Set&lt;Integer&gt; hs = new HashSet&lt;Integer&gt;();
+    <meta name="description" content="结论
+实际上比较好的扩容参数就是 JDK 1.8 中的 1.5
+理论上最好的扩容参数为黄金分割率 1.618（1+12(1+5)1+\frac{1}{2}(1+\sqrt{5})1+21​(1+5​)）
+为什么
+扩容参数为 (1, 2) 之..." />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yao177.github.io">
+  <img class="avatar" src="https://yao177.github.io/images/avatar.png?v=1600157589290" alt="">
+  </a>
+  <h1 class="site-title">
+    York Zhang
+  </h1>
+  <p class="site-description">
+    <b>E</b>·rror = <b>m</b>·ore * <b>c²</b>·ode
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/yao177" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+    
+      
+    
+      
+        <a href="https://www.zhihu.com/people/yao-zi-73-1" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+    
+  </div>
+</div>
 
-        hs.add(1);
-				hs.add(2);
-				hs.add(3);
-				hs.add(4);
-				hs.add(18);
-        
-        for (Integer s : hs) {
-            System.out.print(s + &quot; &quot;);
-        }
-    }
-}
-  
-// Results
-1 18 2 3 4
-</code></pre>
-<p>恍然大悟，我忽略了数组长度问题</p>
-<p>重新计算了下，扩容之后 2 和 18 就没有 hash 碰撞了</p>
-<h1 id="结论">结论</h1>
-<p>其实 HashSet 就是无序的，插入 1-n 后有序输出其实就是因为 Integer 的 hashCode 就是自身，取模后自然按照自然序在数组中排列，也就出现了开头「有序输出」的现象</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[HashMap 扩容时的 rehash 过程]]></title>
-        <id>https://yao177.github.io/post/hashmap-kuo-rong-shi-de-rehash-guo-cheng/</id>
-        <link href="https://yao177.github.io/post/hashmap-kuo-rong-shi-de-rehash-guo-cheng/">
-        </link>
-        <updated>2020-09-15T05:36:23.000Z</updated>
-        <content type="html"><![CDATA[<h1 id="分化链表">分化链表</h1>
-<p><code>(e.hash &amp; oldCap) == 0</code>的元素放在低位链表，<code>(e.hash &amp; oldCap) != 0</code>的元素放在高位链表；低位链表在新桶的位置和旧桶中一样，高位链表在新桶的位置是原来的位置+旧容量</p>
-<pre><code class="language-java">Node&lt;K,V&gt; loHead = null, loTail = null;
-Node&lt;K,V&gt; hiHead = null, hiTail = null;
-Node&lt;K,V&gt; next;
-do {
-    next = e.next;
-    if ((e.hash &amp; oldCap) == 0) {
-        if (loTail == null)
-            loHead = e;
-        else
-            loTail.next = e;
-        loTail = e;
-    }
-    else {
-        if (hiTail == null)
-            hiHead = e;
-        else
-            hiTail.next = e;
-        hiTail = e;
-    }
-} while ((e = next) != null);
-if (loTail != null) {
-    loTail.next = null;
-    newTab[j] = loHead;
-}
-if (hiTail != null) {
-    hiTail.next = null;
-    newTab[j + oldCap] = hiHead;
-}
-</code></pre>
-<h3 id="原理">原理</h3>
-<p>首先，一个基础知识，对 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mn>2</mn><mi>n</mi></msup></mrow><annotation encoding="application/x-tex">2^n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.664392em;vertical-align:0em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.664392em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">n</span></span></span></span></span></span></span></span></span></span></span> 取模可以优化为对 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mn>2</mn><mrow><mi>n</mi><mo>−</mo><mn>1</mn></mrow></msup></mrow><annotation encoding="application/x-tex">2^{n-1}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141079999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">n</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span></span></span></span></span></span></span></span> 进行与运算，比较好理解，<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mn>2</mn><mrow><mi>n</mi><mo>−</mo><mn>1</mn></mrow></msup></mrow><annotation encoding="application/x-tex">2^{n-1}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141079999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">n</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span></span></span></span></span></span></span></span> 也就是 n-1 个 1 的二进制数，与运算之后就得到了原数二进制的后 n-1 位结果，也就是取模</p>
-<p>其次，分链时不需要像 JDK 1.7 那样重新计算 hash，只需要看新增的 bit 是 0 还是 1 就好了，0 的话索引不变，1 的话变为原索引 + 原容量，下面是一些计算</p>
-<pre><code class="language-java">oldCap = 1 &lt;&lt; k
-oldCap - 1 = 0b11...1 // k-1 个 1
-oldIndex = e.hash % oldCap
-				 = e.hash &amp; (oldCap - 1)
-newCap = oldCap &lt;&lt; 1
-newIndex = e.hash % newCap 
-				 = e.hash &amp; (newCap - 1) 
-				 = e.hash &amp; ((oldCap &lt;&lt; 1) - 1) 
-				 = e.hash &amp; (oldCap - 1) + e.hash &amp; oldCap
-</code></pre>
-<h1 id="拆树">拆树</h1>
-<p>拆树时本质上和分链是一样的，<code>HashMap.TreeNode</code>继承于<code>LinkedHashMap.Entry</code>继承于<code>HashMap.Node</code>，也就是说是有<code>next</code>引用的，而不是普通二叉树的前序/中序/后序遍历</p>
-<p>同样，拆树后也会和分链一样变成两个链表，然后再进行判断是否需要将新链表树化</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[试验 new ArrayList(0) 初始化]]></title>
-        <id>https://yao177.github.io/post/shi-yan-new-arraylist0-chu-shi-hua/</id>
-        <link href="https://yao177.github.io/post/shi-yan-new-arraylist0-chu-shi-hua/">
-        </link>
-        <updated>2020-09-15T05:27:28.000Z</updated>
-        <content type="html"><![CDATA[<p>只知道 new ArrayList(0) 的不同点在于 new ArrayList() 在添加第一个元素时会初始化为 10 个空间，但只知晓前者的概念，而我又想探究一下到底如何扩容</p>
-<p>正好最近刚学习了反射，就用反射来看一下 <code>elementData</code> 的实际大小</p>
-<pre><code class="language-java">import java.lang.reflect.Field;
-import java.util.ArrayList;
-
-public class Main {
-
-    public static void main( String[] args )
-    {
-        int pre;
-        final int max = 30;
-
-        ArrayList&lt;Integer&gt; arrayList1 = new ArrayList&lt;&gt;();
-        pre = -1;
-        for (int i = 0; i &lt; max; ++i) {
-            int now = getArrayListCapacity(arrayList1);
-            if (now != pre) {
-                pre = now;
-                System.out.print(pre + &quot; &quot;);
-            }
-            arrayList1.add(0);
-        }
-        System.out.println();
-
-        ArrayList&lt;Integer&gt; arrayList2 = new ArrayList&lt;&gt;(0);
-        pre = -1;
-        for (int i = 0; i &lt; max; ++i) {
-            int now = getArrayListCapacity(arrayList2);
-            if (now != pre) {
-                pre = now;
-                System.out.print(pre + &quot; &quot;);
-            }
-            arrayList2.add(0);
-        }
-    }
-
-    public static int getArrayListCapacity(ArrayList&lt;?&gt; arrayList) {
-        Class&lt;ArrayList&gt; arrayListClass = ArrayList.class;
-        try {
-            Field field = arrayListClass.getDeclaredField(&quot;elementData&quot;);
-            field.setAccessible(true);
-            Object[] objects = (Object[])field.get(arrayList);
-            return objects.length;
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-            return -1;
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-            return -1;
-        }
-    }
-}
-
----
-Results:
-0 10 15 22 33
-0 1 2 3 4 6 9 13 19 28 42
-</code></pre>
-<p>都说是 1.5 倍扩容，甚至展示出了源码 <code>oldCapacity + (oldCapacity &gt;&gt; 1)</code>，但是按理说 0 应该也会扩容为 0 呀（0 的 1.5 倍不是 0 吗，1 的 1.5 倍不是 1 吗，都不对）</p>
-<p>不过，这些教程都忽略了一个重要的点，传入的不是 <code>size</code> 而是 <code>size + 1</code>，从而解决了这个问题，再拿 <code>size + 1</code> vs <code>newCapacity</code>。</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[ArrayList 扩容参数为什么是 1.5]]></title>
-        <id>https://yao177.github.io/post/arraylist-kuo-rong-can-shu-wei-shi-me-shi-15/</id>
-        <link href="https://yao177.github.io/post/arraylist-kuo-rong-can-shu-wei-shi-me-shi-15/">
-        </link>
-        <updated>2020-09-15T05:22:46.000Z</updated>
-        <content type="html"><![CDATA[<h1 id="结论">结论</h1>
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              ArrayList 扩容参数为什么是 1.5
+            </h2>
+            <div class="post-info">
+              <span>
+                09-15-2020
+              </span>
+              <span>
+                3 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h1 id="结论">结论</h1>
 <p>实际上比较好的扩容参数就是 JDK 1.8 中的 1.5</p>
 <p>理论上最好的扩容参数为黄金分割率 1.618（<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>1</mn><mo>+</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mo>(</mo><mn>1</mn><mo>+</mo><msqrt><mn>5</mn></msqrt><mo>)</mo></mrow><annotation encoding="application/x-tex">1+\frac{1}{2}(1+\sqrt{5})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.190108em;vertical-align:-0.345em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.845108em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">2</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.1572200000000001em;vertical-align:-0.25em;"></span><span class="mord sqrt"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.90722em;"><span class="svg-align" style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord" style="padding-left:0.833em;"><span class="mord">5</span></span></span><span style="top:-2.86722em;"><span class="pstrut" style="height:3em;"></span><span class="hide-tail" style="min-width:0.853em;height:1.08em;"><svg width='400em' height='1.08em' viewBox='0 0 400000 1080' preserveAspectRatio='xMinYMin slice'><path d='M95,702c-2.7,0,-7.17,-2.7,-13.5,-8c-5.8,-5.3,-9.5,
 -10,-9.5,-14c0,-2,0.3,-3.3,1,-4c1.3,-2.7,23.83,-20.7,67.5,-54c44.2,-33.3,65.8,
@@ -300,206 +166,86 @@ s-235,486,-235,486c-2.7,4.7,-9,7,-19,7c-6,0,-10,-1,-12,-3s-194,-422,-194,-422
 s-65,47,-65,47z M834 80H400000v40H845z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.13278em;"><span></span></span></span></span></span><span class="mclose">)</span></span></span></span>，也就是黄金分割数 1+0.618</p>
 <p>当然，这只是理想情况，考虑到 int 需要作取整操作，因此源码作者 Simon 建议设为 1.5 比较好</p>
 <p>根据上面可以看到，可以看到 1.5 在三次到四次之间，可以自己做个实验，在 (0, 2^31-8) 空间内跑一遍试试</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[「亲密关系」中的一些重要结论]]></title>
-        <id>https://yao177.github.io/post/close-relationship-tricks/</id>
-        <link href="https://yao177.github.io/post/close-relationship-tricks/">
-        </link>
-        <updated>2020-09-02T03:55:56.000Z</updated>
-        <content type="html"><![CDATA[<p>“对未来伴侣的期望值 = 伴侣的外表吸引力 × 伴侣接纳自己的可能性（自己的适配价值）”</p>
-<p>“真正有用的是选择性地故作清高——也就是说，除了你想吸引的人之外，任何人想要得到你都是可望而不可即的（Walster et al.，1973）。那些能付出代价拒绝大多数人却又能高兴地接纳我们的人，才是最有吸引力的未来伴侣。”</p>
-<figure data-type="image" tabindex="1"><img src="https://yao177.github.io/post-images/1599019809549.png" alt="亲密关系发展的不同阶段" loading="lazy"></figure>
-<p>“得不到的禁果格外甜”</p>
-<p>“自彼此相遇的一瞬间起人们就开始做出判断。这里的“瞬间”指1/25秒，这就是辨认陌生人的面部表情是否愤怒所花的时间，只要39毫秒 [1] （Bar et al.，2006）。在约十分之一秒的更加耐心的考虑后， [2] 人们就能判断出陌生人的长相是否有吸引力、有多么可爱、是否值得信赖，这一判断的准确性和仔细审视该陌生人的面孔一分钟后得出的完全一样（Willis &amp; Todorov，2006）。而只要观察该陌生人和异性5秒钟的聊天场面，人们就能确定他/她的外向程度、良知水平和智力高低（Carney et al.，2007）。人们妄下结论的速度太快，太快了。”</p>
-<p>摘录来自: 罗兰·米勒 (Rowland S. Miller). “亲密关系（第6版） (社会心理学精品译丛)。” Apple Books.</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[《亲密关系》]]></title>
-        <id>https://yao177.github.io/post/close-relationship/</id>
-        <link href="https://yao177.github.io/post/close-relationship/">
-        </link>
-        <updated>2020-09-01T07:16:52.000Z</updated>
-        <summary type="html"><![CDATA[<p>最近想对广义上的男女之事有个更深入的了解，便开始拜读《亲密关系》这本书，记录了一些内容。</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>最近想对广义上的男女之事有个更深入的了解，便开始拜读《亲密关系》这本书，记录了一些内容。</p>
-<!-- more -->
-<h1 id="沟通">沟通</h1>
-<p>是其中很重要的一环</p>
-<ol>
-<li>精确表达自己的想法，不要同时抱怨好几个问题
-<ol>
-<li>「XYZ」陈述法：当在 Y 情景下做 X 的时候，我感到 Z。“你总是打断我，不让我把话说完“ → “你刚刚在我话没说完的时候打断我，我很生气”</li>
-</ol>
-</li>
-<li>倾听彼此所说的话，不要仓促得出结论，不要根据猜测作出应对
-<ol>
-<li>通过复述他人的话来确定自己是否搞清楚了对方真实的想法</li>
-</ol>
-</li>
-<li>保持镇定，不要表现出消极的情感，不要过多批评和蔑视，切忌冷战
-<ol>
-<li>要求几分钟的暂停，做几个深呼吸，再尽可能理性地面对冲突</li>
-</ol>
-</li>
-</ol>
-<h1 id="爱情">爱情</h1>
-<p>爱情是婚姻的先决条件（爱情、激情、浪漫）吗？</p>
-<p>七年之痒，相敬如宾，失去激情和爱情，枕边人的谎言</p>
-<p>爱情三角论：亲密 + 激情 + 忠诚（会变化）</p>
-<h2 id="爱情的主要分类">爱情的主要分类</h2>
-<p>会受到时代、性别的影响</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E7%BB%93%E8%AE%BA">结论</a></li>
+<li><a href="#%E4%B8%BA%E4%BB%80%E4%B9%88">为什么</a>
 <ul>
-<li>浪漫之爱（不是婚姻延续的主要原因）——男性 more
-<ul>
-<li>激情（唤醒）
-<ul>
-<li>生理唤醒（不依赖于唤醒的类型，看喜剧片和恐怖片都有可能）</li>
-<li>另一半是唤醒之人（吊桥效应——可能是外界唤醒，而不是另一半）</li>
-</ul>
-</li>
-<li>思维的改变
-<ul>
-<li>爱情是盲目的，会低估甚至忽视对方的缺点</li>
-<li>爱情 vs 友谊：伴侣是迷人、神秘、富有吸引力</li>
-<li>对自我概念多样化：提高自尊→积极正面的体验</li>
+<li><a href="#%E6%89%A9%E5%AE%B9%E5%8F%82%E6%95%B0%E4%B8%BA-1-2-%E4%B9%8B%E9%97%B4%E6%AF%94%E8%BE%83%E5%A5%BD">扩容参数为 (1, 2) 之间比较好</a></li>
+<li><a href="#%E5%88%B0%E5%BA%95%E5%A4%9A%E5%A4%A7%E6%9C%80%E5%A5%BD">到底多大最好</a></li>
 </ul>
 </li>
 </ul>
-</li>
-<li>相伴之爱（可持续的婚姻）——女性 more
-<ul>
-<li>亲密</li>
-<li>忠诚：深刻</li>
-</ul>
-</li>
-</ul>
-<p>婚后浪漫的爱情会减弱（两年 down 50%）：幻想促进浪漫，吊桥效应不能持续</p>
-<p>如何维持爱情：享受激情但不依赖，培养友谊、共同爱好，努力保持新鲜感，进行新的、吸引人的活动</p>
-<h1 id="亲密关系的维持和修复">亲密关系的维持和修复</h1>
-<p><s>好姻缘天注定，只是没遇到对的人</s>：冲突无法避免</p>
-<p>双方都需要以正确的方式持续地努力：更好地了解亲密关系，才能做好准备，防止某些问题并客服其他难题</p>
-<p>第一节中的沟通技巧</p>
-<ol>
-<li>保持忠诚：<s>我</s> → 我们，共同社交圈，保持积极的心态</li>
-<li>积极错觉：尽可能以最好的眼光来看待自己的亲密关系，对缺点宽容</li>
-<li>个人牺牲：提高双方幸福感</li>
-<li>分享情感：</li>
-<li>公平地分担任务</li>
-<li>创造性玩乐</li>
-</ol>
-<p>如果亲密关系出现裂痕——保养汽车，难免出现问题</p>
-<p>这本书可以作为了解这辆“汽车”的书籍，可以积极寻求专业的婚姻咨询治疗师帮助</p>
-<p>越早处理就越容易解决，否则会滚雪球</p>
-<h1 id="总结">总结</h1>
-<ul>
-<li>沟通
-<ul>
-<li>言语沟通
-<ul>
-<li>常常认识不到：伴侣没有接受到想要传递的信息</li>
-<li>解决
-<ul>
-<li>精确表达自己的想法：XYZ 法则</li>
-<li>积极倾听
-<ul>
-<li>清楚了解对方的意图</li>
-<li>传达关注和理解</li>
-</ul>
-</li>
-<li>保持镇定：休战，理性</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>非言语沟通
-<ul>
-<li>男性不如女性做得好</li>
-<li>会导致亲密关系的不满</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[关于]]></title>
-        <id>https://yao177.github.io/post/about/</id>
-        <link href="https://yao177.github.io/post/about/">
-        </link>
-        <updated>2020-08-26T09:39:26.000Z</updated>
-        <content type="html"><![CDATA[<blockquote>
-<p>欢迎来到我的小站呀，很高兴遇见你！🤝</p>
-</blockquote>
-<h2 id="关于本站">🏠 关于本站</h2>
-<p>本数字域名<code>201021</code>的含义是，三进制的<code>520</code>（哈哈，没想到吧！</p>
-<h2 id="博主是谁">👨‍💻 博主是谁</h2>
-<p>我是 York Zhang，目前是一名帝都搬砖码农</p>
-<h2 id="兴趣爱好">⛹ 兴趣爱好</h2>
-<p>游泳🏊‍♀️书法✍️</p>
-<h2 id="联系我呀">📬 联系我呀</h2>
-<p>WeChat ID: <code>yyyao177</code></p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[利用53端口绕过网络验证]]></title>
-        <id>https://yao177.github.io/post/bypass-network-verification-by-using-53-port/</id>
-        <link href="https://yao177.github.io/post/bypass-network-verification-by-using-53-port/">
-        </link>
-        <updated>2018-01-01T09:51:00.000Z</updated>
-        <content type="html"><![CDATA[<h1 id="利用53端口免验证使用dlut-edawired-network-科学上网">利用53端口免验证使用DLUT-EDA&amp;wired-network &amp;&amp; 科学上网</h1>
-<blockquote>
-<p>原理：<br>
-通过dns_port:53端口免验证上网</p>
-</blockquote>
-<p><em>仅供测试，请在24小时内停止使用！</em></p>
-<hr>
-<ul>
-<li>绕过计费登陆系统
-<ul>
-<li>高校通常开放53端口</li>
-<li>通过在校外搭建代理服务器(vpn/ss)，代理连接端口为53，协议为UDP(我校TCP也可)</li>
-</ul>
-</li>
-<li>代理服务器的搭建
-<ul>
-<li>推荐使用KVM框架的VPS搭建Shadowsocks</li>
-<li>可以先使用亚马逊的AWS免费一年的服务器适用搭建
-<ol>
-<li>每月免费流量仅为15GB，超出需自费</li>
-<li>注册后开启实例，选择免费组的<code>Ubuntu 16.04 64位</code>；开启后在管理控制台中，将安全组的入站规则改为<code>所有流量</code>，在弹性IP中申请一个弹性IP并和刚刚创建的实例关联地址</li>
-<li>使用pem密钥登陆，Mac使用<code>terminal</code>终端，win可能需要安装<code>Xshell</code>等SSH客户端</li>
-<li>以下操作均需要<code>$ sudo su</code>获得root权限</li>
-<li><code>$ wget --no-check-certificate https://github.com/teddysun/across/raw/master/bbr.sh &amp;&amp; chmod +x bbr.sh &amp;&amp; ./bbr.sh</code>一键安装最新内核并安装BBR脚本(开启Linux的TCP加速)，可以实现服务器带宽使用最大化，安装后按照提示重启服务器即可</li>
-<li><code>$ wget --no-check-certificate -O shadowsocks-libev-debian.sh https://raw.githubusercontent.com/teddysun/shadowsocks_install/master/shadowsocks-libev-debian.sh &amp;&amp; chmod +x shadowsocks-libev-debian.sh &amp;&amp; ./shadowsocks-libev-debian.sh 2&gt;&amp;1 | tee shadowsocks-libev-debian.log</code>安装<code>Shadowsocks-libev</code>版本，密码自定，端口选择<code>53</code>，加密方式自定(推荐<code>7</code>，即<code>aes-256-cfb</code>)，安装完成后会自动启动并加入开机启动</li>
-<li>配置文件在<code>/etc/shadowsocks-libev/config.json</code>，可以自行修改SS配置</li>
-<li>至此，服务器已经搭建好。客户端下载地址如下
-<ul>
-<li><a href="https://github.com/shadowsocks/shadowsocks-windows/releases/download/4.0.7/Shadowsocks-4.0.7.zip">Win版</a></li>
-<li><a href="https://github.com/shadowsocks/shadowsocks-iOS/releases/download/2.6.3/ShadowsocksX-2.6.3.dmg">Mac版</a></li>
-<li><a href="https://github.com/shadowsocks/shadowsocks-android/releases/download/v4.3.3/shadowsocks-nightly-4.3.3.apk">Android版</a></li>
-<li><s><a href="https://itunes.apple.com/cn/app/openwingy/id1294672758?mt=8">IOS版-OpenWingy</a></s></li>
-<li><a href="https://itunes.apple.com/us/app/potatso-lite/id1239860606?mt=8">IOS(备用)版-SuperWingy</a></li>
-<li><a href="https://itunes.apple.com/ca/app/xnode-%E6%99%BA%E8%83%BD%E7%BD%91%E7%BB%9C%E5%8A%A0%E9%80%9F%E5%99%A8/id1265578116?l=fr&amp;mt=8">IOS最新版-XNode(原Wingy)</a></li>
-<li><a href="https://github.com/shadowsocks/shadowsocks-chromeapp">Chrome-APP版</a></li>
-</ul>
-</li>
-<li>客户端配置：地址——服务器地址，端口——<code>53</code>，加密方式——配置时选择的加密方式，密码——自行设置的密码，本地端口——<code>1080</code>，开启全局模式，并启动代理即可</li>
-</ol>
-</li>
-<li>至此，服务器已搭建好，同时亦可番墙(破除GFW限制)
-<ol>
-<li>一些应用如QQ、网易云音乐需要在设置里手动设置代理，选择<code>sock5</code>代理，服务器地址为<code>127.0.0.1</code>，端口为<code>53</code>；另有一些应用如战网、Steam不支持设置代理，可以使用Proxifier实现强制应用代理，自行搜索教程即可</li>
-<li>有更多流量需要的推荐申请一个一年的AWS学生账户，送$75代金券，可以抵用流量；另有Vultr、搬瓦工、Linode等付费VPS，价格$5/mo左右，也可自行选择</li>
-</ol>
-</li>
-</ul>
-</li>
-</ul>
-<p>PS：这里打个小推广，Vultr的VPS，价格很实惠，<a href="https://www.vultr.com/?ref=7646607">入口在此</a>。</p>
-]]></content>
-    </entry>
-</feed>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yao177.github.io/post/close-relationship-tricks/">
+              <h3 class="post-title">
+                「亲密关系」中的一些重要结论
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  <b>York</b>'s home | wish you a nice day!
+  <a class="rss" href="https://yao177.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

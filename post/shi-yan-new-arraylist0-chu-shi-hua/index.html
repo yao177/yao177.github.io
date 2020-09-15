@@ -2,26 +2,18 @@
   <head>
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>关于 | York Zhang</title>
+<title>试验 new ArrayList(0) 初始化 | York Zhang</title>
 <link rel="shortcut icon" href="https://yao177.github.io/favicon.ico?v=1600157589290">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://yao177.github.io/styles/main.css">
-<link rel="alternate" type="application/atom+xml" title="关于 | York Zhang - Atom Feed" href="https://yao177.github.io/atom.xml">
+<link rel="alternate" type="application/atom+xml" title="试验 new ArrayList(0) 初始化 | York Zhang - Atom Feed" href="https://yao177.github.io/atom.xml">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
 
 
 
-    <meta name="description" content="
-欢迎来到我的小站呀，很高兴遇见你！🤝
-
-🏠 关于本站
-本数字域名201021的含义是，三进制的520（哈哈，没想到吧！
-👨‍💻 博主是谁
-我是 York Zhang，目前是一名帝都搬砖码农
-⛹ 兴趣爱好
-游泳🏊‍♀️书法✍️
-�..." />
-    <meta name="keywords" content="Me" />
+    <meta name="description" content="只知道 new ArrayList(0) 的不同点在于 new ArrayList() 在添加第一个元素时会初始化为 10 个空间，但只知晓前者的概念，而我又想探究一下到底如何扩容
+正好最近刚学习了反射，就用反射来看一下 elementDa..." />
+    <meta name="keywords" content="" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
     <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
   </head>
@@ -91,49 +83,84 @@
         <div class="post-detail">
           <article class="post">
             <h2 class="post-title">
-              关于
+              试验 new ArrayList(0) 初始化
             </h2>
             <div class="post-info">
               <span>
-                08-26-2020
+                09-15-2020
               </span>
               <span>
-                1 min read
+                2 min read
               </span>
-              
-                <a href="https://yao177.github.io/tag/xlp7QuNLz/" class="post-tag">
-                  # Me
-                </a>
               
             </div>
             
             <div class="post-content-wrapper">
               <div class="post-content">
-                <blockquote>
-<p>欢迎来到我的小站呀，很高兴遇见你！🤝</p>
-</blockquote>
-<h2 id="关于本站">🏠 关于本站</h2>
-<p>本数字域名<code>201021</code>的含义是，三进制的<code>520</code>（哈哈，没想到吧！</p>
-<h2 id="博主是谁">👨‍💻 博主是谁</h2>
-<p>我是 York Zhang，目前是一名帝都搬砖码农</p>
-<h2 id="兴趣爱好">⛹ 兴趣爱好</h2>
-<p>游泳🏊‍♀️书法✍️</p>
-<h2 id="联系我呀">📬 联系我呀</h2>
-<p>WeChat ID: <code>yyyao177</code></p>
+                <p>只知道 new ArrayList(0) 的不同点在于 new ArrayList() 在添加第一个元素时会初始化为 10 个空间，但只知晓前者的概念，而我又想探究一下到底如何扩容</p>
+<p>正好最近刚学习了反射，就用反射来看一下 <code>elementData</code> 的实际大小</p>
+<pre><code class="language-java">import java.lang.reflect.Field;
+import java.util.ArrayList;
+
+public class Main {
+
+    public static void main( String[] args )
+    {
+        int pre;
+        final int max = 30;
+
+        ArrayList&lt;Integer&gt; arrayList1 = new ArrayList&lt;&gt;();
+        pre = -1;
+        for (int i = 0; i &lt; max; ++i) {
+            int now = getArrayListCapacity(arrayList1);
+            if (now != pre) {
+                pre = now;
+                System.out.print(pre + &quot; &quot;);
+            }
+            arrayList1.add(0);
+        }
+        System.out.println();
+
+        ArrayList&lt;Integer&gt; arrayList2 = new ArrayList&lt;&gt;(0);
+        pre = -1;
+        for (int i = 0; i &lt; max; ++i) {
+            int now = getArrayListCapacity(arrayList2);
+            if (now != pre) {
+                pre = now;
+                System.out.print(pre + &quot; &quot;);
+            }
+            arrayList2.add(0);
+        }
+    }
+
+    public static int getArrayListCapacity(ArrayList&lt;?&gt; arrayList) {
+        Class&lt;ArrayList&gt; arrayListClass = ArrayList.class;
+        try {
+            Field field = arrayListClass.getDeclaredField(&quot;elementData&quot;);
+            field.setAccessible(true);
+            Object[] objects = (Object[])field.get(arrayList);
+            return objects.length;
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+            return -1;
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+            return -1;
+        }
+    }
+}
+
+---
+Results:
+0 10 15 22 33
+0 1 2 3 4 6 9 13 19 28 42
+</code></pre>
+<p>都说是 1.5 倍扩容，甚至展示出了源码 <code>oldCapacity + (oldCapacity &gt;&gt; 1)</code>，但是按理说 0 应该也会扩容为 0 呀（0 的 1.5 倍不是 0 吗，1 的 1.5 倍不是 1 吗，都不对）</p>
+<p>不过，这些教程都忽略了一个重要的点，传入的不是 <code>size</code> 而是 <code>size + 1</code>，从而解决了这个问题，再拿 <code>size + 1</code> vs <code>newCapacity</code>。</p>
 
               </div>
               <div class="toc-container">
-                <ul class="markdownIt-TOC">
-<li>
-<ul>
-<li><a href="#%E5%85%B3%E4%BA%8E%E6%9C%AC%E7%AB%99">🏠 关于本站</a></li>
-<li><a href="#%E5%8D%9A%E4%B8%BB%E6%98%AF%E8%B0%81">👨‍💻 博主是谁</a></li>
-<li><a href="#%E5%85%B4%E8%B6%A3%E7%88%B1%E5%A5%BD">⛹ 兴趣爱好</a></li>
-<li><a href="#%E8%81%94%E7%B3%BB%E6%88%91%E5%91%80">📬 联系我呀</a></li>
-</ul>
-</li>
-</ul>
-
+                
               </div>
             </div>
           </article>
@@ -142,9 +169,9 @@
         
           <div class="next-post">
             <div class="next">下一篇</div>
-            <a href="https://yao177.github.io/post/bypass-network-verification-by-using-53-port/">
+            <a href="https://yao177.github.io/post/arraylist-kuo-rong-can-shu-wei-shi-me-shi-15/">
               <h3 class="post-title">
-                利用53端口绕过网络验证
+                ArrayList 扩容参数为什么是 1.5
               </h3>
             </a>
           </div>
