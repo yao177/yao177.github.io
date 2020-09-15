@@ -975,6 +975,10 @@ td {
   font-weight: bold;
 }
 
+      .post-detail .post .post-content p {
+        font-size: 1rem;
+      }
+    
       .post-container .post .post-title {
         text-align: center;
       }
