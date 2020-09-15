@@ -1,331 +1,286 @@
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>York Zhang</title>
-<link rel="shortcut icon" href="https://yao177.github.io/favicon.ico">
-<link href="https://cdn.jsdelivr.net/npm/remixicon@2.2.0/fonts/remixicon.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css">
-<link rel="stylesheet" href="https://yao177.github.io/media/css/tailwind.css">
+<link rel="shortcut icon" href="https://yao177.github.io/favicon.ico?v=1600160094353">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://yao177.github.io/styles/main.css">
 <link rel="alternate" type="application/atom+xml" title="York Zhang - Atom Feed" href="https://yao177.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
 
-    
 
-  <meta name="description" content="<b>E</b>·rror = <b>m</b>·ore * <b>c²</b>·ode" />
-</head>
-<body>
-  <div class="antialiased flex flex-col min-h-screen" id="app">
 
-    <div class="nav py-3 md:py-8 fixed w-full z-10 bg-gray-50 dark:bg-gray-700 transition-all duration-300" :class="{ 'scroll': scrolled }">
-  <div class="flex justify-end px-4">
-    <div class="w-8 h-8 flex justify-center items-center rounded-full md:hidden" @click="showMenu = !showMenu">
-      <i class="ri-close-line" v-show="showMenu"></i>
-      <i class="ri-menu-3-line" v-show="!showMenu"></i>
-    </div>
-  </div>
-  <nav class="max-w-4xl w-full mx-auto text-center flex flex-col md:flex-row justify-center md:block" :class="`${ showMenu ? 'block' : 'hidden' }`">
+    <meta name="description" content="<b>E</b>·rror = <b>m</b>·ore * <b>c²</b>·ode" />
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yao177.github.io">
+  <img class="avatar" src="https://yao177.github.io/images/avatar.png?v=1600160094353" alt="">
+  </a>
+  <h1 class="site-title">
+    York Zhang
+  </h1>
+  <p class="site-description">
+    <b>E</b>·rror = <b>m</b>·ore * <b>c²</b>·ode
+  </p>
+  <div class="menu-container">
     
-      <a href="/" target="" class="py-2 md:py-1 px-4 mx-4 inline-flex transition font-semibold rounded dark:hover:bg-gray-600 hover:bg-gray-200">
-        首页
-      </a>
-    
-      <a href="/archives" target="" class="py-2 md:py-1 px-4 mx-4 inline-flex transition font-semibold rounded dark:hover:bg-gray-600 hover:bg-gray-200">
-        归档
-      </a>
-    
-      <a href="/tags" target="" class="py-2 md:py-1 px-4 mx-4 inline-flex transition font-semibold rounded dark:hover:bg-gray-600 hover:bg-gray-200">
-        标签
-      </a>
-    
-      <a href="/post/about" target="" class="py-2 md:py-1 px-4 mx-4 inline-flex transition font-semibold rounded dark:hover:bg-gray-600 hover:bg-gray-200">
-        关于
-      </a>
-    
-    <a href="https://yao177.github.io/atom.xml" target="_blank" class="py-2 md:py-1 px-4 mx-4 inline-flex transition font-semibold rounded dark:hover:bg-gray-600 hover:bg-gray-200">
-      RSS
-    </a>
-  </nav>
-</div>
-
-    <div class="max-w-4xl w-full mx-auto ">
       
-        <header class="flex py-16 md:py-32 mt-12 flex-col md:flex-row px-4 md:px-0 animated fadeIn">
-  <div class="flex-1 order-2 md:order-1 md:pr-16">
-    <div class="text-4xl font-bold text-center md:text-left">
-      York Zhang
-    </div>
-    <div class="text-xl text-gray-500 mt-4 text-center md:text-left">
-      <b>E</b>·rror = <b>m</b>·ore * <b>c²</b>·ode
-    </div>
-    
-    
-      <div class="mt-8 flex items-center">
-        
-          <div class="text-gray-500 mr-2">
-            Follow me 👉
-          </div>
-        
-        
-          
-            
-              <div class="relative mr-2 w-8 h-8 inline-flex items-center justify-center text-xl hover:bg-gray-200 transition-fast dark:hover:bg-gray-600 wechat">
-                <i class="ri-wechat-line"></i>
-                <img src="/media/images/custom-wechat.jpeg" alt="" class="absolute left-0 w-32" style="max-width: initial; top: 100%;" >
-              </div>
-            
-          
-        
-          
-            
-              <a href="mailto:yao_177@yeah.net" target="_blank" class="mr-2 w-8 h-8 inline-flex items-center justify-center text-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-fast">
-                <i class="ri-mail-line"></i>
-              </a>
-            
-          
-        
-          
-            
-              <a href="https://github.com/yao177" target="_blank" class="mr-2 w-8 h-8 inline-flex items-center justify-center text-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-fast">
-                <i class="ri-github-line"></i>
-              </a>
-            
-          
-        
-          
-        
-          
-        
-          
-            
-              <a href="https://www.zhihu.com/people/yao-zi-73-1" target="_blank" class="mr-2 w-8 h-8 inline-flex items-center justify-center text-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-fast">
-                <i class="ri-zhihu-line"></i>
-              </a>
-            
-          
-        
-          
-        
-          
-        
-          
-        
-          
-        
-          
-        
-          
-        
-      </div>
-    
-  </div>
-  <div class="md:mx-8 flex-shrink-0 self-start rounded-full border-4 border-dotted border-transparent hover:border-yellow-50 p-2 w-32 h-32 order-1 md:order-2 mx-auto s3-dotted">
-    <img class="rounded-full object-cover" src="https://yao177.github.io/images/avatar.png?v=1600159931371" alt="York Zhang" width="100%" height="100%">
-  </div>
-</header>
+        <a href="/" class="menu">
+          首页
+        </a>
       
-
-      <div class="shadow-box bg-white dark:bg-gray-600 border-gray-300 rounded-none md:rounded-lg -mx-1 md:mx-0 md:px-0">
-        
-  <div class="p-8 border-b border-gray-200 dark:border-gray-700 flex relative overflow-hidden flex-col md:flex-row animated fadeIn">
     
-      <i class="ri-star-line text-orange-200 absolute text-2xl left-0 ml-1 rotate-90"></i>
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
     
-    <div class="flex-1 order-2 md:order-1">
-      <h2 class="text-2xl font-semibold mb-4">
-        <a href="https://yao177.github.io/post/about/" class="text-gray-700 dark:text-gray-200 border-b-2 border-dotted border-gray-200 dark:border-gray-400 dark:hover:border-gray-200 hover:border-gray-600 transition-all duration-100">
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
           关于
         </a>
-      </h2>
-      <div class="mb-4 text-xs text-gray-500">08-26-2020</div>
-      <div class="mb-4 text-gray-500 dark:text-gray-300">
-        
-欢迎来到我的小站呀，很高兴遇见你！🤝
-
-🏠 关于本站
-本数字域名201021的含义是，三进制的520（哈哈，没想到吧！
-👨‍💻 博主是谁
-我是 York Zhang，目前是一名帝都搬砖码农
-⛹ 兴趣爱好
-游泳🏊‍♀️书法✍️
-�...
-      </div>
-      <a href="https://yao177.github.io/post/about/" class="btn">
-        Read more
-      </a>
-    </div>
+      
     
   </div>
-
-  <div class="p-8 border-b border-gray-200 dark:border-gray-700 flex relative overflow-hidden flex-col md:flex-row animated fadeIn">
+  <div class="social-container">
     
-    <div class="flex-1 order-2 md:order-1">
-      <h2 class="text-2xl font-semibold mb-4">
-        <a href="https://yao177.github.io/post/integer-zai-hashset-wei-he-you-xu/" class="text-gray-700 dark:text-gray-200 border-b-2 border-dotted border-gray-200 dark:border-gray-400 dark:hover:border-gray-200 hover:border-gray-600 transition-all duration-100">
-          Integer 在 HashSet 为何“有序”
+      
+        <a href="https://github.com/yao177" target="_blank">
+          <i class="ri-github-line"></i>
         </a>
-      </h2>
-      <div class="mb-4 text-xs text-gray-500">09-15-2020</div>
-      <div class="mb-4 text-gray-500 dark:text-gray-300">
-        现象
-今天试着把 Integer 作为 key 添加进 HashSet，居然……
-import java.util.*;
+      
+    
+      
+    
+      
+    
+      
+        <a href="https://www.zhihu.com/people/yao-zi-73-1" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+    
+  </div>
+</div>
+
+    
+        <div class="post-container">
   
-public class HashSetDemo {
-    public static void main(S...
-      </div>
-      <a href="https://yao177.github.io/post/integer-zai-hashset-wei-he-you-xu/" class="btn">
-        Read more
+    <article class="post">
+      <a href="https://yao177.github.io/post/about/">
+        <h2 class="post-title">关于</h2>
       </a>
-    </div>
-    
-  </div>
-
-  <div class="p-8 border-b border-gray-200 dark:border-gray-700 flex relative overflow-hidden flex-col md:flex-row animated fadeIn">
-    
-    <div class="flex-1 order-2 md:order-1">
-      <h2 class="text-2xl font-semibold mb-4">
-        <a href="https://yao177.github.io/post/hashmap-kuo-rong-shi-de-rehash-guo-cheng/" class="text-gray-700 dark:text-gray-200 border-b-2 border-dotted border-gray-200 dark:border-gray-400 dark:hover:border-gray-200 hover:border-gray-600 transition-all duration-100">
-          HashMap 扩容时的 rehash 过程
-        </a>
-      </h2>
-      <div class="mb-4 text-xs text-gray-500">09-15-2020</div>
-      <div class="mb-4 text-gray-500 dark:text-gray-300">
-        分化链表
-(e.hash &amp; oldCap) == 0的元素放在低位链表，(e.hash &amp; oldCap) != 0的元素放在高位链表；低位链表在新桶的位置和旧桶中一样，高位链表在新桶的位置是原来的位置+旧容量
-Node&...
+      <div class="post-info">
+        <span>
+          08-26-2020
+        </span>
+        <span>
+          1 min read
+        </span>
+        
+          <a href="https://yao177.github.io/tag/xlp7QuNLz/" class="post-tag">
+            # Me
+          </a>
+        
       </div>
-      <a href="https://yao177.github.io/post/hashmap-kuo-rong-shi-de-rehash-guo-cheng/" class="btn">
-        Read more
-      </a>
-    </div>
-    
-  </div>
-
-  <div class="p-8 border-b border-gray-200 dark:border-gray-700 flex relative overflow-hidden flex-col md:flex-row animated fadeIn">
-    
-    <div class="flex-1 order-2 md:order-1">
-      <h2 class="text-2xl font-semibold mb-4">
-        <a href="https://yao177.github.io/post/shi-yan-new-arraylist0-chu-shi-hua/" class="text-gray-700 dark:text-gray-200 border-b-2 border-dotted border-gray-200 dark:border-gray-400 dark:hover:border-gray-200 hover:border-gray-600 transition-all duration-100">
-          试验 new ArrayList(0) 初始化
-        </a>
-      </h2>
-      <div class="mb-4 text-xs text-gray-500">09-15-2020</div>
-      <div class="mb-4 text-gray-500 dark:text-gray-300">
-        只知道 new ArrayList(0) 的不同点在于 new ArrayList() 在添加第一个元素时会初始化为 10 个空间，但只知晓前者的概念，而我又想探究一下到底如何扩容
-正好最近刚学习了反射，就用反射来看一下 elementDa...
+      
+      <div class="post-abstract">
+        
       </div>
-      <a href="https://yao177.github.io/post/shi-yan-new-arraylist0-chu-shi-hua/" class="btn">
-        Read more
+    </article>
+  
+    <article class="post">
+      <a href="https://yao177.github.io/post/integer-zai-hashset-wei-he-you-xu/">
+        <h2 class="post-title">Integer 在 HashSet 为何“有序”</h2>
       </a>
-    </div>
-    
-  </div>
-
-  <div class="p-8 border-b border-gray-200 dark:border-gray-700 flex relative overflow-hidden flex-col md:flex-row animated fadeIn">
-    
-    <div class="flex-1 order-2 md:order-1">
-      <h2 class="text-2xl font-semibold mb-4">
-        <a href="https://yao177.github.io/post/arraylist-kuo-rong-can-shu-wei-shi-me-shi-15/" class="text-gray-700 dark:text-gray-200 border-b-2 border-dotted border-gray-200 dark:border-gray-400 dark:hover:border-gray-200 hover:border-gray-600 transition-all duration-100">
-          ArrayList 扩容参数为什么是 1.5
-        </a>
-      </h2>
-      <div class="mb-4 text-xs text-gray-500">09-15-2020</div>
-      <div class="mb-4 text-gray-500 dark:text-gray-300">
-        结论
-实际上比较好的扩容参数就是 JDK 1.8 中的 1.5
-理论上最好的扩容参数为黄金分割率 1.618（1+12(1+5)1+\frac{1}{2}(1+\sqrt{5})1+21​(1+5​)）
-为什么
-扩容参数为 (1, 2) 之...
+      <div class="post-info">
+        <span>
+          09-15-2020
+        </span>
+        <span>
+          3 min read
+        </span>
+        
+          <a href="https://yao177.github.io/tag/tB5cQv6NA/" class="post-tag">
+            # Java Basic
+          </a>
+        
       </div>
-      <a href="https://yao177.github.io/post/arraylist-kuo-rong-can-shu-wei-shi-me-shi-15/" class="btn">
-        Read more
-      </a>
-    </div>
-    
-  </div>
-
-  <div class="p-8 border-b border-gray-200 dark:border-gray-700 flex relative overflow-hidden flex-col md:flex-row animated fadeIn">
-    
-    <div class="flex-1 order-2 md:order-1">
-      <h2 class="text-2xl font-semibold mb-4">
-        <a href="https://yao177.github.io/post/close-relationship-tricks/" class="text-gray-700 dark:text-gray-200 border-b-2 border-dotted border-gray-200 dark:border-gray-400 dark:hover:border-gray-200 hover:border-gray-600 transition-all duration-100">
-          「亲密关系」中的一些重要结论
-        </a>
-      </h2>
-      <div class="mb-4 text-xs text-gray-500">09-02-2020</div>
-      <div class="mb-4 text-gray-500 dark:text-gray-300">
-        “对未来伴侣的期望值 = 伴侣的外表吸引力 × 伴侣接纳自己的可能性（自己的适配价值）”
-“真正有用的是选择性地故作清高——也就是说，除了你想吸引的人之外，任何人想要得到你都是可望而不可即的（Walster et al.，1973）。那些能...
+      
+      <div class="post-abstract">
+        
       </div>
-      <a href="https://yao177.github.io/post/close-relationship-tricks/" class="btn">
-        Read more
+    </article>
+  
+    <article class="post">
+      <a href="https://yao177.github.io/post/hashmap-kuo-rong-shi-de-rehash-guo-cheng/">
+        <h2 class="post-title">HashMap 扩容时的 rehash 过程</h2>
       </a>
-    </div>
-    
-  </div>
-
-  <div class="p-8 border-b border-gray-200 dark:border-gray-700 flex relative overflow-hidden flex-col md:flex-row animated fadeIn">
-    
-    <div class="flex-1 order-2 md:order-1">
-      <h2 class="text-2xl font-semibold mb-4">
-        <a href="https://yao177.github.io/post/close-relationship/" class="text-gray-700 dark:text-gray-200 border-b-2 border-dotted border-gray-200 dark:border-gray-400 dark:hover:border-gray-200 hover:border-gray-600 transition-all duration-100">
-          《亲密关系》
-        </a>
-      </h2>
-      <div class="mb-4 text-xs text-gray-500">09-01-2020</div>
-      <div class="mb-4 text-gray-500 dark:text-gray-300">
+      <div class="post-info">
+        <span>
+          09-15-2020
+        </span>
+        <span>
+          2 min read
+        </span>
+        
+          <a href="https://yao177.github.io/tag/tB5cQv6NA/" class="post-tag">
+            # Java Basic
+          </a>
+        
+      </div>
+      
+      <div class="post-abstract">
+        
+      </div>
+    </article>
+  
+    <article class="post">
+      <a href="https://yao177.github.io/post/shi-yan-new-arraylist0-chu-shi-hua/">
+        <h2 class="post-title">试验 new ArrayList(0) 初始化</h2>
+      </a>
+      <div class="post-info">
+        <span>
+          09-15-2020
+        </span>
+        <span>
+          2 min read
+        </span>
+        
+          <a href="https://yao177.github.io/tag/tB5cQv6NA/" class="post-tag">
+            # Java Basic
+          </a>
+        
+      </div>
+      
+      <div class="post-abstract">
+        
+      </div>
+    </article>
+  
+    <article class="post">
+      <a href="https://yao177.github.io/post/arraylist-kuo-rong-can-shu-wei-shi-me-shi-15/">
+        <h2 class="post-title">ArrayList 扩容参数为什么是 1.5</h2>
+      </a>
+      <div class="post-info">
+        <span>
+          09-15-2020
+        </span>
+        <span>
+          3 min read
+        </span>
+        
+          <a href="https://yao177.github.io/tag/tB5cQv6NA/" class="post-tag">
+            # Java Basic
+          </a>
+        
+      </div>
+      
+      <div class="post-abstract">
+        
+      </div>
+    </article>
+  
+    <article class="post">
+      <a href="https://yao177.github.io/post/close-relationship-tricks/">
+        <h2 class="post-title">「亲密关系」中的一些重要结论</h2>
+      </a>
+      <div class="post-info">
+        <span>
+          09-02-2020
+        </span>
+        <span>
+          2 min read
+        </span>
+        
+          <a href="https://yao177.github.io/tag/BDt7N-7R_/" class="post-tag">
+            # Love
+          </a>
+        
+      </div>
+      
+      <div class="post-abstract">
+        
+      </div>
+    </article>
+  
+    <article class="post">
+      <a href="https://yao177.github.io/post/close-relationship/">
+        <h2 class="post-title">《亲密关系》</h2>
+      </a>
+      <div class="post-info">
+        <span>
+          09-01-2020
+        </span>
+        <span>
+          3 min read
+        </span>
+        
+          <a href="https://yao177.github.io/tag/BDt7N-7R_/" class="post-tag">
+            # Love
+          </a>
+        
+      </div>
+      
+      <div class="post-abstract">
         <p>最近想对广义上的男女之事有个更深入的了解，便开始拜读《亲密关系》这本书，记录了一些内容。</p>
 
       </div>
-      <a href="https://yao177.github.io/post/close-relationship/" class="btn">
-        Read more
-      </a>
-    </div>
-    
-  </div>
-
-  <div class="p-8 border-b border-gray-200 dark:border-gray-700 flex relative overflow-hidden flex-col md:flex-row animated fadeIn">
-    
-    <div class="flex-1 order-2 md:order-1">
-      <h2 class="text-2xl font-semibold mb-4">
-        <a href="https://yao177.github.io/post/bypass-network-verification-by-using-53-port/" class="text-gray-700 dark:text-gray-200 border-b-2 border-dotted border-gray-200 dark:border-gray-400 dark:hover:border-gray-200 hover:border-gray-600 transition-all duration-100">
-          利用53端口绕过网络验证
-        </a>
-      </h2>
-      <div class="mb-4 text-xs text-gray-500">01-01-2018</div>
-      <div class="mb-4 text-gray-500 dark:text-gray-300">
-        利用53端口免验证使用DLUT-EDA&amp;wired-network &amp;&amp; 科学上网
-
-原理：
-通过dns_port:53端口免验证上网
-
-仅供测试，请在24小时内停止使用！
-
-
-绕过计费登陆系统
-
-高校通常开放53端...
-      </div>
-      <a href="https://yao177.github.io/post/bypass-network-verification-by-using-53-port/" class="btn">
-        Read more
-      </a>
-    </div>
-    
-  </div>
+    </article>
   
+    <article class="post">
+      <a href="https://yao177.github.io/post/bypass-network-verification-by-using-53-port/">
+        <h2 class="post-title">利用53端口绕过网络验证</h2>
+      </a>
+      <div class="post-info">
+        <span>
+          01-01-2018
+        </span>
+        <span>
+          3 min read
+        </span>
+        
+          <a href="https://yao177.github.io/tag/itE_k3EuY/" class="post-tag">
+            # Net
+          </a>
+        
       </div>
-
       
-      <footer class="py-12 text-center px-4 md:px-0" v-pre>
+      <div class="post-abstract">
+        
+      </div>
+    </article>
+  
+</div>
+
+    
+        <div class="pagination-container">
+  
+  
+</div>
+
+    
+        <div class="site-footer">
   <b>York</b>'s home | wish you a nice day!
-</footer>
+  <a class="rss" href="https://yao177.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
 
+      </div>
     </div>
-  </div>
-  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-  <script src="https://yao177.github.io/media/scripts/main.js"></script>
-</body>
-
+  </body>
 </html>
