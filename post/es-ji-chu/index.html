@@ -1,0 +1,379 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ES 基础 | York Zhang</title>
+<link rel="shortcut icon" href="https://yao177.github.io/favicon.ico?v=1600164064198">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yao177.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="ES 基础 | York Zhang - Atom Feed" href="https://yao177.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="Elasticsearch Reference
+安装
+curl -L -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.3.3.tar.gz
+ta..." />
+    <meta name="keywords" content="Database" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yao177.github.io">
+  <img class="avatar" src="https://yao177.github.io/images/avatar.png?v=1600164064198" alt="">
+  </a>
+  <h1 class="site-title">
+    York Zhang
+  </h1>
+  <p class="site-description">
+    <b>E</b>·rror = <b>m</b>·ore * <b>c²</b>·ode
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/yao177" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+    
+      
+    
+      
+        <a href="https://www.zhihu.com/people/yao-zi-73-1" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              ES 基础
+            </h2>
+            <div class="post-info">
+              <span>
+                09-15-2020
+              </span>
+              <span>
+                5 min read
+              </span>
+              
+                <a href="https://yao177.github.io/tag/bCBmUE6wN/" class="post-tag">
+                  # Database
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <p><a href="https://www.elastic.co/guide/en/elasticsearch/reference/5.1/index.html">Elasticsearch Reference</a></p>
+<h1 id="安装">安装</h1>
+<pre><code class="language-bash">curl -L -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.3.3.tar.gz
+tar -xvf elasticsearch-5.3.3.tar.gz
+cd elasticsearch-5.3.3/bin
+./elasticsearch
+</code></pre>
+<p>当看到 &quot;[node_name] started&quot;，代表 node 已经启动了</p>
+<h1 id="使用">使用</h1>
+<p>node -&gt; indice -&gt; document</p>
+<p>ES 使用 RESTful API 的风格进行操作</p>
+<pre><code class="language-bash">curl -X &lt;action&gt; '&lt;protocol&gt;://:/?&lt;query_string&gt;' -H'&lt;content_type&gt;' -d'&lt;body&gt;'
+</code></pre>
+<p><action> 主要有 GET、PUT、POST、DELETE</p>
+<p><protocol> 服务器 IP/domain+port</p>
+<p>&lt;query_string&gt; 查询语句</p>
+<p>&lt;content_type&gt; 主要是 json 格式</p>
+<body> 一个 json 字符串
+<pre><code class="language-bash"># example
+curl -X PUT &quot;localhost:9200/customer/external/1?pretty&amp;pretty&quot; -H 'Content-Type: application/json' -d'
+{ &quot;name&quot;: &quot;John Doe&quot;
+}
+'
+</code></pre>
+<h2 id="看">看</h2>
+<h3 id="查看节点">查看节点</h3>
+<pre><code class="language-bash">curl -X GET &quot;localhost:9200/_cat/nodes?v&amp;pretty&quot;
+</code></pre>
+<ul>
+<li>green：完全正常，有备份</li>
+<li>yellow：单机状态，可以使用（one node, no replica）</li>
+<li>red：存在故障</li>
+</ul>
+<h3 id="查看索引">查看索引</h3>
+<pre><code class="language-bash">curl -X GET &quot;localhost:9200/_cat/indices?v&amp;pretty&quot;
+</code></pre>
+<h3 id="查看数据">查看数据</h3>
+<p>indice + id</p>
+<pre><code class="language-bash">curl -X GET &quot;localhost:9200/&lt;indice_name&gt;/external/&lt;id&gt;?pretty&amp;pretty&quot;
+</code></pre>
+<h2 id="增">增</h2>
+<h3 id="创建索引">创建索引</h3>
+<pre><code class="language-bash">curl -X PUT &quot;localhost:9200/&lt;indice_name&gt;?pretty&amp;pretty&quot;
+</code></pre>
+<h3 id="存入数据">存入数据</h3>
+<p>indice + id + json</p>
+<pre><code class="language-bash">curl -X PUT &quot;localhost:9200/&lt;indice_name&gt;/external/&lt;id&gt;?pretty&amp;pretty&quot; -H 'Content-Type: application/json' -d'
+{ &quot;name&quot;: &quot;John Doe&quot;
+}
+'
+</code></pre>
+<p>无索引的话 es 会自动生成一个</p>
+<h2 id="删">删</h2>
+<h3 id="删除索引">删除索引</h3>
+<pre><code class="language-bash">curl -X DELETE &quot;localhost:9200/&lt;indice_name&gt;?pretty&amp;pretty&quot;
+</code></pre>
+<h3 id="删除数据">删除数据</h3>
+<p>indice + id</p>
+<pre><code class="language-bash">curl -X DELETE &quot;localhost:9200/&lt;indice_name&gt;/external/&lt;id&gt;?pretty&amp;pretty&quot;
+</code></pre>
+<p>也可使用 delete_by_query API</p>
+<h2 id="改">改</h2>
+<h3 id="修改替换值">修改/替换值</h3>
+<pre><code class="language-bash">curl -X POST &quot;localhost:9200/&lt;indice_name&gt;/external/1/_update?pretty&amp;pretty&quot; -H 'Content-Type: application/json' -d'
+{ &quot;doc&quot;: { &quot;name&quot;: &quot;Jane Doe&quot; }
+}
+'
+</code></pre>
+<p>PUT 也可</p>
+<h3 id="增加-field">增加 field</h3>
+<pre><code class="language-bash">curl -X POST &quot;localhost:9200/customer/external/1/_update?pretty&amp;pretty&quot; -H 'Content-Type: application/json' -d'
+{ &quot;doc&quot;: { &quot;name&quot;: &quot;Jane Doe&quot;, &quot;age&quot;: 20 }
+}
+'
+</code></pre>
+<h3 id="使用-script-修改">使用 script 修改</h3>
+<pre><code class="language-bash">curl -X POST &quot;localhost:9200/customer/external/1/_update?pretty&amp;pretty&quot; -H 'Content-Type: application/json' -d'
+{ &quot;script&quot; : &quot;ctx._source.age += 5&quot;
+}
+'
+</code></pre>
+<h2 id="查">查</h2>
+<h3 id="使用-_bulk-批量操作">使用 _bulk 批量操作</h3>
+<p>POST <indice>/doc/_bulk</p>
+<p>错误不会暂停，返回每个操作的成功与否</p>
+<pre><code class="language-bash">curl -X POST &quot;localhost:9200/customer/external/_bulk?pretty&amp;pretty&quot; -H 'Content-Type: application/json' -d'
+{&quot;index&quot;:{&quot;_id&quot;:&quot;1&quot;}}
+{&quot;name&quot;: &quot;John Doe&quot; }
+{&quot;index&quot;:{&quot;_id&quot;:&quot;2&quot;}}
+{&quot;name&quot;: &quot;Jane Doe&quot; }
+'
+</code></pre>
+<h3 id="_search-查询接口">_search 查询接口</h3>
+<p>GET <indice>/_search</p>
+<ul>
+<li>sort：排序输出</li>
+<li>分页：from + size</li>
+<li>_source：返回指定字段</li>
+<li>must == &amp;，should == |，同理 not，且可嵌套</li>
+</ul>
+<h3 id="query-dsl">Query DSL</h3>
+<p>匹配用</p>
+<ul>
+<li>match_all</li>
+<li>match</li>
+</ul>
+<p>计算出 score（匹配度）也就是相关度</p>
+<pre><code class="language-bash">curl -X GET &quot;localhost:9200/bank/_search?pretty&quot; -H 'Content-Type: application/json' -d'
+{ &quot;query&quot;: { &quot;bool&quot;: { &quot;must&quot;: [ { &quot;match&quot;: { &quot;address&quot;: &quot;mill lane&quot; } } ] } }
+}
+'
+</code></pre>
+<h3 id="filter-dsl">Filter DSL</h3>
+<p>筛选用，速度快效率高，可复用</p>
+<pre><code class="language-bash">curl -X GET &quot;localhost:9200/bank/_search?pretty&quot; -H 'Content-Type: application/json' -d'
+{ &quot;query&quot;: { &quot;bool&quot;: { &quot;filter&quot;: [ { &quot;match&quot;: { &quot;address&quot;: &quot;mill lane&quot; } } ] } }
+}
+'
+</code></pre>
+<h3 id="agg-聚合搜索">agg 聚合搜索</h3>
+<p>类似 group by，可嵌套</p>
+<p>排序在 agg 里进行实现</p>
+<pre><code class="language-bash">PUT /ecommerce/_mapping/product
+{ &quot;properties&quot;: { &quot;tags&quot;:{ &quot;type&quot;: &quot;text&quot;, &quot;fielddata&quot;: true } }
+}
+GET /ecommerce/product/_search
+{ &quot;size&quot;: 0, &quot;aggs&quot;: { &quot;all_tags&quot;: { &quot;terms&quot;: { &quot;field&quot;: &quot;tags&quot;, &quot;order&quot;: { &quot;avg_price&quot;: &quot;asc&quot; } }, &quot;aggs&quot;: { &quot;avg_price&quot;: { &quot;avg&quot;: { &quot;field&quot;: &quot;price&quot; } } } } }
+}
+</code></pre>
+<p>tag 需要先自定义 fielddata / keyword</p>
+<p>在 order 里进行排序，asc/desc</p>
+<p>可实现「分组-统计-排序」</p>
+<h1 id="解惑">解惑</h1>
+<h2 id="version-的作用">version 的作用</h2>
+<ul>
+<li><s>保留历史记录</s></li>
+<li><s>版本控制</s></li>
+<li>解决数据冲突——乐观锁（更新时判断数据有没有被修改，即无锁）</li>
+</ul>
+<p>通过**「引用计数」**解决 CAS（内存位置值 == 预期原值 ? 更新值 : 不操作）机制导致的 ABA（值更改后再变回原值）问题（还可以使用时间戳）。</p>
+<h2 id="多种查询语句">多种查询语句</h2>
+<ul>
+<li>match：分词后模糊搜索</li>
+<li>term：不分词，精确查找</li>
+<li>match_phase：包含所有分词 + 顺序一致</li>
+<li>query_string：所有字段进行 match</li>
+</ul>
+<h2 id="agg-聚合搜索后排序">agg 聚合搜索后排序</h2>
+<p>排序选项在 agg 内：&quot;order&quot;</p>
+<p>ElasticSearch</p>
+<p>ElasticSearch</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E5%AE%89%E8%A3%85">安装</a></li>
+<li><a href="#%E4%BD%BF%E7%94%A8">使用</a>
+<ul>
+<li><a href="#%E7%9C%8B">看</a>
+<ul>
+<li><a href="#%E6%9F%A5%E7%9C%8B%E8%8A%82%E7%82%B9">查看节点</a></li>
+<li><a href="#%E6%9F%A5%E7%9C%8B%E7%B4%A2%E5%BC%95">查看索引</a></li>
+<li><a href="#%E6%9F%A5%E7%9C%8B%E6%95%B0%E6%8D%AE">查看数据</a></li>
+</ul>
+</li>
+<li><a href="#%E5%A2%9E">增</a>
+<ul>
+<li><a href="#%E5%88%9B%E5%BB%BA%E7%B4%A2%E5%BC%95">创建索引</a></li>
+<li><a href="#%E5%AD%98%E5%85%A5%E6%95%B0%E6%8D%AE">存入数据</a></li>
+</ul>
+</li>
+<li><a href="#%E5%88%A0">删</a>
+<ul>
+<li><a href="#%E5%88%A0%E9%99%A4%E7%B4%A2%E5%BC%95">删除索引</a></li>
+<li><a href="#%E5%88%A0%E9%99%A4%E6%95%B0%E6%8D%AE">删除数据</a></li>
+</ul>
+</li>
+<li><a href="#%E6%94%B9">改</a>
+<ul>
+<li><a href="#%E4%BF%AE%E6%94%B9%E6%9B%BF%E6%8D%A2%E5%80%BC">修改/替换值</a></li>
+<li><a href="#%E5%A2%9E%E5%8A%A0-field">增加 field</a></li>
+<li><a href="#%E4%BD%BF%E7%94%A8-script-%E4%BF%AE%E6%94%B9">使用 script 修改</a></li>
+</ul>
+</li>
+<li><a href="#%E6%9F%A5">查</a>
+<ul>
+<li><a href="#%E4%BD%BF%E7%94%A8-_bulk-%E6%89%B9%E9%87%8F%E6%93%8D%E4%BD%9C">使用 _bulk 批量操作</a></li>
+<li><a href="#_search-%E6%9F%A5%E8%AF%A2%E6%8E%A5%E5%8F%A3">_search 查询接口</a></li>
+<li><a href="#query-dsl">Query DSL</a></li>
+<li><a href="#filter-dsl">Filter DSL</a></li>
+<li><a href="#agg-%E8%81%9A%E5%90%88%E6%90%9C%E7%B4%A2">agg 聚合搜索</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#%E8%A7%A3%E6%83%91">解惑</a>
+<ul>
+<li><a href="#version-%E7%9A%84%E4%BD%9C%E7%94%A8">version 的作用</a></li>
+<li><a href="#%E5%A4%9A%E7%A7%8D%E6%9F%A5%E8%AF%A2%E8%AF%AD%E5%8F%A5">多种查询语句</a></li>
+<li><a href="#agg-%E8%81%9A%E5%90%88%E6%90%9C%E7%B4%A2%E5%90%8E%E6%8E%92%E5%BA%8F">agg 聚合搜索后排序</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yao177.github.io/post/integer-zai-hashset-wei-he-you-xu/">
+              <h3 class="post-title">
+                Integer 在 HashSet 为何“有序”
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  <b>York</b>'s home | wish you a nice day!
+  <a class="rss" href="https://yao177.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>
