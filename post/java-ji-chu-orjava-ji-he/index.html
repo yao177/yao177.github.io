@@ -1,0 +1,456 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Java 基础｜Java 集合 | York Zhang</title>
+<link rel="shortcut icon" href="https://yao177.github.io/favicon.ico?v=1600225474608">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yao177.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Java 基础｜Java 集合 | York Zhang - Atom Feed" href="https://yao177.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="总述
+
+Collection
+
+List：有序可重
+
+LinkedList
+ArrayList
+
+
+Set：不可重
+
+HashSet：无序；类 HashMap
+LinkedHashSet：有序；类 LinkedHashMap
+TreeSet..." />
+    <meta name="keywords" content="Java Basic" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yao177.github.io">
+  <img class="avatar" src="https://yao177.github.io/images/avatar.png?v=1600225474608" alt="">
+  </a>
+  <h1 class="site-title">
+    York Zhang
+  </h1>
+  <p class="site-description">
+    <b>E</b>·rror = <b>m</b>·ore * <b>c²</b>·ode
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/yao177" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+    
+      
+    
+      
+        <a href="https://www.zhihu.com/people/yao-zi-73-1" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Java 基础｜Java 集合
+            </h2>
+            <div class="post-info">
+              <span>
+                09-15-2020
+              </span>
+              <span>
+                6 min read
+              </span>
+              
+                <a href="https://yao177.github.io/tag/tB5cQv6NA/" class="post-tag">
+                  # Java Basic
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h1 id="总述">总述</h1>
+<ul>
+<li><em>Collection</em>
+<ul>
+<li><em>List</em>：有序可重
+<ul>
+<li><em>LinkedList</em></li>
+<li><em>ArrayList</em></li>
+</ul>
+</li>
+<li><em>Set</em>：不可重
+<ul>
+<li><em>HashSet</em>：无序；类 HashMap</li>
+<li><em>LinkedHashSet</em>：有序；类 LinkedHashMap</li>
+<li><em>TreeSet</em>：无序；类 TreeMap</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><em>Map</em>：不可重
+<ul>
+<li><em>HashMap</em>：无序</li>
+<li><em>LinkedHashMap</em>：有序</li>
+<li><em>TreeMap</em>：无序</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h1 id="单独详解">单独详解</h1>
+<h2 id="linkedlist">LinkedList</h2>
+<figure data-type="image" tabindex="1"><img src="https://yao177.github.io/post-images/1600164949835.png" alt="LinkedList 类图" loading="lazy"></figure>
+<h3 id="基本介绍">基本介绍</h3>
+<ol>
+<li>双向链表，头尾双指针</li>
+<li>队列使用：头进尾出，FIFO；栈使用：头进头出，FILO</li>
+<li>无限扩容</li>
+<li>功能上类似 ArrayList + ArrayDeque</li>
+</ol>
+<h3 id="是否有虚拟头节点">是否有虚拟头节点？</h3>
+<ol>
+<li>无</li>
+<li>添加和删除时会判断是否为唯一节点</li>
+</ol>
+<h3 id="反转链表操作">反转链表操作</h3>
+<ol>
+<li>
+<p>递归，空间复杂度 O(1)</p>
+<pre><code class="language-java">public ListNode Reverse(ListNode list) {
+    if (list == null) return null; // first question
+
+    if (list.next == null) return list; // second question
+
+    // third question - in Lisp this is easy, but we don't have cons
+    // so we grab the second element (which will be the last after we reverse it)
+
+    ListNode secondElem = list.next;
+
+    // bug fix - need to unlink list from the rest or you will get a cycle
+    list.next = null;
+
+    // then we reverse everything from the second element on
+    ListNode reverseRest = Reverse(secondElem);
+
+    // then we join the two lists
+    secondElem.Next = list;
+
+    return reverseRest;
+}
+</code></pre>
+</li>
+<li>
+<p>双指针</p>
+</li>
+<li>
+<p>当成栈，推入另一个栈，空间复杂度 O(N)</p>
+</li>
+</ol>
+<h3 id="时间复杂度">时间复杂度</h3>
+<ul>
+<li>随机访问：O(N)</li>
+<li>查找：O(N)</li>
+<li>插入删除
+<ul>
+<li>头尾：O(1)</li>
+<li>中部：O(N)</li>
+</ul>
+</li>
+</ul>
+<h2 id="arraylist">ArrayList</h2>
+<figure data-type="image" tabindex="2"><img src="https://yao177.github.io/post-images/1600164973242.png" alt="ArrayList 类图" loading="lazy"></figure>
+<h3 id="基本介绍-2">基本介绍</h3>
+<ol>
+<li>较普通数组来讲，具有动态扩展的能力，因此也可称之为「动态数组」</li>
+<li>默认长度为 10，扩容每次是 1.5 倍（<code>oldCapacity + (oldCapacity &gt;&gt; 1)</code>）</li>
+<li>删除元素不会缩容，最后一位置 <code>nul</code>便于 GC 回收</li>
+<li>并集<code>addAll()</code>，交集<code>retainAll()</code>，单向差集<code>removeAll()</code></li>
+</ol>
+<h3 id="初始化">初始化</h3>
+<ul>
+<li>new ArrayList()：从 10 开始，逐步扩容</li>
+<li>new ArrayList(0)：从 0 开始，到 1，逐步扩容</li>
+</ul>
+<h3 id="如何插入元素如何扩容">如何插入元素？如何扩容</h3>
+<ol>
+<li>检查是否需要扩容</li>
+<li><code>elementData</code>为<code>DEFAULTCAPACITY_EMPTY_ELEMENTDATA</code>则初始化容量为<code>DEFAULT_CAPACITY</code>也就是 10</li>
+<li>新容量是老容量的1.5倍（<code>oldCapacity + (oldCapacity &gt;&gt; 1)</code>）；如果加了这么多容量发现比需要的容量还小，则以需要的容量为准；如果超过新容量超过最大容量，则使用最大容量</li>
+<li>创建新容量的数组并把老数组拷贝到新数组</li>
+</ol>
+<p>PS：有个注意点，扩容函数传入的是 oldCap + 1，保证了数组大小小于 2 的情况下不会不扩容</p>
+<h2 id="hashset">HashSet</h2>
+<figure data-type="image" tabindex="3"><img src="https://yao177.github.io/post-images/1600165004129.png" alt="HashSet 类图" loading="lazy"></figure>
+<p>一个 HashMap，key 为值、value 为<code>PRESENT</code></p>
+<h2 id="linkedhashset">LinkedHashSet</h2>
+<p>一个 LinkedHashMap，key 为值、value 为<code>PRESENT</code></p>
+<h2 id="treeset">TreeSet</h2>
+<p>一个 TreeMap，key 为值、value 为<code>PRESENT</code></p>
+<h2 id="hashmap">HashMap</h2>
+<figure data-type="image" tabindex="4"><img src="https://yao177.github.io/post-images/1600165019290.png" alt="HashMap 类图" loading="lazy"></figure>
+<h3 id="基本介绍-3">基本介绍</h3>
+<ol>
+<li>key-value 存储结构，数组 + 链表 + 红黑树的结构</li>
+<li>查询和修改速度很快，能达到 O(1) 的平均时间复杂度</li>
+<li>容量为数组长度，默认 16，最大为 2^30，达到 64 时可以树化；装载因子用来计算容量达到多少时进行扩容，默认装载因子为 0.75</li>
+<li>数组容量≥64 &amp; 链表长度≥8 进行树化，链表长度≤6 时反树化</li>
+</ol>
+<h3 id="节点">节点</h3>
+<ul>
+<li>
+<p>链表节点<code>Node</code></p>
+<pre><code class="language-java">static class Node&lt;K,V&gt; implements Map.Entry&lt;K,V&gt; {
+    final int hash;
+    final K key;
+    V value;
+    Node&lt;K,V&gt; next;
+}
+</code></pre>
+</li>
+<li>
+<p>红黑树节点<code>TreeNode</code></p>
+<pre><code class="language-java">// 位于HashMap中
+static final class TreeNode&lt;K,V&gt; extends LinkedHashMap.Entry&lt;K,V&gt; {
+    TreeNode&lt;K,V&gt; parent;  // red-black tree links
+    TreeNode&lt;K,V&gt; left;
+    TreeNode&lt;K,V&gt; right;
+    TreeNode&lt;K,V&gt; prev;    // needed to unlink next upon deletion
+    boolean red;
+}
+
+// 位于LinkedHashMap中，典型的双向链表节点
+static class Entry&lt;K,V&gt; extends HashMap.Node&lt;K,V&gt; {
+    Entry&lt;K,V&gt; before, after;
+    Entry(int hash, K key, V value, Node&lt;K,V&gt; next) {
+        super(hash, key, value, next);
+    }
+}
+</code></pre>
+</li>
+</ul>
+<h3 id="hash-过程">Hash 过程</h3>
+<p>key 为 null，hash 值为 0</p>
+<p>高 16 位与整个 hash 值异或，为了使计算出的 hash 更分散</p>
+<p><code>n % k == n &amp; (k - 1)</code></p>
+<p>解决 hash 冲突的办法是「拉链法」，而 Java 的 ThreadLocalMap、Python 的 dict 则使用了开放寻址法</p>
+<h3 id="插入节点过程">插入节点过程</h3>
+<ol>
+<li>计算 key 的 hash</li>
+<li>桶数量为 0，则初始化桶</li>
+<li>三种情况
+<ol>
+<li>key 所在桶无元素，直接插入</li>
+<li>key 所在桶的第一个元素的 key 与待插入的 key 相同，说明找到了元素，转到「5」</li>
+<li>第一个元素为树节点，调用<code>putTreeVal()</code></li>
+</ol>
+</li>
+<li>不是这三种情况，则遍历桶对应的链表查找 key 是否存在
+<ol>
+<li>找到了对应 key 的元素，转到「5」</li>
+<li>没找到对应 key 的元素，则在链表最后插入一个新节点并判断是否需要树化</li>
+</ol>
+</li>
+<li>找到了对应 key 的元素，则判断是否需要替换旧值，并直接返回旧值</li>
+<li>如果插入了元素，则数量 +1 并判断是否需要扩容</li>
+</ol>
+<h3 id="尾插法">尾插法</h3>
+<p>Java 7 及之前是头插法：后面的值被查找的概率更大一些</p>
+<p>尾插法：扩容分链前后链表顺序不变，保持了之前节点的引用关系，防止 1-&gt;2-&gt;1 的死链产生</p>
+<p>依旧不是线程安全的，put / get 依旧没有同步锁，会出现 ABA 的问题</p>
+<h3 id="扩容机制">扩容机制</h3>
+<p>桶为空的话，第一次加入元素时进行初始化</p>
+<p>扩容门槛为传入的初始容量往上取最近的 2^n</p>
+<p>拷贝原数组</p>
+<h2 id="linkedhashmap">LinkedHashMap</h2>
+<figure data-type="image" tabindex="5"><img src="https://yao177.github.io/post-images/1600165037900.png" alt="LinkedHashMap 类图" loading="lazy"></figure>
+<h3 id="accessorder-是什么">accessOrder 是什么</h3>
+<p>先看看在哪里使用了</p>
+<pre><code class="language-java">public V get(Object key) {
+    Node&lt;K,V&gt; e;
+    if ((e = getNode(hash(key), key)) == null)
+        return null;
+    if (accessOrder)
+        afterNodeAccess(e);
+    return e.value;
+}
+</code></pre>
+<p>看一下 <code>afterNodeAccess()</code>的代码，可以看到最大的不同就是，调用 get 方法时，都会将访问的 Node 移动到尾部，成为尾节点，也就是控制了访问顺序。</p>
+<p>因此，置为 true 后，则使用 LRU 调度算法（最近最少使用）。</p>
+<h2 id="treemap">TreeMap</h2>
+<figure data-type="image" tabindex="6"><img src="https://yao177.github.io/post-images/1600165054964.png" alt="TreeMap 类图" loading="lazy"></figure>
+<h3 id="基本介绍-4">基本介绍</h3>
+<ul>
+<li>实现了 SortedMap 接口，因此是经过排序的</li>
+<li>只使用到了红黑树，所以时间复杂度为 O(log N)</li>
+</ul>
+<h3 id="排序问题">排序问题</h3>
+<p>红黑树根据 key 进行排序，有两种方式</p>
+<ol>
+<li>key 实现 Comparable 接口</li>
+<li>构造时传入比较器</li>
+</ol>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E6%80%BB%E8%BF%B0">总述</a></li>
+<li><a href="#%E5%8D%95%E7%8B%AC%E8%AF%A6%E8%A7%A3">单独详解</a>
+<ul>
+<li><a href="#linkedlist">LinkedList</a>
+<ul>
+<li><a href="#%E5%9F%BA%E6%9C%AC%E4%BB%8B%E7%BB%8D">基本介绍</a></li>
+<li><a href="#%E6%98%AF%E5%90%A6%E6%9C%89%E8%99%9A%E6%8B%9F%E5%A4%B4%E8%8A%82%E7%82%B9">是否有虚拟头节点？</a></li>
+<li><a href="#%E5%8F%8D%E8%BD%AC%E9%93%BE%E8%A1%A8%E6%93%8D%E4%BD%9C">反转链表操作</a></li>
+<li><a href="#%E6%97%B6%E9%97%B4%E5%A4%8D%E6%9D%82%E5%BA%A6">时间复杂度</a></li>
+</ul>
+</li>
+<li><a href="#arraylist">ArrayList</a>
+<ul>
+<li><a href="#%E5%9F%BA%E6%9C%AC%E4%BB%8B%E7%BB%8D-2">基本介绍</a></li>
+<li><a href="#%E5%88%9D%E5%A7%8B%E5%8C%96">初始化</a></li>
+<li><a href="#%E5%A6%82%E4%BD%95%E6%8F%92%E5%85%A5%E5%85%83%E7%B4%A0%E5%A6%82%E4%BD%95%E6%89%A9%E5%AE%B9">如何插入元素？如何扩容</a></li>
+</ul>
+</li>
+<li><a href="#hashset">HashSet</a></li>
+<li><a href="#linkedhashset">LinkedHashSet</a></li>
+<li><a href="#treeset">TreeSet</a></li>
+<li><a href="#hashmap">HashMap</a>
+<ul>
+<li><a href="#%E5%9F%BA%E6%9C%AC%E4%BB%8B%E7%BB%8D-3">基本介绍</a></li>
+<li><a href="#%E8%8A%82%E7%82%B9">节点</a></li>
+<li><a href="#hash-%E8%BF%87%E7%A8%8B">Hash 过程</a></li>
+<li><a href="#%E6%8F%92%E5%85%A5%E8%8A%82%E7%82%B9%E8%BF%87%E7%A8%8B">插入节点过程</a></li>
+<li><a href="#%E5%B0%BE%E6%8F%92%E6%B3%95">尾插法</a></li>
+<li><a href="#%E6%89%A9%E5%AE%B9%E6%9C%BA%E5%88%B6">扩容机制</a></li>
+</ul>
+</li>
+<li><a href="#linkedhashmap">LinkedHashMap</a>
+<ul>
+<li><a href="#accessorder-%E6%98%AF%E4%BB%80%E4%B9%88">accessOrder 是什么</a></li>
+</ul>
+</li>
+<li><a href="#treemap">TreeMap</a>
+<ul>
+<li><a href="#%E5%9F%BA%E6%9C%AC%E4%BB%8B%E7%BB%8D-4">基本介绍</a></li>
+<li><a href="#%E6%8E%92%E5%BA%8F%E9%97%AE%E9%A2%98">排序问题</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yao177.github.io/post/java-ji-chu-orjava-string/">
+              <h3 class="post-title">
+                Java 基础｜Java String
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  <b>York</b>'s home | wish you a nice day!
+  <a class="rss" href="https://yao177.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

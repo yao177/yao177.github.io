@@ -2,26 +2,22 @@
   <head>
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>关于｜我是谁 | York Zhang</title>
+<title>Java 基础｜几个小疑惑 | York Zhang</title>
 <link rel="shortcut icon" href="https://yao177.github.io/favicon.ico?v=1600225474608">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://yao177.github.io/styles/main.css">
-<link rel="alternate" type="application/atom+xml" title="关于｜我是谁 | York Zhang - Atom Feed" href="https://yao177.github.io/atom.xml">
+<link rel="alternate" type="application/atom+xml" title="Java 基础｜几个小疑惑 | York Zhang - Atom Feed" href="https://yao177.github.io/atom.xml">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
 
 
 
-    <meta name="description" content="
-欢迎来到我的小站呀，很高兴遇见你！🤝
-
-🏠 关于本站
-本数字域名201021的含义是，三进制的520（哈哈，没想到吧！
-👨‍💻 博主是谁
-我是 York Zhang，目前是一名帝都搬砖码农
-⛹ 兴趣爱好
-游泳🏊‍♀️书法✍️
-�..." />
-    <meta name="keywords" content="Me" />
+    <meta name="description" content="为什么要有 Object 类？
+可以理解为一个基础的模版类，提供 hashcode()、compareTo()、toString() 等基础函数模版
+对象变量和引用的关系？
+每个对象变量都属于一个类型
+子类引用赋给超类时，OK
+超类引用赋给..." />
+    <meta name="keywords" content="Java Basic" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
     <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
   </head>
@@ -91,47 +87,49 @@
         <div class="post-detail">
           <article class="post">
             <h2 class="post-title">
-              关于｜我是谁
+              Java 基础｜几个小疑惑
             </h2>
             <div class="post-info">
               <span>
-                08-26-2020
+                09-15-2020
               </span>
               <span>
                 1 min read
               </span>
               
-                <a href="https://yao177.github.io/tag/xlp7QuNLz/" class="post-tag">
-                  # Me
+                <a href="https://yao177.github.io/tag/tB5cQv6NA/" class="post-tag">
+                  # Java Basic
                 </a>
               
             </div>
             
             <div class="post-content-wrapper">
               <div class="post-content">
-                <blockquote>
-<p>欢迎来到我的小站呀，很高兴遇见你！🤝</p>
-</blockquote>
-<h2 id="关于本站">🏠 关于本站</h2>
-<p>本数字域名<code>201021</code>的含义是，三进制的<code>520</code>（哈哈，没想到吧！</p>
-<h2 id="博主是谁">👨‍💻 博主是谁</h2>
-<p>我是 York Zhang，目前是一名帝都搬砖码农</p>
-<h2 id="兴趣爱好">⛹ 兴趣爱好</h2>
-<p>游泳🏊‍♀️书法✍️</p>
-<h2 id="联系我呀">📬 联系我呀</h2>
-<p>WeChat ID: <code>yyyao177</code></p>
+                <h1 id="为什么要有-object-类">为什么要有 Object 类？</h1>
+<p>可以理解为一个基础的模版类，提供 <code>hashcode()</code>、<code>compareTo()</code>、<code>toString()</code> 等基础函数模版</p>
+<h1 id="对象变量和引用的关系">对象变量和引用的关系？</h1>
+<p>每个对象变量都属于一个类型</p>
+<p>子类引用赋给超类时，OK</p>
+<p>超类引用赋给子类时，必须进行类型转换（类似 C++ 中的 dynamic_cast 操作）；先用 instanceof 检验一下是否可以转换</p>
+<pre><code class="language-java">if (staff[1] instanceof Manager) {	
+		boss = (Manager) staff[1]; // OK	...
+}
+String c = (String) staff[1]; // Fail
+</code></pre>
+<ul>
+<li>只能在继承层次内进行类型转换</li>
+<li>在将超类转换成子类之前，应该使用 instanceof 进行检查</li>
+<li>多态的动态绑定机制可以自动找到响应方法，只有在使用「特定方法」时才会需要类型转换——超类的设计不够合理</li>
+</ul>
+<h1 id="null-检查应该在什么时候">null 检查应该在什么时候</h1>
+<p>给别人前，拿到之后</p>
 
               </div>
               <div class="toc-container">
                 <ul class="markdownIt-TOC">
-<li>
-<ul>
-<li><a href="#%E5%85%B3%E4%BA%8E%E6%9C%AC%E7%AB%99">🏠 关于本站</a></li>
-<li><a href="#%E5%8D%9A%E4%B8%BB%E6%98%AF%E8%B0%81">👨‍💻 博主是谁</a></li>
-<li><a href="#%E5%85%B4%E8%B6%A3%E7%88%B1%E5%A5%BD">⛹ 兴趣爱好</a></li>
-<li><a href="#%E8%81%94%E7%B3%BB%E6%88%91%E5%91%80">📬 联系我呀</a></li>
-</ul>
-</li>
+<li><a href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E6%9C%89-object-%E7%B1%BB">为什么要有 Object 类？</a></li>
+<li><a href="#%E5%AF%B9%E8%B1%A1%E5%8F%98%E9%87%8F%E5%92%8C%E5%BC%95%E7%94%A8%E7%9A%84%E5%85%B3%E7%B3%BB">对象变量和引用的关系？</a></li>
+<li><a href="#null-%E6%A3%80%E6%9F%A5%E5%BA%94%E8%AF%A5%E5%9C%A8%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99">null 检查应该在什么时候</a></li>
 </ul>
 
               </div>
@@ -142,9 +140,9 @@
         
           <div class="next-post">
             <div class="next">下一篇</div>
-            <a href="https://yao177.github.io/post/bypass-network-verification-by-using-53-port/">
+            <a href="https://yao177.github.io/post/java-ji-chu-ormian-xiang-dui-xiang/">
               <h3 class="post-title">
-                利用53端口绕过网络验证
+                Java 基础｜OOP 面向对象
               </h3>
             </a>
           </div>

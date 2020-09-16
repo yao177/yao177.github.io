@@ -1,0 +1,438 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Java 基础｜OOP 面向对象 | York Zhang</title>
+<link rel="shortcut icon" href="https://yao177.github.io/favicon.ico?v=1600225474608">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yao177.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Java 基础｜OOP 面向对象 | York Zhang - Atom Feed" href="https://yao177.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="基础
+数据第一位，适合规模较大的使用场景
+
+行为 behavior：public 方法
+状态 state：被动通过调用方法改变
+标识 identity
+
+开发流程：设计类，添加方法
+类间关系
+
+依赖「uses-a」
+聚合「has-a」
+继承..." />
+    <meta name="keywords" content="Java Basic" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yao177.github.io">
+  <img class="avatar" src="https://yao177.github.io/images/avatar.png?v=1600225474608" alt="">
+  </a>
+  <h1 class="site-title">
+    York Zhang
+  </h1>
+  <p class="site-description">
+    <b>E</b>·rror = <b>m</b>·ore * <b>c²</b>·ode
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/yao177" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+    
+      
+    
+      
+        <a href="https://www.zhihu.com/people/yao-zi-73-1" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Java 基础｜OOP 面向对象
+            </h2>
+            <div class="post-info">
+              <span>
+                09-15-2020
+              </span>
+              <span>
+                8 min read
+              </span>
+              
+                <a href="https://yao177.github.io/tag/tB5cQv6NA/" class="post-tag">
+                  # Java Basic
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h1 id="基础">基础</h1>
+<p>数据第一位，适合规模较大的使用场景</p>
+<ul>
+<li>行为 behavior：public 方法</li>
+<li>状态 state：被动通过调用方法改变</li>
+<li>标识 identity</li>
+</ul>
+<p>开发流程：设计类，添加方法</p>
+<h3 id="类间关系">类间关系</h3>
+<ul>
+<li>依赖「uses-a」</li>
+<li>聚合「has-a」</li>
+<li>继承「is-a」</li>
+</ul>
+<p>这是 PlantUML 的中文教程，可以用纯代码的方式画 UML 图（原理类似于 Markdown 语法）</p>
+<p>PlantUML_Language_Reference_Guide_zh.pdf2.00MB</p>
+<h3 id="对象引用">对象引用</h3>
+<p>比较像 C++ 中的对象指针，不拷贝无副本</p>
+<p>想要实现深拷贝需要使用 clone 方法</p>
+<p>clone 真的是深拷贝吗？尝试后发现，引用类型属性更改后同时更改 -&gt; 浅拷贝！</p>
+<p>想要深拷贝，必须实现 Cloneable，并覆写 clone 方法 -&gt; 代码繁琐</p>
+<p>搜索后得知，可以使用序列化对象的方法——将对象转成二进制流，然后再把二进制流反序列成一个java对象，这时候反序列化生成的对象是一个全新的对象，里面的信息与原对象一样，但是所有内容都是一份新的</p>
+<p>所有类都需要实现 Serializable 接口，以便进行序列化操作</p>
+<pre><code class="language-java">public class DeepClone implements Serializable{
+		private static final long serialVersionUID = 1L;
+		/** 
+			* 利用序列化和反序列化进行对象的深拷贝 
+			* @return * @throws Exception 
+			*/	
+		protected Object deepClone() throws Exception{	
+		//序列化	
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();	
+		ObjectOutputStream oos = new ObjectOutputStream(bos);	
+		oos.writeObject(this);	
+		//反序列化	
+		ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());	
+		ObjectInputStream ois = new ObjectInputStream(bis);	
+		return ois.readObject();	
+		}
+}
+</code></pre>
+<h3 id="更改器-访问器">更改器 访问器</h3>
+<p>Date 类、LocalDate 类、GregorianCalendar 类</p>
+<p>访问器方法：LocalDate 在调用 plusDays 方法后会生成一个新的对象，而不会更改本来的 LocalDate 对象（类似 toUpperCase）</p>
+<p>更改器方法：GregorianCalendar 类调用 add 方法时就会更改现有对象状态</p>
+<h3 id="对象创建-方法">对象创建 方法</h3>
+<ul>
+<li>在堆中</li>
+<li>需要用 new 操作符</li>
+<li>区别于 C++（<code>Object::Fuction()</code>），直接在类内部定义即可（JVM 决定是否内联）</li>
+</ul>
+<h3 id="封装">封装</h3>
+<p>一个私有数据域 + 一个公有域访问器方法 + 一个公有域更改器方法</p>
+<p>不要编写返回引用可变对象的访问器方法｜一个可变数据域的拷贝，实在需要必须先 clone</p>
+<p>public &gt; default（默认，package 内） &gt; protected &gt; private</p>
+<h3 id="final-修饰符">final 修饰符</h3>
+<ol>
+<li>应修饰「基本类型」/「不可变类」的数据域</li>
+<li>若修饰一个可变类，只是限制了不可以引用其它对象，但该对象可以更改</li>
+</ol>
+<h3 id="static-修饰符">static 修饰符</h3>
+<ol>
+<li>静态域（private static 数据域）：类对象共享，可修改，只能用类名+方法访问</li>
+<li>静态常量（public static final 数据域）：Math.PI, System.Out</li>
+<li>静态方法（static 方法）：无 this 参数 -&gt; 不能访问实例域；可以访问静态域，可以用对象变量调用</li>
+<li>工厂方法（工厂模式——定义一个创建对象的接口，让其子类自己决定实例化哪一个工厂类，工厂模式使其创建过程延迟到子类进行）：使用静态方法构造对象</li>
+<li>main 方法：每个类都可以有一个 main 方法（常用于测试），可单独运行也可运行这个项目</li>
+</ol>
+<h3 id="修饰符顺序">修饰符顺序</h3>
+<p>Java 语言规范建议按以下顺序列出修饰符：</p>
+<ol>
+<li>Annotations</li>
+<li>public</li>
+<li>protected</li>
+<li>private</li>
+<li>abstract</li>
+<li>static</li>
+<li>final</li>
+<li>transient</li>
+<li>volatile</li>
+<li>synchronized</li>
+<li>native</li>
+<li>strictfp</li>
+</ol>
+<h3 id="方法の参数">方法の参数</h3>
+<p>基本类型复制拷贝，对象引用使用引用值（依然是值，相当于一个 final）即不能进行新的引用</p>
+<h1 id="对象构造">对象构造</h1>
+<h3 id="重载-overloading-resolution">重载 overloading resolution</h3>
+<p>唯一性——方法签名（signature）</p>
+<ul>
+<li>方法名</li>
+<li>参数类型</li>
+<li><s>返回类型</s></li>
+</ul>
+<p>和 C++ 中一样，如果方法名和参数类型都一致而返回类型不一致，就会报错——重复定义方法</p>
+<h3 id="构造函数">构造函数</h3>
+<ol>
+<li>默认构造为默认数值</li>
+</ol>
+<ul>
+<li>数值：0</li>
+<li>布尔值：False</li>
+<li>对象引用：null</li>
+</ul>
+<p>不推荐使用默认构造，因为当使用 getXxx 方法时，会获得一个 null 引用</p>
+<p>this 可以调用另一个构造起</p>
+<ol start="2">
+<li>如果写了构造器，那就必须包括一个无参构造 / 显式域初始化（声明中赋值）/ 初始化块（{这里进行初始化}）</li>
+</ol>
+<p>静态初始化块可以方便得对静态域进行初始化</p>
+<pre><code class="language-java">// static initialization block
+static {	
+		Random generator = new Random();	
+		nextId = generator.nextInt(1000);
+}
+</code></pre>
+<p>析构：因为 GC 机制，Java 不支持析构器</p>
+<h3 id="导入类">导入类</h3>
+<p>import package 中，「<em>」只可以导入一个包，而不可以使用 import java.</em> 或者 import java.<em>.</em>；与 C++ 中不同的是，include 必须添加以载入外部特性，而 Java 中给全包名可以不使用 import，类似于 using namespace。也可以导入静态方法和静态域，import lang.System.out;</p>
+<p>类放入包，package com.x.xx.xxx 对应文件目录为 com/x/xx/xxx 中，如果不匹配，虚拟机就找不到类（可编译不可运行）。</p>
+<h3 id="类设计">类设计</h3>
+<ol>
+<li>
+<p>数据私有</p>
+</li>
+<li>
+<p>数据初始化</p>
+</li>
+<li>
+<p>用其它类代替多个相关的基本类型：便于处理</p>
+<pre><code class="language-java">private String street;
+private String city;
+private String state;
+private int zip;
+// turn to class Address
+private Address addr;
+</code></pre>
+</li>
+<li>
+<p>不是所有的域都需要独立的域访问器和域更改器：会有一些私有不想被外界修改的实例域</p>
+</li>
+<li>
+<p>将职责过多的类进行分解</p>
+</li>
+<li>
+<p>类名和方法名能够体现他们的职责：类名通常是带有形容词修饰的名次，方法通常是动宾结构</p>
+</li>
+<li>
+<p>优先使用不可变的类：计算生成返回新值，而不是修改更新原来的值；一些情况会很奇怪</p>
+</li>
+</ol>
+<h1 id="继承">继承</h1>
+<p>superclass 超类，subclass 子类；通用方法放超类，特殊用途放子类</p>
+<h3 id="覆盖-override">覆盖 override</h3>
+<pre><code class="language-java">public class Manager extends Employee {	
+		... 
+		public double getSalary() {	
+				return salary + bonus; // won't work	
+				return getSalary() + bonus; // still won't work	
+				return super.getSalary() + bonus; // works	
+				... 
+				} 
+		...
+}
+</code></pre>
+<ul>
+<li>使用 super 调用超类的方法</li>
+<li>不是引用，不能赋给另一个对象变量</li>
+<li>也可用 super 调用超类的构造器</li>
+</ul>
+<h2 id="多态">多态</h2>
+<ul>
+<li>同一个变量可以引用一个超类对象，也可以引用它的任一子类对象</li>
+<li>置换法则：程序中出现超类对象的任何地方都可以用子类对象置换</li>
+<li>子类的引用可以转为超类的引用，但超类的引用无法赋给子类变量</li>
+<li>子类数组引用可以转换为超类数组引用，再赋值为超类时会导致类型错误</li>
+<li>private、static、final 方法时，准确知道调用哪个方法，称为静态绑定（static binding）</li>
+<li>动态绑定（dynamic binding），VM 维护一个方法表（method table）查找调用方法</li>
+<li>子类方法不能低于超类方法的可见性，尽量将通用域和方法都放在超类中</li>
+<li>调用方法过程：VM 提取类的实际类型的<em>方法表</em>，然后搜索定义该方法签名的类（此时）</li>
+</ul>
+<h3 id="抽象类">抽象类</h3>
+<ul>
+<li>占位，不可实例化，具体实现在子类中</li>
+<li>抽象类对象只能引用非抽象子类对象；</li>
+</ul>
+<h3 id="object-所有类的超类">Object 所有类的超类</h3>
+<p>定义子类 equals 需要先调用超类的 equals，再比较子类中的实例域</p>
+<p>防止可能为 null，使用 Objects.equals 方法判断</p>
+<p>equals 要求：自反性、对称性、传递性、一致性</p>
+<p>覆盖超类方法时使用 @Override 进行标记</p>
+<p>默认的 hashCode 散列码为对象的存储地址（String 有着相同的散列码，StringBuilder 没有定义所以不同）；Objects.hash 可以提供多个参数；Arrays.hashCode</p>
+<p>toString：类名 + [域值]；x.toString == &quot;&quot;+x 会自动调用 toString；Arrays.toString / Array.deepToString 多维数组</p>
+<h3 id="泛型数组列表">泛型数组列表</h3>
+<p>ArrayList&lt;type_parameter&gt;() 采用类型参数的泛型类，类似 C++ 中的 vector 模版，确认大小不再变化后可以调用 trimToSize 方法，让 GC 回收多余的存储空间；使用 add、get、set 访问和修改</p>
+<h3 id="包装器-自动装箱">包装器 &amp; 自动装箱</h3>
+<p>前六个有共同的超类 Number，Void 即 null</p>
+<p>可自动拆箱、装箱；包装器对象比较时调用 equals 方法；装箱时 null 会报空指针异常；包装器都是 final 不可变的</p>
+<h3 id="参数数量可变的方法">参数数量可变的方法</h3>
+<p>fuction(String mine, Object... args) {}</p>
+<p>防止重载相同的错误 <a href="https://www.cnblogs.com/lanxuezaipiao/p/3190673.html">https://www.cnblogs.com/lanxuezaipiao/p/3190673.html</a></p>
+<h1 id="几个小问题">几个小问题</h1>
+<ol>
+<li>什么时候用继承，继承和组合的关系是什么：is、has聚合/contain组合</li>
+<li>什么是多态，在继承的体系中是怎么样的，为什么要用多态：同样方法，不同对象，不同实现；子类方法被超类所用，维护扩展</li>
+<li>重载和重写的区别：都是多态</li>
+<li>值传递和引用传递：基本类型传值，对象传地址（值）</li>
+<li>自动拆装箱的使用（什么时候）：表达式计算——先拆再算后装，类型转换 toString</li>
+</ol>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E5%9F%BA%E7%A1%80">基础</a><br>
+*
+<ul>
+<li><a href="#%E7%B1%BB%E9%97%B4%E5%85%B3%E7%B3%BB">类间关系</a></li>
+<li><a href="#%E5%AF%B9%E8%B1%A1%E5%BC%95%E7%94%A8">对象引用</a></li>
+<li><a href="#%E6%9B%B4%E6%94%B9%E5%99%A8-%E8%AE%BF%E9%97%AE%E5%99%A8">更改器 访问器</a></li>
+<li><a href="#%E5%AF%B9%E8%B1%A1%E5%88%9B%E5%BB%BA-%E6%96%B9%E6%B3%95">对象创建 方法</a></li>
+<li><a href="#%E5%B0%81%E8%A3%85">封装</a></li>
+<li><a href="#final-%E4%BF%AE%E9%A5%B0%E7%AC%A6">final 修饰符</a></li>
+<li><a href="#static-%E4%BF%AE%E9%A5%B0%E7%AC%A6">static 修饰符</a></li>
+<li><a href="#%E4%BF%AE%E9%A5%B0%E7%AC%A6%E9%A1%BA%E5%BA%8F">修饰符顺序</a></li>
+<li><a href="#%E6%96%B9%E6%B3%95%E3%81%AE%E5%8F%82%E6%95%B0">方法の参数</a></li>
+</ul>
+</li>
+<li><a href="#%E5%AF%B9%E8%B1%A1%E6%9E%84%E9%80%A0">对象构造</a><br>
+*
+<ul>
+<li><a href="#%E9%87%8D%E8%BD%BD-overloading-resolution">重载 overloading resolution</a></li>
+<li><a href="#%E6%9E%84%E9%80%A0%E5%87%BD%E6%95%B0">构造函数</a></li>
+<li><a href="#%E5%AF%BC%E5%85%A5%E7%B1%BB">导入类</a></li>
+<li><a href="#%E7%B1%BB%E8%AE%BE%E8%AE%A1">类设计</a></li>
+</ul>
+</li>
+<li><a href="#%E7%BB%A7%E6%89%BF">继承</a><br>
+*
+<ul>
+<li><a href="#%E8%A6%86%E7%9B%96-override">覆盖 override</a></li>
+<li><a href="#%E5%A4%9A%E6%80%81">多态</a>
+<ul>
+<li><a href="#%E6%8A%BD%E8%B1%A1%E7%B1%BB">抽象类</a></li>
+<li><a href="#object-%E6%89%80%E6%9C%89%E7%B1%BB%E7%9A%84%E8%B6%85%E7%B1%BB">Object 所有类的超类</a></li>
+<li><a href="#%E6%B3%9B%E5%9E%8B%E6%95%B0%E7%BB%84%E5%88%97%E8%A1%A8">泛型数组列表</a></li>
+<li><a href="#%E5%8C%85%E8%A3%85%E5%99%A8-%E8%87%AA%E5%8A%A8%E8%A3%85%E7%AE%B1">包装器 &amp; 自动装箱</a></li>
+<li><a href="#%E5%8F%82%E6%95%B0%E6%95%B0%E9%87%8F%E5%8F%AF%E5%8F%98%E7%9A%84%E6%96%B9%E6%B3%95">参数数量可变的方法</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#%E5%87%A0%E4%B8%AA%E5%B0%8F%E9%97%AE%E9%A2%98">几个小问题</a></li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yao177.github.io/post/java-ji-chu-orjava-ji-he/">
+              <h3 class="post-title">
+                Java 基础｜Java 集合
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  <b>York</b>'s home | wish you a nice day!
+  <a class="rss" href="https://yao177.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

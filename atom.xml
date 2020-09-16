@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://yao177.github.io</id>
     <title>York Zhang</title>
-    <updated>2020-09-15T10:04:00.091Z</updated>
+    <updated>2020-09-16T03:04:44.819Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://yao177.github.io"/>
     <link rel="self" href="https://yao177.github.io/atom.xml"/>
@@ -10,6 +10,673 @@
     <logo>https://yao177.github.io/images/avatar.png</logo>
     <icon>https://yao177.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, York Zhang</rights>
+    <entry>
+        <title type="html"><![CDATA[Java 基础｜快速失败机制]]></title>
+        <id>https://yao177.github.io/post/java-ji-chu-orkuai-su-shi-bai-ji-zhi/</id>
+        <link href="https://yao177.github.io/post/java-ji-chu-orkuai-su-shi-bai-ji-zhi/">
+        </link>
+        <updated>2020-09-15T12:56:55.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="基本介绍">基本介绍</h1>
+<p>在使用迭代器对集合对象进行遍历的时候，如果 A 线程对集合进行遍历，正好 B 线程对集合进行修改（增加、删除、修改）则 A 线程会抛出 <code>ConcurrentModificationException</code> 异常。</p>
+<h1 id="原理">原理</h1>
+<p>迭代器在遍历时直接访问集合中的内容，并且在遍历过程中使用一个 modCount 变量。集合在被遍历期间如果内容发生变化，就会改变 modCount 的值。每当迭代器使用 hashNext()/next() 遍历下一个元素之前，都会检测 modCount 变量是否为 expectedmodCount 值，是的话就返回遍历；否则抛出异常，终止遍历。</p>
+<h2 id="为什么-util-中的集合类遍历时不会快速失败">为什么 util 中的集合类遍历时不会快速失败？</h2>
+<p>异常的抛出条件是检测到 modCount ≠ expectedmodCount 这个条件，而遍历时发生变化会同事给 expectedmodCount 值 +1，因此不会出现问题</p>
+<h2 id="javautil-中哪些集合不能在多线程下使用">java.util 中哪些集合不能在多线程下使用？</h2>
+<p>都不可以，都是快速失败的，不能在多线程下发生并发修改</p>
+<h1 id="安全失败">安全失败</h1>
+<p>采用安全失败机制的集合容器，在遍历时不是直接在集合内容上访问的，而是先复制原有集合内容，在拷贝的集合上进行遍历。</p>
+<p>因此，安全失败时，迭代器不能访问修改后的内容</p>
+<p>java.util.concurrent 都是安全失败，可以在多线程下并发使用和修改</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Java 基础｜几个小疑惑]]></title>
+        <id>https://yao177.github.io/post/java-ji-chu-orji-ge-xiao-yi-huo/</id>
+        <link href="https://yao177.github.io/post/java-ji-chu-orji-ge-xiao-yi-huo/">
+        </link>
+        <updated>2020-09-15T12:53:48.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="为什么要有-object-类">为什么要有 Object 类？</h1>
+<p>可以理解为一个基础的模版类，提供 <code>hashcode()</code>、<code>compareTo()</code>、<code>toString()</code> 等基础函数模版</p>
+<h1 id="对象变量和引用的关系">对象变量和引用的关系？</h1>
+<p>每个对象变量都属于一个类型</p>
+<p>子类引用赋给超类时，OK</p>
+<p>超类引用赋给子类时，必须进行类型转换（类似 C++ 中的 dynamic_cast 操作）；先用 instanceof 检验一下是否可以转换</p>
+<pre><code class="language-java">if (staff[1] instanceof Manager) {	
+		boss = (Manager) staff[1]; // OK	...
+}
+String c = (String) staff[1]; // Fail
+</code></pre>
+<ul>
+<li>只能在继承层次内进行类型转换</li>
+<li>在将超类转换成子类之前，应该使用 instanceof 进行检查</li>
+<li>多态的动态绑定机制可以自动找到响应方法，只有在使用「特定方法」时才会需要类型转换——超类的设计不够合理</li>
+</ul>
+<h1 id="null-检查应该在什么时候">null 检查应该在什么时候</h1>
+<p>给别人前，拿到之后</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Java 基础｜OOP 面向对象]]></title>
+        <id>https://yao177.github.io/post/java-ji-chu-ormian-xiang-dui-xiang/</id>
+        <link href="https://yao177.github.io/post/java-ji-chu-ormian-xiang-dui-xiang/">
+        </link>
+        <updated>2020-09-15T12:51:04.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="基础">基础</h1>
+<p>数据第一位，适合规模较大的使用场景</p>
+<ul>
+<li>行为 behavior：public 方法</li>
+<li>状态 state：被动通过调用方法改变</li>
+<li>标识 identity</li>
+</ul>
+<p>开发流程：设计类，添加方法</p>
+<h3 id="类间关系">类间关系</h3>
+<ul>
+<li>依赖「uses-a」</li>
+<li>聚合「has-a」</li>
+<li>继承「is-a」</li>
+</ul>
+<p>这是 PlantUML 的中文教程，可以用纯代码的方式画 UML 图（原理类似于 Markdown 语法）</p>
+<p>PlantUML_Language_Reference_Guide_zh.pdf2.00MB</p>
+<h3 id="对象引用">对象引用</h3>
+<p>比较像 C++ 中的对象指针，不拷贝无副本</p>
+<p>想要实现深拷贝需要使用 clone 方法</p>
+<p>clone 真的是深拷贝吗？尝试后发现，引用类型属性更改后同时更改 -&gt; 浅拷贝！</p>
+<p>想要深拷贝，必须实现 Cloneable，并覆写 clone 方法 -&gt; 代码繁琐</p>
+<p>搜索后得知，可以使用序列化对象的方法——将对象转成二进制流，然后再把二进制流反序列成一个java对象，这时候反序列化生成的对象是一个全新的对象，里面的信息与原对象一样，但是所有内容都是一份新的</p>
+<p>所有类都需要实现 Serializable 接口，以便进行序列化操作</p>
+<pre><code class="language-java">public class DeepClone implements Serializable{
+		private static final long serialVersionUID = 1L;
+		/** 
+			* 利用序列化和反序列化进行对象的深拷贝 
+			* @return * @throws Exception 
+			*/	
+		protected Object deepClone() throws Exception{	
+		//序列化	
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();	
+		ObjectOutputStream oos = new ObjectOutputStream(bos);	
+		oos.writeObject(this);	
+		//反序列化	
+		ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());	
+		ObjectInputStream ois = new ObjectInputStream(bis);	
+		return ois.readObject();	
+		}
+}
+</code></pre>
+<h3 id="更改器-访问器">更改器 访问器</h3>
+<p>Date 类、LocalDate 类、GregorianCalendar 类</p>
+<p>访问器方法：LocalDate 在调用 plusDays 方法后会生成一个新的对象，而不会更改本来的 LocalDate 对象（类似 toUpperCase）</p>
+<p>更改器方法：GregorianCalendar 类调用 add 方法时就会更改现有对象状态</p>
+<h3 id="对象创建-方法">对象创建 方法</h3>
+<ul>
+<li>在堆中</li>
+<li>需要用 new 操作符</li>
+<li>区别于 C++（<code>Object::Fuction()</code>），直接在类内部定义即可（JVM 决定是否内联）</li>
+</ul>
+<h3 id="封装">封装</h3>
+<p>一个私有数据域 + 一个公有域访问器方法 + 一个公有域更改器方法</p>
+<p>不要编写返回引用可变对象的访问器方法｜一个可变数据域的拷贝，实在需要必须先 clone</p>
+<p>public &gt; default（默认，package 内） &gt; protected &gt; private</p>
+<h3 id="final-修饰符">final 修饰符</h3>
+<ol>
+<li>应修饰「基本类型」/「不可变类」的数据域</li>
+<li>若修饰一个可变类，只是限制了不可以引用其它对象，但该对象可以更改</li>
+</ol>
+<h3 id="static-修饰符">static 修饰符</h3>
+<ol>
+<li>静态域（private static 数据域）：类对象共享，可修改，只能用类名+方法访问</li>
+<li>静态常量（public static final 数据域）：Math.PI, System.Out</li>
+<li>静态方法（static 方法）：无 this 参数 -&gt; 不能访问实例域；可以访问静态域，可以用对象变量调用</li>
+<li>工厂方法（工厂模式——定义一个创建对象的接口，让其子类自己决定实例化哪一个工厂类，工厂模式使其创建过程延迟到子类进行）：使用静态方法构造对象</li>
+<li>main 方法：每个类都可以有一个 main 方法（常用于测试），可单独运行也可运行这个项目</li>
+</ol>
+<h3 id="修饰符顺序">修饰符顺序</h3>
+<p>Java 语言规范建议按以下顺序列出修饰符：</p>
+<ol>
+<li>Annotations</li>
+<li>public</li>
+<li>protected</li>
+<li>private</li>
+<li>abstract</li>
+<li>static</li>
+<li>final</li>
+<li>transient</li>
+<li>volatile</li>
+<li>synchronized</li>
+<li>native</li>
+<li>strictfp</li>
+</ol>
+<h3 id="方法の参数">方法の参数</h3>
+<p>基本类型复制拷贝，对象引用使用引用值（依然是值，相当于一个 final）即不能进行新的引用</p>
+<h1 id="对象构造">对象构造</h1>
+<h3 id="重载-overloading-resolution">重载 overloading resolution</h3>
+<p>唯一性——方法签名（signature）</p>
+<ul>
+<li>方法名</li>
+<li>参数类型</li>
+<li><s>返回类型</s></li>
+</ul>
+<p>和 C++ 中一样，如果方法名和参数类型都一致而返回类型不一致，就会报错——重复定义方法</p>
+<h3 id="构造函数">构造函数</h3>
+<ol>
+<li>默认构造为默认数值</li>
+</ol>
+<ul>
+<li>数值：0</li>
+<li>布尔值：False</li>
+<li>对象引用：null</li>
+</ul>
+<p>不推荐使用默认构造，因为当使用 getXxx 方法时，会获得一个 null 引用</p>
+<p>this 可以调用另一个构造起</p>
+<ol start="2">
+<li>如果写了构造器，那就必须包括一个无参构造 / 显式域初始化（声明中赋值）/ 初始化块（{这里进行初始化}）</li>
+</ol>
+<p>静态初始化块可以方便得对静态域进行初始化</p>
+<pre><code class="language-java">// static initialization block
+static {	
+		Random generator = new Random();	
+		nextId = generator.nextInt(1000);
+}
+</code></pre>
+<p>析构：因为 GC 机制，Java 不支持析构器</p>
+<h3 id="导入类">导入类</h3>
+<p>import package 中，「<em>」只可以导入一个包，而不可以使用 import java.</em> 或者 import java.<em>.</em>；与 C++ 中不同的是，include 必须添加以载入外部特性，而 Java 中给全包名可以不使用 import，类似于 using namespace。也可以导入静态方法和静态域，import lang.System.out;</p>
+<p>类放入包，package com.x.xx.xxx 对应文件目录为 com/x/xx/xxx 中，如果不匹配，虚拟机就找不到类（可编译不可运行）。</p>
+<h3 id="类设计">类设计</h3>
+<ol>
+<li>
+<p>数据私有</p>
+</li>
+<li>
+<p>数据初始化</p>
+</li>
+<li>
+<p>用其它类代替多个相关的基本类型：便于处理</p>
+<pre><code class="language-java">private String street;
+private String city;
+private String state;
+private int zip;
+// turn to class Address
+private Address addr;
+</code></pre>
+</li>
+<li>
+<p>不是所有的域都需要独立的域访问器和域更改器：会有一些私有不想被外界修改的实例域</p>
+</li>
+<li>
+<p>将职责过多的类进行分解</p>
+</li>
+<li>
+<p>类名和方法名能够体现他们的职责：类名通常是带有形容词修饰的名次，方法通常是动宾结构</p>
+</li>
+<li>
+<p>优先使用不可变的类：计算生成返回新值，而不是修改更新原来的值；一些情况会很奇怪</p>
+</li>
+</ol>
+<h1 id="继承">继承</h1>
+<p>superclass 超类，subclass 子类；通用方法放超类，特殊用途放子类</p>
+<h3 id="覆盖-override">覆盖 override</h3>
+<pre><code class="language-java">public class Manager extends Employee {	
+		... 
+		public double getSalary() {	
+				return salary + bonus; // won't work	
+				return getSalary() + bonus; // still won't work	
+				return super.getSalary() + bonus; // works	
+				... 
+				} 
+		...
+}
+</code></pre>
+<ul>
+<li>使用 super 调用超类的方法</li>
+<li>不是引用，不能赋给另一个对象变量</li>
+<li>也可用 super 调用超类的构造器</li>
+</ul>
+<h2 id="多态">多态</h2>
+<ul>
+<li>同一个变量可以引用一个超类对象，也可以引用它的任一子类对象</li>
+<li>置换法则：程序中出现超类对象的任何地方都可以用子类对象置换</li>
+<li>子类的引用可以转为超类的引用，但超类的引用无法赋给子类变量</li>
+<li>子类数组引用可以转换为超类数组引用，再赋值为超类时会导致类型错误</li>
+<li>private、static、final 方法时，准确知道调用哪个方法，称为静态绑定（static binding）</li>
+<li>动态绑定（dynamic binding），VM 维护一个方法表（method table）查找调用方法</li>
+<li>子类方法不能低于超类方法的可见性，尽量将通用域和方法都放在超类中</li>
+<li>调用方法过程：VM 提取类的实际类型的<em>方法表</em>，然后搜索定义该方法签名的类（此时）</li>
+</ul>
+<h3 id="抽象类">抽象类</h3>
+<ul>
+<li>占位，不可实例化，具体实现在子类中</li>
+<li>抽象类对象只能引用非抽象子类对象；</li>
+</ul>
+<h3 id="object-所有类的超类">Object 所有类的超类</h3>
+<p>定义子类 equals 需要先调用超类的 equals，再比较子类中的实例域</p>
+<p>防止可能为 null，使用 Objects.equals 方法判断</p>
+<p>equals 要求：自反性、对称性、传递性、一致性</p>
+<p>覆盖超类方法时使用 @Override 进行标记</p>
+<p>默认的 hashCode 散列码为对象的存储地址（String 有着相同的散列码，StringBuilder 没有定义所以不同）；Objects.hash 可以提供多个参数；Arrays.hashCode</p>
+<p>toString：类名 + [域值]；x.toString == &quot;&quot;+x 会自动调用 toString；Arrays.toString / Array.deepToString 多维数组</p>
+<h3 id="泛型数组列表">泛型数组列表</h3>
+<p>ArrayList&lt;type_parameter&gt;() 采用类型参数的泛型类，类似 C++ 中的 vector 模版，确认大小不再变化后可以调用 trimToSize 方法，让 GC 回收多余的存储空间；使用 add、get、set 访问和修改</p>
+<h3 id="包装器-自动装箱">包装器 &amp; 自动装箱</h3>
+<p>前六个有共同的超类 Number，Void 即 null</p>
+<p>可自动拆箱、装箱；包装器对象比较时调用 equals 方法；装箱时 null 会报空指针异常；包装器都是 final 不可变的</p>
+<h3 id="参数数量可变的方法">参数数量可变的方法</h3>
+<p>fuction(String mine, Object... args) {}</p>
+<p>防止重载相同的错误 <a href="https://www.cnblogs.com/lanxuezaipiao/p/3190673.html">https://www.cnblogs.com/lanxuezaipiao/p/3190673.html</a></p>
+<h1 id="几个小问题">几个小问题</h1>
+<ol>
+<li>什么时候用继承，继承和组合的关系是什么：is、has聚合/contain组合</li>
+<li>什么是多态，在继承的体系中是怎么样的，为什么要用多态：同样方法，不同对象，不同实现；子类方法被超类所用，维护扩展</li>
+<li>重载和重写的区别：都是多态</li>
+<li>值传递和引用传递：基本类型传值，对象传地址（值）</li>
+<li>自动拆装箱的使用（什么时候）：表达式计算——先拆再算后装，类型转换 toString</li>
+</ol>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Java 基础｜Java 集合]]></title>
+        <id>https://yao177.github.io/post/java-ji-chu-orjava-ji-he/</id>
+        <link href="https://yao177.github.io/post/java-ji-chu-orjava-ji-he/">
+        </link>
+        <updated>2020-09-15T10:09:15.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="总述">总述</h1>
+<ul>
+<li><em>Collection</em>
+<ul>
+<li><em>List</em>：有序可重
+<ul>
+<li><em>LinkedList</em></li>
+<li><em>ArrayList</em></li>
+</ul>
+</li>
+<li><em>Set</em>：不可重
+<ul>
+<li><em>HashSet</em>：无序；类 HashMap</li>
+<li><em>LinkedHashSet</em>：有序；类 LinkedHashMap</li>
+<li><em>TreeSet</em>：无序；类 TreeMap</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><em>Map</em>：不可重
+<ul>
+<li><em>HashMap</em>：无序</li>
+<li><em>LinkedHashMap</em>：有序</li>
+<li><em>TreeMap</em>：无序</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h1 id="单独详解">单独详解</h1>
+<h2 id="linkedlist">LinkedList</h2>
+<figure data-type="image" tabindex="1"><img src="https://yao177.github.io/post-images/1600164949835.png" alt="LinkedList 类图" loading="lazy"></figure>
+<h3 id="基本介绍">基本介绍</h3>
+<ol>
+<li>双向链表，头尾双指针</li>
+<li>队列使用：头进尾出，FIFO；栈使用：头进头出，FILO</li>
+<li>无限扩容</li>
+<li>功能上类似 ArrayList + ArrayDeque</li>
+</ol>
+<h3 id="是否有虚拟头节点">是否有虚拟头节点？</h3>
+<ol>
+<li>无</li>
+<li>添加和删除时会判断是否为唯一节点</li>
+</ol>
+<h3 id="反转链表操作">反转链表操作</h3>
+<ol>
+<li>
+<p>递归，空间复杂度 O(1)</p>
+<pre><code class="language-java">public ListNode Reverse(ListNode list) {
+    if (list == null) return null; // first question
+
+    if (list.next == null) return list; // second question
+
+    // third question - in Lisp this is easy, but we don't have cons
+    // so we grab the second element (which will be the last after we reverse it)
+
+    ListNode secondElem = list.next;
+
+    // bug fix - need to unlink list from the rest or you will get a cycle
+    list.next = null;
+
+    // then we reverse everything from the second element on
+    ListNode reverseRest = Reverse(secondElem);
+
+    // then we join the two lists
+    secondElem.Next = list;
+
+    return reverseRest;
+}
+</code></pre>
+</li>
+<li>
+<p>双指针</p>
+</li>
+<li>
+<p>当成栈，推入另一个栈，空间复杂度 O(N)</p>
+</li>
+</ol>
+<h3 id="时间复杂度">时间复杂度</h3>
+<ul>
+<li>随机访问：O(N)</li>
+<li>查找：O(N)</li>
+<li>插入删除
+<ul>
+<li>头尾：O(1)</li>
+<li>中部：O(N)</li>
+</ul>
+</li>
+</ul>
+<h2 id="arraylist">ArrayList</h2>
+<figure data-type="image" tabindex="2"><img src="https://yao177.github.io/post-images/1600164973242.png" alt="ArrayList 类图" loading="lazy"></figure>
+<h3 id="基本介绍-2">基本介绍</h3>
+<ol>
+<li>较普通数组来讲，具有动态扩展的能力，因此也可称之为「动态数组」</li>
+<li>默认长度为 10，扩容每次是 1.5 倍（<code>oldCapacity + (oldCapacity &gt;&gt; 1)</code>）</li>
+<li>删除元素不会缩容，最后一位置 <code>nul</code>便于 GC 回收</li>
+<li>并集<code>addAll()</code>，交集<code>retainAll()</code>，单向差集<code>removeAll()</code></li>
+</ol>
+<h3 id="初始化">初始化</h3>
+<ul>
+<li>new ArrayList()：从 10 开始，逐步扩容</li>
+<li>new ArrayList(0)：从 0 开始，到 1，逐步扩容</li>
+</ul>
+<h3 id="如何插入元素如何扩容">如何插入元素？如何扩容</h3>
+<ol>
+<li>检查是否需要扩容</li>
+<li><code>elementData</code>为<code>DEFAULTCAPACITY_EMPTY_ELEMENTDATA</code>则初始化容量为<code>DEFAULT_CAPACITY</code>也就是 10</li>
+<li>新容量是老容量的1.5倍（<code>oldCapacity + (oldCapacity &gt;&gt; 1)</code>）；如果加了这么多容量发现比需要的容量还小，则以需要的容量为准；如果超过新容量超过最大容量，则使用最大容量</li>
+<li>创建新容量的数组并把老数组拷贝到新数组</li>
+</ol>
+<p>PS：有个注意点，扩容函数传入的是 oldCap + 1，保证了数组大小小于 2 的情况下不会不扩容</p>
+<h2 id="hashset">HashSet</h2>
+<figure data-type="image" tabindex="3"><img src="https://yao177.github.io/post-images/1600165004129.png" alt="HashSet 类图" loading="lazy"></figure>
+<p>一个 HashMap，key 为值、value 为<code>PRESENT</code></p>
+<h2 id="linkedhashset">LinkedHashSet</h2>
+<p>一个 LinkedHashMap，key 为值、value 为<code>PRESENT</code></p>
+<h2 id="treeset">TreeSet</h2>
+<p>一个 TreeMap，key 为值、value 为<code>PRESENT</code></p>
+<h2 id="hashmap">HashMap</h2>
+<figure data-type="image" tabindex="4"><img src="https://yao177.github.io/post-images/1600165019290.png" alt="HashMap 类图" loading="lazy"></figure>
+<h3 id="基本介绍-3">基本介绍</h3>
+<ol>
+<li>key-value 存储结构，数组 + 链表 + 红黑树的结构</li>
+<li>查询和修改速度很快，能达到 O(1) 的平均时间复杂度</li>
+<li>容量为数组长度，默认 16，最大为 2^30，达到 64 时可以树化；装载因子用来计算容量达到多少时进行扩容，默认装载因子为 0.75</li>
+<li>数组容量≥64 &amp; 链表长度≥8 进行树化，链表长度≤6 时反树化</li>
+</ol>
+<h3 id="节点">节点</h3>
+<ul>
+<li>
+<p>链表节点<code>Node</code></p>
+<pre><code class="language-java">static class Node&lt;K,V&gt; implements Map.Entry&lt;K,V&gt; {
+    final int hash;
+    final K key;
+    V value;
+    Node&lt;K,V&gt; next;
+}
+</code></pre>
+</li>
+<li>
+<p>红黑树节点<code>TreeNode</code></p>
+<pre><code class="language-java">// 位于HashMap中
+static final class TreeNode&lt;K,V&gt; extends LinkedHashMap.Entry&lt;K,V&gt; {
+    TreeNode&lt;K,V&gt; parent;  // red-black tree links
+    TreeNode&lt;K,V&gt; left;
+    TreeNode&lt;K,V&gt; right;
+    TreeNode&lt;K,V&gt; prev;    // needed to unlink next upon deletion
+    boolean red;
+}
+
+// 位于LinkedHashMap中，典型的双向链表节点
+static class Entry&lt;K,V&gt; extends HashMap.Node&lt;K,V&gt; {
+    Entry&lt;K,V&gt; before, after;
+    Entry(int hash, K key, V value, Node&lt;K,V&gt; next) {
+        super(hash, key, value, next);
+    }
+}
+</code></pre>
+</li>
+</ul>
+<h3 id="hash-过程">Hash 过程</h3>
+<p>key 为 null，hash 值为 0</p>
+<p>高 16 位与整个 hash 值异或，为了使计算出的 hash 更分散</p>
+<p><code>n % k == n &amp; (k - 1)</code></p>
+<p>解决 hash 冲突的办法是「拉链法」，而 Java 的 ThreadLocalMap、Python 的 dict 则使用了开放寻址法</p>
+<h3 id="插入节点过程">插入节点过程</h3>
+<ol>
+<li>计算 key 的 hash</li>
+<li>桶数量为 0，则初始化桶</li>
+<li>三种情况
+<ol>
+<li>key 所在桶无元素，直接插入</li>
+<li>key 所在桶的第一个元素的 key 与待插入的 key 相同，说明找到了元素，转到「5」</li>
+<li>第一个元素为树节点，调用<code>putTreeVal()</code></li>
+</ol>
+</li>
+<li>不是这三种情况，则遍历桶对应的链表查找 key 是否存在
+<ol>
+<li>找到了对应 key 的元素，转到「5」</li>
+<li>没找到对应 key 的元素，则在链表最后插入一个新节点并判断是否需要树化</li>
+</ol>
+</li>
+<li>找到了对应 key 的元素，则判断是否需要替换旧值，并直接返回旧值</li>
+<li>如果插入了元素，则数量 +1 并判断是否需要扩容</li>
+</ol>
+<h3 id="尾插法">尾插法</h3>
+<p>Java 7 及之前是头插法：后面的值被查找的概率更大一些</p>
+<p>尾插法：扩容分链前后链表顺序不变，保持了之前节点的引用关系，防止 1-&gt;2-&gt;1 的死链产生</p>
+<p>依旧不是线程安全的，put / get 依旧没有同步锁，会出现 ABA 的问题</p>
+<h3 id="扩容机制">扩容机制</h3>
+<p>桶为空的话，第一次加入元素时进行初始化</p>
+<p>扩容门槛为传入的初始容量往上取最近的 2^n</p>
+<p>拷贝原数组</p>
+<h2 id="linkedhashmap">LinkedHashMap</h2>
+<figure data-type="image" tabindex="5"><img src="https://yao177.github.io/post-images/1600165037900.png" alt="LinkedHashMap 类图" loading="lazy"></figure>
+<h3 id="accessorder-是什么">accessOrder 是什么</h3>
+<p>先看看在哪里使用了</p>
+<pre><code class="language-java">public V get(Object key) {
+    Node&lt;K,V&gt; e;
+    if ((e = getNode(hash(key), key)) == null)
+        return null;
+    if (accessOrder)
+        afterNodeAccess(e);
+    return e.value;
+}
+</code></pre>
+<p>看一下 <code>afterNodeAccess()</code>的代码，可以看到最大的不同就是，调用 get 方法时，都会将访问的 Node 移动到尾部，成为尾节点，也就是控制了访问顺序。</p>
+<p>因此，置为 true 后，则使用 LRU 调度算法（最近最少使用）。</p>
+<h2 id="treemap">TreeMap</h2>
+<figure data-type="image" tabindex="6"><img src="https://yao177.github.io/post-images/1600165054964.png" alt="TreeMap 类图" loading="lazy"></figure>
+<h3 id="基本介绍-4">基本介绍</h3>
+<ul>
+<li>实现了 SortedMap 接口，因此是经过排序的</li>
+<li>只使用到了红黑树，所以时间复杂度为 O(log N)</li>
+</ul>
+<h3 id="排序问题">排序问题</h3>
+<p>红黑树根据 key 进行排序，有两种方式</p>
+<ol>
+<li>key 实现 Comparable 接口</li>
+<li>构造时传入比较器</li>
+</ol>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Java 基础｜Java String]]></title>
+        <id>https://yao177.github.io/post/java-ji-chu-orjava-string/</id>
+        <link href="https://yao177.github.io/post/java-ji-chu-orjava-string/">
+        </link>
+        <updated>2020-09-15T10:05:50.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="string-字符串">String 字符串</h1>
+<p>Unicode 字符序列</p>
+<p>C++ 中的 <code>char*</code></p>
+<pre><code class="language-java">substring(start_index, first_excluded_index)
+length(substring(a, b)) = b - a
+str_a.equals(str_b) = (str_a.compareTo(str_b) == 0)
+str_a.equalsIgnore(str_b)
+</code></pre>
+<h2 id="不可变">不可变</h2>
+<ul>
+<li>用 <code>String.substring()</code> 和 <code>+</code> 拼接后重新赋值</li>
+<li>效率？→ 字符串共享
+<ul>
+<li>仅字符串常量，其他+/substring 生成的不共享 → <code>==</code> 不能用来测试相等性</li>
+</ul>
+</li>
+<li>怎么不可变？（用 C++ 的 <code>char*</code> 比较好理解）</li>
+<li>指向的位置上的字符串内存不可变，</li>
+</ul>
+<h2 id="vs-equals-vs-compareto"><code>==</code> VS <code>equals()</code> VS <code>compareTo()</code></h2>
+<pre><code class="language-java">// equals 源码
+public boolean equals(Object anObject) {
+    if (this == anObject) { // 内存位置一致
+        return true;
+    }
+    if (anObject instanceof String) {
+        String anotherString = (String) anObject; // 其它类型先转换为 String 类型
+        int n = value.length;
+        if (n == anotherString.value.length) {
+            char v1[] = value;
+            char v2[] = anotherString.value;
+            int i = 0;
+            while (n-- != 0) {
+                if (v1[i] != v2[i]) return false;
+                i++;
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
+// compareTo 源码
+public int compareTo(String anotherString) {
+		int len1 = value.length; int len2 = anotherString.value.length; 
+		int lim = Math.min(len1, len2); 
+		char v1[] = value; char v2[] = anotherString.value; 
+		int k = 0; 
+		while (k &lt; lim) { // 字典序大小比较 
+				char c1 = v1[k]; 
+				char c2 = v2[k]; 
+				if (c1 != c2) { 
+							return c1 - c2; 
+				} 
+				k++; 
+		} 
+		return len1 - len2;
+}
+</code></pre>
+<p>equals 类似 C++ 中的 <code>==</code>，compareTo 类似 <code>strcmp</code></p>
+<ul>
+<li>返回值不同
+<ul>
+<li>equals 只判断是否相同</li>
+<li>compareTo 判断大小比较，正大负小=同</li>
+</ul>
+</li>
+<li>比较类型不同
+<ul>
+<li>equals 可以和非字符串进行比较，转换为 String 类型</li>
+<li>compareTo 只能和字符串变量比较</li>
+</ul>
+</li>
+<li>效率
+<ul>
+<li>equals 比 compareTo 稍微快一些（加了一些前置判断），如果只判断是否相等建议使用 equals</li>
+</ul>
+</li>
+<li>使用范围
+<ul>
+<li>Object 自带 equals 方法，基本都可用（默认实现为 <code>==</code>）</li>
+<li>实现了 Comparable 接口的类才有 compareTo 方法</li>
+</ul>
+</li>
+</ul>
+<h2 id="空串和-null-串">空串（&quot;&quot;）和 null 串</h2>
+<p>空串，长度为「0」、内容为「空」的 String 对象</p>
+<p>null 串，无对象（类似于“空指针”），不是 String 对象，不可以使用 String 的方法</p>
+<p><code>if (str != null &amp;&amp; str.length() != 0) {...} if (str != null &amp;&amp; !str.equals(&quot;&quot;)) {...}</code></p>
+<h2 id="码点-代码单元">码点、代码单元</h2>
+<p>char 是「一个采用 UTF-16 编码表示的代码单元」，用来表示 Unicode 码点。</p>
+<p>UTF-16 有一些用两个字节表示一个符号的情况，</p>
+<p>编号为 U+D800 至 U+DBFF 的规定为「High Surrogates」，共 102 4个；编号为 U+DC00 至 U+DFFF 的规定为「Low Surrogates」，也是 1024 个；他们组合出现，就又可以多表示 1048576 种字符。</p>
+<p>一个字符对应一个码点，因此有可能是 1 也有可能是 2 个字节</p>
+<h2 id="stringbuilder-vs-stringbuffer">StringBuilder vs StringBuffer</h2>
+<p>用于 String 拼接的 <code>+</code> 即是 SringBuilder，查看字节码可知</p>
+<pre><code class="language-java">LINENUMBER 28 L3
+NEW java/lang/StringBuilder
+DUP
+INVOKESPECIAL java/lang/StringBuilder.&lt;init&gt; ()V
+ALOAD 0
+INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/String;)Ljava/lang/StringBuilder;
+ALOAD 1
+INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/String;)Ljava/lang/StringBuilder;
+INVOKEVIRTUAL java/lang/StringBuilder.toString ()Ljava/lang/String;
+ASTORE 3
+</code></pre>
+<p>也就是说，调用了</p>
+<pre><code class="language-java">c = a + b;
+c = new StringBuilder().append(a).append(b).toString();
+// 如果有性能需求
+c = new StringBuilder(a.length() + b.length()).append(a).append(b).toString();
+// 可正确调整缓冲区大小，并防止 JVM 重新调整缓冲区大小并创建垃圾以进行收集
+</code></pre>
+<p>顺便看一下StringBuilder.append()的源码：</p>
+<pre><code class="language-java">public AbstractStringBuilder append(String str) {
+    if (str == null) {
+        return appendNull();
+    }
+    int len = str.length();
+    ensureCapacityInternal(count + len);
+    putStringAt(count, str);
+    count += len;
+    return this;
+}
+
+private final void putStringAt(int index, String str) {
+    if (getCoder() != str.coder()) {
+        inflate();
+    }
+    str.getBytes(value, index, coder);
+}
+
+void getBytes(byte dst[], int dstBegin, byte coder) {
+    if (coder() == coder) {
+        System.arraycopy(value, 0, dst, dstBegin &lt;&lt; coder, value.length);
+    } else { // this.coder == LATIN &amp;&amp; coder == UTF16 
+        StringLatin1.inflate(value, 0, dst, dstBegin, value.length);
+    }
+}
+</code></pre>
+<p>有点类似 C++ 中 strcpy 的做法，直接拷贝内存地址上的内容</p>
+<p>关于<em>线程安全</em>，StringBuilder 是不安全的，StringBuffer 是安全的；StringBuffer 源码中每个方法都添加了 <strong>synchronized</strong> 关键字，举个例子</p>
+<pre><code class="language-java">public synchronized StringBuffer append(String str) {
+    toStringCache = null;
+    super.append(str);
+    return this;
+}
+</code></pre>
+<p>~~如果手动添加 <strong>synchronized</strong> 关键字呢？~~不要这样使用</p>
+<pre><code class="language-java">public class Foo { // safe ? 
+    private final static StringBuilder builder;
+
+    public static void foo() { // safe ? 
+        builder = new StringBuilder();
+    }
+
+    public static void foo(final String a) { // unsafe ? 
+        builder.append(a);
+    }
+
+    public synchronized void bar(final String a) { // safe ? 
+        builder.append(a);
+    }
+}
+</code></pre>
+<h1 id="结论">结论</h1>
+<p><strong>直接使用 StringBuilder 局部变量，用完即销毁就可以！</strong></p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[数据库｜ES 基础]]></title>
         <id>https://yao177.github.io/post/es-ji-chu/</id>
@@ -459,206 +1126,6 @@ s-235,486,-235,486c-2.7,4.7,-9,7,-19,7c-6,0,-10,-1,-12,-3s-194,-422,-194,-422
 s-65,47,-65,47z M834 80H400000v40H845z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.13278em;"><span></span></span></span></span></span><span class="mclose">)</span></span></span></span>，也就是黄金分割数 1+0.618</p>
 <p>当然，这只是理想情况，考虑到 int 需要作取整操作，因此源码作者 Simon 建议设为 1.5 比较好</p>
 <p>根据上面可以看到，可以看到 1.5 在三次到四次之间，可以自己做个实验，在 (0, 2^31-8) 空间内跑一遍试试</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[「亲密关系」中的一些重要结论]]></title>
-        <id>https://yao177.github.io/post/close-relationship-tricks/</id>
-        <link href="https://yao177.github.io/post/close-relationship-tricks/">
-        </link>
-        <updated>2020-09-02T03:55:56.000Z</updated>
-        <content type="html"><![CDATA[<p>“对未来伴侣的期望值 = 伴侣的外表吸引力 × 伴侣接纳自己的可能性（自己的适配价值）”</p>
-<p>“真正有用的是选择性地故作清高——也就是说，除了你想吸引的人之外，任何人想要得到你都是可望而不可即的（Walster et al.，1973）。那些能付出代价拒绝大多数人却又能高兴地接纳我们的人，才是最有吸引力的未来伴侣。”</p>
-<figure data-type="image" tabindex="1"><img src="https://yao177.github.io/post-images/1599019809549.png" alt="亲密关系发展的不同阶段" loading="lazy"></figure>
-<p>“得不到的禁果格外甜”</p>
-<p>“自彼此相遇的一瞬间起人们就开始做出判断。这里的“瞬间”指1/25秒，这就是辨认陌生人的面部表情是否愤怒所花的时间，只要39毫秒 [1] （Bar et al.，2006）。在约十分之一秒的更加耐心的考虑后， [2] 人们就能判断出陌生人的长相是否有吸引力、有多么可爱、是否值得信赖，这一判断的准确性和仔细审视该陌生人的面孔一分钟后得出的完全一样（Willis &amp; Todorov，2006）。而只要观察该陌生人和异性5秒钟的聊天场面，人们就能确定他/她的外向程度、良知水平和智力高低（Carney et al.，2007）。人们妄下结论的速度太快，太快了。”</p>
-<p>摘录来自: 罗兰·米勒 (Rowland S. Miller). “亲密关系（第6版） (社会心理学精品译丛)。” Apple Books.</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[《亲密关系》]]></title>
-        <id>https://yao177.github.io/post/close-relationship/</id>
-        <link href="https://yao177.github.io/post/close-relationship/">
-        </link>
-        <updated>2020-09-01T07:16:52.000Z</updated>
-        <summary type="html"><![CDATA[<p>最近想对广义上的男女之事有个更深入的了解，便开始拜读《亲密关系》这本书，记录了一些内容。</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>最近想对广义上的男女之事有个更深入的了解，便开始拜读《亲密关系》这本书，记录了一些内容。</p>
-<!-- more -->
-<h1 id="沟通">沟通</h1>
-<p>是其中很重要的一环</p>
-<ol>
-<li>精确表达自己的想法，不要同时抱怨好几个问题
-<ol>
-<li>「XYZ」陈述法：当在 Y 情景下做 X 的时候，我感到 Z。“你总是打断我，不让我把话说完“ → “你刚刚在我话没说完的时候打断我，我很生气”</li>
-</ol>
-</li>
-<li>倾听彼此所说的话，不要仓促得出结论，不要根据猜测作出应对
-<ol>
-<li>通过复述他人的话来确定自己是否搞清楚了对方真实的想法</li>
-</ol>
-</li>
-<li>保持镇定，不要表现出消极的情感，不要过多批评和蔑视，切忌冷战
-<ol>
-<li>要求几分钟的暂停，做几个深呼吸，再尽可能理性地面对冲突</li>
-</ol>
-</li>
-</ol>
-<h1 id="爱情">爱情</h1>
-<p>爱情是婚姻的先决条件（爱情、激情、浪漫）吗？</p>
-<p>七年之痒，相敬如宾，失去激情和爱情，枕边人的谎言</p>
-<p>爱情三角论：亲密 + 激情 + 忠诚（会变化）</p>
-<h2 id="爱情的主要分类">爱情的主要分类</h2>
-<p>会受到时代、性别的影响</p>
-<ul>
-<li>浪漫之爱（不是婚姻延续的主要原因）——男性 more
-<ul>
-<li>激情（唤醒）
-<ul>
-<li>生理唤醒（不依赖于唤醒的类型，看喜剧片和恐怖片都有可能）</li>
-<li>另一半是唤醒之人（吊桥效应——可能是外界唤醒，而不是另一半）</li>
-</ul>
-</li>
-<li>思维的改变
-<ul>
-<li>爱情是盲目的，会低估甚至忽视对方的缺点</li>
-<li>爱情 vs 友谊：伴侣是迷人、神秘、富有吸引力</li>
-<li>对自我概念多样化：提高自尊→积极正面的体验</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>相伴之爱（可持续的婚姻）——女性 more
-<ul>
-<li>亲密</li>
-<li>忠诚：深刻</li>
-</ul>
-</li>
-</ul>
-<p>婚后浪漫的爱情会减弱（两年 down 50%）：幻想促进浪漫，吊桥效应不能持续</p>
-<p>如何维持爱情：享受激情但不依赖，培养友谊、共同爱好，努力保持新鲜感，进行新的、吸引人的活动</p>
-<h1 id="亲密关系的维持和修复">亲密关系的维持和修复</h1>
-<p><s>好姻缘天注定，只是没遇到对的人</s>：冲突无法避免</p>
-<p>双方都需要以正确的方式持续地努力：更好地了解亲密关系，才能做好准备，防止某些问题并客服其他难题</p>
-<p>第一节中的沟通技巧</p>
-<ol>
-<li>保持忠诚：<s>我</s> → 我们，共同社交圈，保持积极的心态</li>
-<li>积极错觉：尽可能以最好的眼光来看待自己的亲密关系，对缺点宽容</li>
-<li>个人牺牲：提高双方幸福感</li>
-<li>分享情感：</li>
-<li>公平地分担任务</li>
-<li>创造性玩乐</li>
-</ol>
-<p>如果亲密关系出现裂痕——保养汽车，难免出现问题</p>
-<p>这本书可以作为了解这辆“汽车”的书籍，可以积极寻求专业的婚姻咨询治疗师帮助</p>
-<p>越早处理就越容易解决，否则会滚雪球</p>
-<h1 id="总结">总结</h1>
-<ul>
-<li>沟通
-<ul>
-<li>言语沟通
-<ul>
-<li>常常认识不到：伴侣没有接受到想要传递的信息</li>
-<li>解决
-<ul>
-<li>精确表达自己的想法：XYZ 法则</li>
-<li>积极倾听
-<ul>
-<li>清楚了解对方的意图</li>
-<li>传达关注和理解</li>
-</ul>
-</li>
-<li>保持镇定：休战，理性</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>非言语沟通
-<ul>
-<li>男性不如女性做得好</li>
-<li>会导致亲密关系的不满</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[关于]]></title>
-        <id>https://yao177.github.io/post/about/</id>
-        <link href="https://yao177.github.io/post/about/">
-        </link>
-        <updated>2020-08-26T09:39:26.000Z</updated>
-        <content type="html"><![CDATA[<blockquote>
-<p>欢迎来到我的小站呀，很高兴遇见你！🤝</p>
-</blockquote>
-<h2 id="关于本站">🏠 关于本站</h2>
-<p>本数字域名<code>201021</code>的含义是，三进制的<code>520</code>（哈哈，没想到吧！</p>
-<h2 id="博主是谁">👨‍💻 博主是谁</h2>
-<p>我是 York Zhang，目前是一名帝都搬砖码农</p>
-<h2 id="兴趣爱好">⛹ 兴趣爱好</h2>
-<p>游泳🏊‍♀️书法✍️</p>
-<h2 id="联系我呀">📬 联系我呀</h2>
-<p>WeChat ID: <code>yyyao177</code></p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[利用53端口绕过网络验证]]></title>
-        <id>https://yao177.github.io/post/bypass-network-verification-by-using-53-port/</id>
-        <link href="https://yao177.github.io/post/bypass-network-verification-by-using-53-port/">
-        </link>
-        <updated>2018-01-01T09:51:00.000Z</updated>
-        <content type="html"><![CDATA[<h1 id="利用53端口免验证使用dlut-edawired-network-科学上网">利用53端口免验证使用DLUT-EDA&amp;wired-network &amp;&amp; 科学上网</h1>
-<blockquote>
-<p>原理：<br>
-通过dns_port:53端口免验证上网</p>
-</blockquote>
-<p><em>仅供测试，请在24小时内停止使用！</em></p>
-<hr>
-<ul>
-<li>绕过计费登陆系统
-<ul>
-<li>高校通常开放53端口</li>
-<li>通过在校外搭建代理服务器(vpn/ss)，代理连接端口为53，协议为UDP(我校TCP也可)</li>
-</ul>
-</li>
-<li>代理服务器的搭建
-<ul>
-<li>推荐使用KVM框架的VPS搭建Shadowsocks</li>
-<li>可以先使用亚马逊的AWS免费一年的服务器适用搭建
-<ol>
-<li>每月免费流量仅为15GB，超出需自费</li>
-<li>注册后开启实例，选择免费组的<code>Ubuntu 16.04 64位</code>；开启后在管理控制台中，将安全组的入站规则改为<code>所有流量</code>，在弹性IP中申请一个弹性IP并和刚刚创建的实例关联地址</li>
-<li>使用pem密钥登陆，Mac使用<code>terminal</code>终端，win可能需要安装<code>Xshell</code>等SSH客户端</li>
-<li>以下操作均需要<code>$ sudo su</code>获得root权限</li>
-<li><code>$ wget --no-check-certificate https://github.com/teddysun/across/raw/master/bbr.sh &amp;&amp; chmod +x bbr.sh &amp;&amp; ./bbr.sh</code>一键安装最新内核并安装BBR脚本(开启Linux的TCP加速)，可以实现服务器带宽使用最大化，安装后按照提示重启服务器即可</li>
-<li><code>$ wget --no-check-certificate -O shadowsocks-libev-debian.sh https://raw.githubusercontent.com/teddysun/shadowsocks_install/master/shadowsocks-libev-debian.sh &amp;&amp; chmod +x shadowsocks-libev-debian.sh &amp;&amp; ./shadowsocks-libev-debian.sh 2&gt;&amp;1 | tee shadowsocks-libev-debian.log</code>安装<code>Shadowsocks-libev</code>版本，密码自定，端口选择<code>53</code>，加密方式自定(推荐<code>7</code>，即<code>aes-256-cfb</code>)，安装完成后会自动启动并加入开机启动</li>
-<li>配置文件在<code>/etc/shadowsocks-libev/config.json</code>，可以自行修改SS配置</li>
-<li>至此，服务器已经搭建好。客户端下载地址如下
-<ul>
-<li><a href="https://github.com/shadowsocks/shadowsocks-windows/releases/download/4.0.7/Shadowsocks-4.0.7.zip">Win版</a></li>
-<li><a href="https://github.com/shadowsocks/shadowsocks-iOS/releases/download/2.6.3/ShadowsocksX-2.6.3.dmg">Mac版</a></li>
-<li><a href="https://github.com/shadowsocks/shadowsocks-android/releases/download/v4.3.3/shadowsocks-nightly-4.3.3.apk">Android版</a></li>
-<li><s><a href="https://itunes.apple.com/cn/app/openwingy/id1294672758?mt=8">IOS版-OpenWingy</a></s></li>
-<li><a href="https://itunes.apple.com/us/app/potatso-lite/id1239860606?mt=8">IOS(备用)版-SuperWingy</a></li>
-<li><a href="https://itunes.apple.com/ca/app/xnode-%E6%99%BA%E8%83%BD%E7%BD%91%E7%BB%9C%E5%8A%A0%E9%80%9F%E5%99%A8/id1265578116?l=fr&amp;mt=8">IOS最新版-XNode(原Wingy)</a></li>
-<li><a href="https://github.com/shadowsocks/shadowsocks-chromeapp">Chrome-APP版</a></li>
-</ul>
-</li>
-<li>客户端配置：地址——服务器地址，端口——<code>53</code>，加密方式——配置时选择的加密方式，密码——自行设置的密码，本地端口——<code>1080</code>，开启全局模式，并启动代理即可</li>
-</ol>
-</li>
-<li>至此，服务器已搭建好，同时亦可番墙(破除GFW限制)
-<ol>
-<li>一些应用如QQ、网易云音乐需要在设置里手动设置代理，选择<code>sock5</code>代理，服务器地址为<code>127.0.0.1</code>，端口为<code>53</code>；另有一些应用如战网、Steam不支持设置代理，可以使用Proxifier实现强制应用代理，自行搜索教程即可</li>
-<li>有更多流量需要的推荐申请一个一年的AWS学生账户，送$75代金券，可以抵用流量；另有Vultr、搬瓦工、Linode等付费VPS，价格$5/mo左右，也可自行选择</li>
-</ol>
-</li>
-</ul>
-</li>
-</ul>
-<p>PS：这里打个小推广，Vultr的VPS，价格很实惠，<a href="https://www.vultr.com/?ref=7646607">入口在此</a>。</p>
 ]]></content>
     </entry>
 </feed>
