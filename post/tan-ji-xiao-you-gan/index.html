@@ -2,18 +2,23 @@
   <head>
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Java 集合｜试验 new ArrayList(0) 初始化 | York Zhang</title>
+<title>谈绩效有感 | York Zhang</title>
 <link rel="shortcut icon" href="https://yao177.github.io/favicon.ico?v=1610348215577">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://yao177.github.io/styles/main.css">
-<link rel="alternate" type="application/atom+xml" title="Java 集合｜试验 new ArrayList(0) 初始化 | York Zhang - Atom Feed" href="https://yao177.github.io/atom.xml">
+<link rel="alternate" type="application/atom+xml" title="谈绩效有感 | York Zhang - Atom Feed" href="https://yao177.github.io/atom.xml">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
 
 
 
-    <meta name="description" content="只知道 new ArrayList(0) 的不同点在于 new ArrayList() 在添加第一个元素时会初始化为 10 个空间，但只知晓前者的概念，而我又想探究一下到底如何扩容
-正好最近刚学习了反射，就用反射来看一下 elementDa..." />
-    <meta name="keywords" content="Java Basic" />
+    <meta name="description" content="不及预期、达到预期、超出预期
+
+及时响应
+少出bug
+技术分享
+
+" />
+    <meta name="keywords" content="" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
     <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
   </head>
@@ -95,84 +100,26 @@
         <div class="post-detail">
           <article class="post">
             <h2 class="post-title">
-              Java 集合｜试验 new ArrayList(0) 初始化
+              谈绩效有感
             </h2>
             <div class="post-info">
               <span>
-                09-15-2020
+                01-08-2021
               </span>
               <span>
-                2 min read
+                1 min read
               </span>
-              
-                <a href="https://yao177.github.io/tag/tB5cQv6NA/" class="post-tag">
-                  # Java Basic
-                </a>
               
             </div>
             
             <div class="post-content-wrapper">
               <div class="post-content">
-                <p>只知道 new ArrayList(0) 的不同点在于 new ArrayList() 在添加第一个元素时会初始化为 10 个空间，但只知晓前者的概念，而我又想探究一下到底如何扩容</p>
-<p>正好最近刚学习了反射，就用反射来看一下 <code>elementData</code> 的实际大小</p>
-<pre><code class="language-java">import java.lang.reflect.Field;
-import java.util.ArrayList;
-
-public class Main {
-
-    public static void main( String[] args )
-    {
-        int pre;
-        final int max = 30;
-
-        ArrayList&lt;Integer&gt; arrayList1 = new ArrayList&lt;&gt;();
-        pre = -1;
-        for (int i = 0; i &lt; max; ++i) {
-            int now = getArrayListCapacity(arrayList1);
-            if (now != pre) {
-                pre = now;
-                System.out.print(pre + &quot; &quot;);
-            }
-            arrayList1.add(0);
-        }
-        System.out.println();
-
-        ArrayList&lt;Integer&gt; arrayList2 = new ArrayList&lt;&gt;(0);
-        pre = -1;
-        for (int i = 0; i &lt; max; ++i) {
-            int now = getArrayListCapacity(arrayList2);
-            if (now != pre) {
-                pre = now;
-                System.out.print(pre + &quot; &quot;);
-            }
-            arrayList2.add(0);
-        }
-    }
-
-    public static int getArrayListCapacity(ArrayList&lt;?&gt; arrayList) {
-        Class&lt;ArrayList&gt; arrayListClass = ArrayList.class;
-        try {
-            Field field = arrayListClass.getDeclaredField(&quot;elementData&quot;);
-            field.setAccessible(true);
-            Object[] objects = (Object[])field.get(arrayList);
-            return objects.length;
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-            return -1;
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-            return -1;
-        }
-    }
-}
-
----
-Results:
-0 10 15 22 33
-0 1 2 3 4 6 9 13 19 28 42
-</code></pre>
-<p>都说是 1.5 倍扩容，甚至展示出了源码 <code>oldCapacity + (oldCapacity &gt;&gt; 1)</code>，但是按理说 0 应该也会扩容为 0 呀（0 的 1.5 倍不是 0 吗，1 的 1.5 倍不是 1 吗，都不对）</p>
-<p>不过，这些教程都忽略了一个重要的点，传入的不是 <code>size</code> 而是 <code>size + 1</code>，从而解决了这个问题，再拿 <code>size + 1</code> vs <code>newCapacity</code>。</p>
+                <p>不及预期、达到预期、超出预期</p>
+<ol>
+<li>及时响应</li>
+<li>少出bug</li>
+<li>技术分享</li>
+</ol>
 
               </div>
               <div class="toc-container">
@@ -185,9 +132,9 @@ Results:
         
           <div class="next-post">
             <div class="next">下一篇</div>
-            <a href="https://yao177.github.io/post/arraylist-kuo-rong-can-shu-wei-shi-me-shi-15/">
+            <a href="https://yao177.github.io/post/java-ji-chu-orkuai-su-shi-bai-ji-zhi/">
               <h3 class="post-title">
-                Java 集合｜ArrayList 扩容参数为什么是 1.5
+                Java 基础｜快速失败机制
               </h3>
             </a>
           </div>
