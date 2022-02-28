@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://yao177.github.io</id>
-    <title>York Zhang</title>
-    <updated>2021-03-07T11:29:54.459Z</updated>
+    <title>York Zhang&apos;s Blog</title>
+    <updated>2022-02-28T06:40:40.216Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://yao177.github.io"/>
     <link rel="self" href="https://yao177.github.io/atom.xml"/>
     <subtitle>&lt;b&gt;E&lt;/b&gt;·rror = &lt;b&gt;m&lt;/b&gt;·ore * &lt;b&gt;c²&lt;/b&gt;·ode</subtitle>
     <logo>https://yao177.github.io/images/avatar.png</logo>
     <icon>https://yao177.github.io/favicon.ico</icon>
-    <rights>All rights reserved 2021, York Zhang</rights>
+    <rights>All rights reserved 2022, York Zhang&apos;s Blog</rights>
     <entry>
         <title type="html"><![CDATA[Java 基础｜快速失败机制]]></title>
         <id>https://yao177.github.io/post/java-ji-chu-orkuai-su-shi-bai-ji-zhi/</id>
