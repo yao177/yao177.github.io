@@ -3,7 +3,7 @@
   <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Java Spring | York Zhang&#39;s Blog</title>
-<link rel="shortcut icon" href="https://yao177.github.io/favicon.ico?v=1646114491747">
+<link rel="shortcut icon" href="https://yao177.github.io/favicon.ico?v=1646114562459">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://yao177.github.io/styles/main.css">
 <link rel="alternate" type="application/atom+xml" title="Java Spring | York Zhang&#39;s Blog - Atom Feed" href="https://yao177.github.io/atom.xml">
@@ -18,7 +18,7 @@
       <div class="main-content">
         <div class="site-header">
   <a href="https://yao177.github.io">
-  <img class="avatar" src="https://yao177.github.io/images/avatar.png?v=1646114491747" alt="">
+  <img class="avatar" src="https://yao177.github.io/images/avatar.png?v=1646114562459" alt="">
   </a>
   <h1 class="site-title">
     York Zhang&#39;s Blog
@@ -104,7 +104,7 @@
           11-23-2021
         </span>
         <span>
-          15 min read
+          16 min read
         </span>
         
           <a href="https://yao177.github.io/tag/2iA-2Lp2n/" class="post-tag">
@@ -114,279 +114,7 @@
       </div>
       
       <div class="post-abstract">
-        <h1 id="写在前面">写在前面</h1>
-<p>Spring 官网自豪地对自家产品评价到：快速、简单、安全。「快速」被其列为了第一位，可见这是 Spring 最引以为傲的特性。<br>
-<img src="https://yao177.github.io/post-images/1646029531559.jpeg" alt="Spring 官网介绍" loading="lazy"><br>
-「快速」意味着快速开发、快速启动、快速运行……而对于「快速启动」这一点，开发人员也许还有可乘之机。</p>
-<h1 id="项目背景">项目背景</h1>
-<p>服务部署虽然通常给开发人员提供了宝贵的休息时间，但服务启动时间过长，也势必会影响开发效率，增大回滚时的风险。<br>
-Spring Bean 初始化耗时占 Spring 启动时间的70%，若能优化 Spring Bean 的初始化时间，则会达到提高服务启动速度的目的。<br>
-concurrent-spring-startup 是一个旨在让 Spring 通过并行化来提高启动速度的项目，无代码侵入，绿色健康可食用。</p>
-<h1 id="知识背景">知识背景</h1>
-<h2 id="spring">Spring</h2>
-<h3 id="spring-简述">Spring 简述</h3>
-<p>Spring 框架可以被理解为一个容器，它帮我们管理了应用程序所需要的所有 Bean。<br>
-例如：我们会在项目里的很多地方用到同一个数据库连接池，我们只需要将它声明为一个 Spring Bean。Spring 启动时，会将这个 bean 创建并小心翼翼地保护好。在任何我们需要的时候，向它索取即可。<br>
-Spring 的启动过程涉及非常多的逻辑。本文围绕 Bean 的生命周期来对这一过程做介绍。Spring 的启动可以简单理解为下面三部曲：<br>
-创建 Spring 容器 -&gt; 扫描所有 Bean 定义 -&gt; 创建所有 Bean<br>
-<img src="https://yao177.github.io/post-images/1646036988133.svg" alt="Spring 简易启动流程" loading="lazy"></p>
-<h3 id="spring-关键组件">Spring 关键组件</h3>
-<h4 id="beanfactory">BeanFactory</h4>
-<p>即 Spring 用来管理 Bean 的容器，用户可以按照名称、类型等信息来获取指定的 Bean。<br>
-在这个接口的不同实现中，Spring 管理了不同类型Bean的生命周期（实例化、初始化、销毁）。它容纳了 Spring 中各个Bean的实例、Bean 的定义（来自 XML 或代码）。<br>
-它是 Spring 框架的核心接口。<br>
-其本身只包含获取 Bean 的方法，而其具体实现类有一些重要方法：</p>
-<ul>
-<li><code>getBean (String beanName)</code><br>
-从Spring 容器中获取指定名称的Bean实例。若还没有创建，则创建之。事实上，Spring 正是通过这个方法来创建 Bean 的。</li>
-<li><code>populateBean (String beanName, RootBeanDefinition mbd, BeanWrapper bw)</code><br>
-用于 Bean 的实例化。getBean 被执行时，Spring 会调用 populateBean 进行 bean 的创建。参数 mbd 即 bean 的属性定义，例如我们在 XML 里面设置的字段和值。若 bean 依赖了其它 bean，它还会触发其它 bean 的创建和注入。</li>
-</ul>
-<h4 id="applicationcontext">ApplicationContext</h4>
-<p>BeanFactory 接口的子类，拓展了很多功能供开发者使用，例如手动注入 bean、获取 bean、获取 bean的指定属性等。<br>
-它内部持有另一个 BeanFactory 的引用，并全权负责这个 BeanFactory 的生命周期（实例化、初始化、销毁）。因此它对 BeanFactory 接口的实现都是基于这个内部BeanFactory的。也就是说，ApplicationContext 是专门给外部使用的（Springboot、开发者），而它所提供的花里胡哨的功能具体实现是由内部的 beanFactory 去完成的。<br>
-事实上 ApplicationContext 其实不用实现BeanFactory接口，它已经提供了<code>getAutowireCapableBeanFactory</code>方法来获得“真正的 BeanFactory”。也许是为了不让开发者在两个接口中来回切换，只关注一个 Spring 组件，于是一并把 BeanFactory 接口实现了。明白这一点可以让读者理解 ApplicationContext 和 BeanFactory 的关系。<br>
-在它的实现类中，有一些重要的方法：</p>
-<ul>
-<li><code>refresh()</code><br>
-大名鼎鼎的refresh方法即为Spring容器启动的入口。该方法会完整地创建自己持有的BeanFactory，并执行它的初始化动作（例如扫描Bean定义、实例化所有Bean、初始化所有Bean、添加各类处理器和监听器）。如果已经存在一个初始化完毕的BeanFactory，那就先销毁它，“推翻重来”。</li>
-<li><code>loadBeanDefinitions(DefaultListableBeanFactory factory)</code><br>
-在refresh方法里执行。ApplicationContext 会扫描所有定义 Bean 的地方（XML、注解、Groovy 等），并将其放置到内部持有的这个 factory 里面（通常是一个 Map&lt;String, BeanDefinition&gt;）。</li>
-</ul>
-<h4 id="beanpostprocessor">BeanPostProcessor</h4>
-<p>Bean初始化前后的「钩子」。它有两个方法：</p>
-<ul>
-<li><code>postProcessBeforeInitialization(Object bean, String beanName)</code><br>
-在具体的Bean初始化前被 Spring 容器调用，并对 Bean 进行一系列操作。例如 <code>ApplicationContextAwareProcessor</code> 的该方法会根据 bean 的类型，为各个 Spring 基础组件设置默认的属性。</li>
-<li><code>postProcessAfterInitialization(Object bean, String beanName)</code><br>
-在具体的 Bean 初始化完成后被 Spring 容器调用，允许对 Bean 进行一系列后置的操作。<br>
-注意，Spring 容器将会把这两个方法返回值作为新的 Bean 来替代原有的 Bean。本项目正是利用了这个特性来完成 Bean 的“偷天换日”。</li>
-</ul>
-<h4 id="instantiationawarebeanpostprocessor">InstantiationAwareBeanPostProcessor</h4>
-<p>BeanPostProcessor 的子类。它新增了方法：</p>
-<ul>
-<li><code>postProcessPropertyValues(PropertyValues pvs, PropertyDescriptor[] pds, Object bean, String beanName)</code><br>
-该方法会在 bean 属性组装时调用。这里的属性（pvs）来自于用户在 XML 中或代码里指定的 Bean 的字段或属性。事实上，Spring 正是利用它来完成了依赖注入，例如它的实现之一——<code>AutowiredAnnotationBeanPostProcessor</code> 会在这个方法里将 bean 中被 @Autowired 和 @Value 标记的字段注入具体的值或者对象。</li>
-</ul>
-<h3 id="spring-容器启动过程">Spring 容器启动过程</h3>
-<p>有了上文的基础，Spring 容器的启动流程可以进一步描述为：<br>
-<img src="https://yao177.github.io/post-images/1646040974089.svg" alt="Spring 启动流程" loading="lazy"></p>
-<h3 id="spring-与本项目的联系">Spring 与本项目的联系</h3>
-<ul>
-<li>本项目利用 Spring 的<code>BeanPostProcessor</code>来将原有 Bean 替换为自定义动态代理对象</li>
-<li>利用<code>ApplicationListener</code>来保证 Spring 启动完成前所有的异步方法执行完成</li>
-</ul>
-<h2 id="cglib">CGLIB</h2>
-<h3 id="cglib-简述">CGLIB 简述</h3>
-<p>CGLIB 是一个运行时的字节码生成工具。<br>
-在平时，字节码文件都是编译时创建的。而 CGLIB 可以在运行时创建字节码，故称作“动态”代理。<br>
-CGLIB 可以用来为某个类创建一个子类，并在其方法（非全部）被调用时进行拦截，执行自己的逻辑。<br>
-在 Spring 的 AOP 场景中，CGLIB 被大量使用。</p>
-<h3 id="cglib的使用示例">CGLIB的使用示例</h3>
-<pre><code class="language-Java">public class CglibTest {
-    public void print() {
-        System.out.println(&quot;CglibTest#print be invoked&quot;);
-    }
-
-    public static void main(String[] args) {
-        Enhancer enhancer = new Enhancer(); //CGLIB的工具类
-        enhancer.setSuperclass(CglibTest.class); //需要设置一个父类
-        enhancer.setCallback(new MethodInterceptor() { //方法拦截器，o为代理对象，method为被调用的方法，objects为方法参数，methodProxy为代理方法，通常用于执行父类（原类）方法
-            @Override
-            public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
-                System.out.println(&quot;CglibTestProxy#print be invoked&quot;);
-                methodProxy.invokeSuper(o, objects); //执行父类方法
-                return null;
-            }
-        });
-        CglibTest cglibTest = (CglibTest) enhancer.create(); //创建代理对象
-        cglibTest.print(); //执行方法
-    }
-}
-</code></pre>
-<p>输出结果</p>
-<pre><code class="language-Shell">CglibTestProxy#print invoked
-CglibTest#print invoked
-</code></pre>
-<p>运行示意图：<br>
-<img src="https://yao177.github.io/post-images/1646041699356.svg" alt="cglib 代理流程" loading="lazy"></p>
-<h3 id="cglib-和-jdk-动态代理的区别">CGLIB 和 JDK 动态代理的区别</h3>
-<ul>
-<li>使用区别：CGLIB 支持直接代理现成的类；JDK 只支持接口代理，应用场景被大打折扣。</li>
-<li>效率区别：CGLIB 比 JDK 动态代理快出不止一个数量级。原因是拦截器入参中的 MethodProxy 里面会直接用原父类的引用进行方法调用，而非通过 Method 对象反射调用。<br>
-读者可以简单理解为<code>super.print()</code>远比<code>super.class.getMethod(&quot;print&quot;).invoke()</code>快很多。这块实现较为复杂，由于篇幅限制，可以通过 <a href="https://zhuanlan.zhihu.com/p/106069224">CGLIB 动态代理的使用和分析</a> 简单了解。</li>
-</ul>
-<h3 id="注意事项">注意事项</h3>
-<p>由于 CGLIB 本质是实现一个子类，因此它不能代理 final 修饰的类；<br>
-由于 private、final 方法不能被继承，因此它的拦截器无法获取 private、final 修饰的方法；<br>
-不要在<code>MethodProxy</code>中直接调用 invoke，这会导致循环调用，重复进入拦截器。应当只调用其<code>invokeSuper</code>方法。</p>
-<h3 id="cglib-与本项目的联系">CGLIB 与本项目的联系</h3>
-<p>利用 CGLIB 实现原有 Bean 的动态代理，配置自定义的方法策略。</p>
-<h1 id="设计思路">设计思路</h1>
-<p>由知识背景知，一个原生的 Spring 启动流程已在上文中举出。<br>
-由项目背景得知，这个过程中耗时最长的是 Bean 的初始化。RPC 客户端与服务端建立连接、各个中间件连接池的创建等都在各自的 Bean 初始化中完成。这中间不乏复杂的计算逻辑和耗时的 IO 操作。倘若我们将 Bean 的初始化改成异步执行，那将实现 bean 的并行初始化，加快启动速度。</p>
-<h2 id="提出目前的问题和对应解决方案">提出目前的问题和对应解决方案：</h2>
-<ol>
-<li>Bean 本身的初始化方法都是同步的，如何实现异步？——使用 CGLIB 代理，当执行初始化方法时放入线程池异步执行；</li>
-<li>如何让 Spring 的 Bean 替换成我们的动态代理对象？——实现<code>BeanPostProcessor#postProcessBeforeInitialization</code>方法来在bean初始化前进行替换；</li>
-<li>如何让保证 Bean 在被其他组件使用时，不会出现 Bean 未初始化完成的情况？——让 Bean 其他方法执行时同步等待其初始化完成；</li>
-<li>如何保证 Spring 启动后，所有的 Bean 都初始化完成？——实现<code>ApplicationListener</code>来等待 Spring 启动完成通知，等待所有 Bean 初始化完成。<br>
-至此，我们已经形成了解决思路，下节介绍项目具体实现。</li>
-</ol>
-<h1 id="原理介绍">原理介绍</h1>
-<h2 id="项目概览">项目概览</h2>
-<figure data-type="image" tabindex="1"><img src="https://yao177.github.io/post-images/1646048369211.svg" alt="优化启动流程" loading="lazy"></figure>
-<h2 id="创建代理流程">创建代理流程</h2>
-<figure data-type="image" tabindex="2"><img src="https://yao177.github.io/post-images/1646049504592.svg" alt="创建代理流程" loading="lazy"></figure>
-<h2 id="前置校验">前置校验</h2>
-<p>前置校验分为两部分，一是 Bean 的类能否创建 CGLIB 代理，二是该 Bean 的初始化方法能否被 CGLIB 代理。</p>
-<h3 id="如何获取bean的初始化方法">如何获取bean的初始化方法</h3>
-<p>Spring Bean 有三种初始化方法（按执行顺序）：</p>
-<ol>
-<li><code>@PostConstruct</code>注解标记的方法<br>
-获得方式：通过扫描类的方法注解可以过滤出。</li>
-<li><code>InitializingBean</code>的<code>afterPropertiesSet</code>方法<br>
-获得方式：直接反射获得之。</li>
-<li>XML 中指定的<code>init-method</code>方法<br>
-获得方式：反射获取该 Bean 的 <code>AbstractBeanDefinition</code> 的 <code>initMethodName</code> 字段。</li>
-</ol>
-<h3 id="校验类型">校验类型</h3>
-<ol>
-<li>该类能否被 CGLIB 代理
-<ul>
-<li>有无参构造函数</li>
-<li>该类必须被声明为非 final 的</li>
-<li>该类不能是 JDK 代理类或者 CGLIB 代理类</li>
-</ul>
-</li>
-<li>该 Bean 的初始化方法能否被 CGLIB 代理
-<ul>
-<li>该方法必须被声明为非 final 的</li>
-<li>该方法必须为非 static 或 private 的</li>
-</ul>
-</li>
-</ol>
-<h2 id="装配代理方法策略">装配代理方法策略</h2>
-<blockquote>
-<p>什么是代理方法策略：<br>
-在代理对象被外部调用时，代理方法策略能将原有方法路由到不同的代理方法，以此确定方法的真正执行过程。</p>
-</blockquote>
-<p>在项目中，该策略实体是一个<code>ConcurrentHashMap</code>，key值为Method，value为WrappedMethod。<br>
-<em>注：下表中original bean表示代理类持有的原bean的引用，method表示该方法策略被命中时，代理类被外部调用的方法</em></p>
-<table>
-<thead>
-<tr>
-<th>Bean 原有方法</th>
-<th>代理策略</th>
-<th>执行流程</th>
-<th>附加说明</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>初始化方法</td>
-<td>AsyncMethod</td>
-<td>等待其依赖的 AsyncMethod 执行完毕后，在线程池中注册异步任务，对 original bean 执行 method。</td>
-<td>该策略是项目能加速的原因。<br>其通过持有一个依赖的 AsyncMethod 引用，来保证初始化方法执行顺序是不变的。</td>
-</tr>
-<tr>
-<td>Object.class的方法<br><code>FactoryBean#getObjectType</code></td>
-<td>SyncMethod</td>
-<td>直接令original bean执行method。</td>
-<td>FactoryBean#getObjectType 的注释中明确说明，若方法返回 null 则表明该 bean 还未被初始化，因此提前调用是不违背 Spring 规范的。通过直接调用它来预测 FactoryBean#getObject 的返回类型，创建代理对象。</td>
-</tr>
-<tr>
-<td>FactoryBean#getObject</td>
-<td>ObjectProxyMethod</td>
-<td>返回一个动态代理对象，该对象在被实际调用方法时必须等待其 FactoryBean 代理对象的所有 AsyncMethod 完成。</td>
-<td>FactoryBean 初始化完成后，会调用 getObject，将返回值注入到 Spring 容器中。因此我们通过返回代理对象，在对象实际被调用的时候再等待 FactoryBean 初始化完成，来实现一个“懒加载”，增加并发度。</td>
-</tr>
-<tr>
-<td>WrappedProxyBean#getOriginalBean<br>WrappedProxyBean#setOriginalBean</td>
-<td>OriginalBeanGetterMethod<br>OriginalBeanSetterMethod</td>
-<td>返回/设置该代理对象持有的original bean</td>
-<td>这个组件内的所有代理对象都将实现 WrappedProxyBean 接口，用于返回/设置该代理对象持有的 original bean。</td>
-</tr>
-<tr>
-<td>其余方法</td>
-<td>DefaultMethod</td>
-<td>等待该代理类的所有 AsyncMethod 完成时，执行 method。</td>
-<td>其他方法调用时，必须等待所有 AsyncMethod 执行完成，以保证执行顺序不改变。</td>
-</tr>
-</tbody>
-</table>
-<p>下图是代理对象被执行时，代理方法策略的匹配过程。<br>
-<img src="https://yao177.github.io/post-images/1646106362899.svg" alt="代理方法策略匹配流程" loading="lazy"></p>
-<h2 id="对-factorybean-的特殊处理">对 FactoryBean 的特殊处理</h2>
-<p>FactoryBean有两个重要方法：<code>getObject</code>、<code>getObjectType</code>。顾名思义，FactoryBean 是用来创建 Bean 的，因此在 FactoryBean 本身被创建后，Spring 会调用其 getObject 方法来获得一个新的 Bean，并注入到 Spring 容器中完成其整个生命周期。而 getObjectType 用于 FactoryBean 声明它所生产的 Bean 的类型。<br>
-若我们不对 getObject 方法做处理，则在其被调用时，将会阻塞 Spring 线程。如图：<br>
-<img src="https://yao177.github.io/post-images/1646106611326.svg" alt="阻塞spring流程" loading="lazy"><br>
-如果我们令 FactoryBean 返回一个动态代理对象，并令动态代理对象被实际调用方法时，再等待 FactoryBean 初始化完成，则：<br>
-<img src="https://yao177.github.io/post-images/1646106809424.svg" alt="不阻塞spring流程" loading="lazy"><br>
-可以看到，对 getObject 的调用并没有阻塞 Spring 主线程，从而提高了启动速度。</p>
-<h2 id="创建代理对象">创建代理对象</h2>
-<ol>
-<li>将 bean 的类型作为父类，将装配了代理方法策略的 MethodInterceptor 作为拦截器，利用 CGLIB 的 Enhancer 生成代理对象；</li>
-<li>将该 Enhancer 实例存入缓存中，供之后相同类型的 Bean 直接使用，以此跳过前置校验和方法装配阶段；</li>
-<li>将代理对象返回给 Spring 容器。</li>
-</ol>
-<h2 id="场景示例">场景示例</h2>
-<p>假设有如下两个 Bean：</p>
-<pre><code class="language-Java">@Bean
-public class RpcClient implements FactoryBean, InitializingBean {
-    RpcClient() {
-    }
-    public void afterPropertiesSet() {
-        // do some socket work
-    }
-    public Object getObject() {
-        return new RpcService();
-    }
-    public Class getObjectType() {
-        return RpcService.class;
-    }
-    // other method
-}
-</code></pre>
-<pre><code class="language-Java">@Bean
-public Manger {
-  @Resource
-  RpcService rpcService;
-  
-  public String getName(int id) {
-    return rpcService.getName(int id);
-}
-</code></pre>
-<pre><code class="language-Java">public interface RpcService {
-  String getName(int id);
-}
-</code></pre>
-<p>当 Spring 启动时，本项目做以下事情：</p>
-<ul>
-<li>异步执行 RpcClient 的初始化方法，并返回 rpcClientProxy 给 Spring 容器；</li>
-<li>Spring 执行 rpcClientProxy 的 getObject 方法，得到 rpcServiceProxy；</li>
-<li>解决 Manger 依赖时，将 rpcServiceProxy 注入到 rpcService 字段；</li>
-<li>当项目启动结束前，本项目将会等待 rpcClientProxy 的异步方法执行完毕。<br>
-当<code>Manger#getName</code>被调用时：<br>
-<img src="https://yao177.github.io/post-images/1646112526954.svg" alt="Manger#getName" loading="lazy"></li>
-</ul>
-<p>当 Spring 启动完成前，本项目会等待所有的异步方法执行完毕。因此当用户请求打入时，并不存在等待的过程。</p>
-<h1 id="风险评估">风险评估</h1>
-<p>本项目人为修改了部分 Spring 加载 Bean 的流程，因此不可避免地需要进行一些风险评估。</p>
-<h2 id="如何保证代理对象的行为和原有-bean-的属性-行为一致">如何保证代理对象的行为和原有 Bean 的属性、行为一致？</h2>
-<p>代理对象没有修改原有 Bean 的方法逻辑，它持有一个原有 bean 的引用，任何方法调用最终都会调用原有 bean 方法，因此属性和行为是没有变动的。</p>
-<h2 id="如何保证代理对象方法执行顺序不会错乱">如何保证代理对象方法执行顺序不会错乱？</h2>
-<p>本项目通过为所有的异步方法指定执行顺序，来保证它们不会并发执行；而对于其他方法，除能直接执行的方法 (Object.class 的方法、getObjectType 方法) 外，其余均需要等待初始化完成，保证了 Bean 相关代码的执行顺序。</p>
-<h2 id="其他可能的风险如何解决">其他可能的风险如何解决？</h2>
-<p>在初始化方法中操作 BeanFactory 可能导致项目死锁，无法启动。<br>
-任何通过 BeanFactory 获取或操作 Bean 的行为都会被 Spring 并发控制。具体实现是通过 synchronized 获取 singletonObjects（<code>ConcurrentHashMap&lt;String, Object&gt;</code>，存放所有单例 Bean 的容器）的对象锁来避免同时操作单例 Bean 容器。<br>
-由于 BeanPostprocessor 处于 Bean 加载的上下文中，因此总是持有 singletonObjects 的对象锁；若 Bean 在初始化方法中利用 beanFactory 操作其他 Bean ，则会导致如下情况：<br>
-<img src="https://yao177.github.io/post-images/1646113568033.svg" alt="对象锁" loading="lazy"><br>
-因此本项目通过死锁超时检测，当主线程序阻塞一定时间后（例如20s），抛出导致死锁的类名，用户可以在注解中通过 exclude 指定不为该类创建动态代理。</p>
-<h1 id="总结">总结</h1>
-<p>至此，项目已介绍完成，想随便聊聊。<br>
-本质上，这个项目就是利用了懒加载特性，先有个壳，再加载真正的 Bean 实体；其实这个思想在算法中也很常见，例如二分思想的经典算法——线段树，利用 lazy propagation (惰性传播) 在父节点打上修改的标记而不直接修改，只有真正访问到时才往子节点进行传递，提升了效率。</p>
-
+        
       </div>
     </article>
   
