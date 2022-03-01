@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://yao177.github.io</id>
     <title>York Zhang&apos;s Blog</title>
-    <updated>2022-03-01T06:02:48.270Z</updated>
+    <updated>2022-03-01T06:05:14.915Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://yao177.github.io"/>
     <link rel="self" href="https://yao177.github.io/atom.xml"/>
@@ -11,7 +11,7 @@
     <icon>https://yao177.github.io/favicon.ico</icon>
     <rights>All rights reserved 2022, York Zhang&apos;s Blog</rights>
     <entry>
-        <title type="html"><![CDATA[Spring 启动加速器]]></title>
+        <title type="html"><![CDATA[Java 框架｜Spring 启动加速器]]></title>
         <id>https://yao177.github.io/post/concurrent-spring-startup/</id>
         <link href="https://yao177.github.io/post/concurrent-spring-startup/">
         </link>
@@ -358,12 +358,8 @@ public Manger {
         <link href="https://yao177.github.io/post/java-ji-chu-orkuai-su-shi-bai-ji-zhi/">
         </link>
         <updated>2020-09-15T12:56:55.000Z</updated>
-        <summary type="html"><![CDATA[<h1 id="基本介绍">基本介绍</h1>
-<p>在使用迭代器对集合对象进行遍历的时候，如果 A 线程对集合进行遍历，正好 B 线程对集合进行修改（增加、删除、修改）则 A 线程会抛出 <code>ConcurrentModificationException</code> 异常。</p>
-]]></summary>
         <content type="html"><![CDATA[<h1 id="基本介绍">基本介绍</h1>
 <p>在使用迭代器对集合对象进行遍历的时候，如果 A 线程对集合进行遍历，正好 B 线程对集合进行修改（增加、删除、修改）则 A 线程会抛出 <code>ConcurrentModificationException</code> 异常。</p>
-<!-- more -->
 <h1 id="原理">原理</h1>
 <p>迭代器在遍历时直接访问集合中的内容，并且在遍历过程中使用一个 modCount 变量。集合在被遍历期间如果内容发生变化，就会改变 modCount 的值。每当迭代器使用 hashNext()/next() 遍历下一个元素之前，都会检测 modCount 变量是否为 expectedmodCount 值，是的话就返回遍历；否则抛出异常，终止遍历。</p>
 <h2 id="为什么-util-中的集合类遍历时不会快速失败">为什么 util 中的集合类遍历时不会快速失败？</h2>
