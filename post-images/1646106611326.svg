@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="339px" preserveAspectRatio="none" style="width:276px;height:339px;background:#FFFFFF;" version="1.1" viewBox="0 0 276 339" width="276px" zoomAndPan="magnify"><defs><filter height="300%" id="fgytkydgkt6uh" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><ellipse cx="135" cy="20" fill="#000000" filter="url(#fgytkydgkt6uh)" rx="10" ry="10" style="stroke:none;stroke-width:1.0;"/><rect fill="#FEFECE" filter="url(#fgytkydgkt6uh)" height="34.1328" rx="12.5" ry="12.5" style="stroke:#A80036;stroke-width:1.5;" width="175" x="47.5" y="50"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="155" x="57.5" y="71.6016">factoryBean 异步初始化完成</text><rect fill="#FEFECE" filter="url(#fgytkydgkt6uh)" height="34.1328" rx="12.5" ry="12.5" style="stroke:#A80036;stroke-width:1.5;" width="215" x="27.5" y="104.1328"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="195" x="37.5" y="125.7344">Spring 调用 factoryBean.getObject</text><rect fill="#FEFECE" filter="url(#fgytkydgkt6uh)" height="34.1328" rx="12.5" ry="12.5" style="stroke:#A80036;stroke-width:1.5;" width="184" x="43" y="192.4961"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="164" x="53" y="214.0977">Spring 获得 object，加入容器</text><rect fill="#FEFECE" filter="url(#fgytkydgkt6uh)" height="34.1328" rx="12.5" ry="12.5" style="stroke:#A80036;stroke-width:1.5;" width="248" x="11" y="246.6289"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="228" x="21" y="268.2305">其他 Bean 依赖 object 时，object 被注入</text><ellipse cx="135" cy="311.7617" fill="#FFFFFF" filter="url(#fgytkydgkt6uh)" rx="11" ry="11" style="stroke:#000000;stroke-width:1.0;"/><ellipse cx="135" cy="311.7617" fill="#000000" rx="6" ry="6" style="stroke:#7F7F7F;stroke-width:1.0;"/><line style="stroke:#A80036;stroke-width:1.5;" x1="135" x2="135" y1="30" y2="50"/><polygon fill="#A80036" points="131,40,135,50,139,40,135,44" style="stroke:#A80036;stroke-width:1.0;"/><line style="stroke:#A80036;stroke-width:1.5;" x1="135" x2="135" y1="84.1328" y2="104.1328"/><polygon fill="#A80036" points="131,94.1328,135,104.1328,139,94.1328,135,98.1328" style="stroke:#A80036;stroke-width:1.0;"/><line style="stroke:#A80036;stroke-width:1.5;" x1="135" x2="135" y1="138.2656" y2="192.4961"/><polygon fill="#A80036" points="131,182.4961,135,192.4961,139,182.4961,135,186.4961" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacing" textLength="110" x="139" y="159.7207">阻塞等待 factoryBean</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacing" textLength="77" x="139" y="172.6758">异步初始化完成</text><line style="stroke:#A80036;stroke-width:1.5;" x1="135" x2="135" y1="226.6289" y2="246.6289"/><polygon fill="#A80036" points="131,236.6289,135,246.6289,139,236.6289,135,240.6289" style="stroke:#A80036;stroke-width:1.0;"/><line style="stroke:#A80036;stroke-width:1.5;" x1="135" x2="135" y1="280.7617" y2="300.7617"/><polygon fill="#A80036" points="131,290.7617,135,300.7617,139,290.7617,135,294.7617" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[19adc107f46dad344d42aa3332834a6d]
+@startuml 阻塞spring流程
+start
+:factoryBean 异步初始化完成;
+:Spring 调用 factoryBean.getObject;
+-> 阻塞等待 factoryBean
+异步初始化完成;
+:Spring 获得 object，加入容器;
+:其他 Bean 依赖 object 时，object 被注入;
+stop
+@enduml
+
+PlantUML version 1.2022.0(Wed Jan 12 00:16:42 CST 2022)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Default Encoding: UTF-8
+Language: zh
+Country: CN
+--></g></svg>

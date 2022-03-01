@@ -3,7 +3,7 @@
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Java 基础｜快速失败机制 | York Zhang&#39;s Blog</title>
-<link rel="shortcut icon" href="https://yao177.github.io/favicon.ico?v=1646030435623">
+<link rel="shortcut icon" href="https://yao177.github.io/favicon.ico?v=1646114115719">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://yao177.github.io/styles/main.css">
 <link rel="alternate" type="application/atom+xml" title="Java 基础｜快速失败机制 | York Zhang&#39;s Blog - Atom Feed" href="https://yao177.github.io/atom.xml">
@@ -13,8 +13,9 @@
 
     <meta name="description" content="基本介绍
 在使用迭代器对集合对象进行遍历的时候，如果 A 线程对集合进行遍历，正好 B 线程对集合进行修改（增加、删除、修改）则 A 线程会抛出 ConcurrentModificationException 异常。
+
 原理
-迭代器在遍历时直..." />
+迭代器在遍历时..." />
     <meta name="keywords" content="Java Basic" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
     <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
@@ -24,7 +25,7 @@
       <div class="main-content">
         <div class="site-header">
   <a href="https://yao177.github.io">
-  <img class="avatar" src="https://yao177.github.io/images/avatar.png?v=1646030435623" alt="">
+  <img class="avatar" src="https://yao177.github.io/images/avatar.png?v=1646114115719" alt="">
   </a>
   <h1 class="site-title">
     York Zhang&#39;s Blog
@@ -117,6 +118,7 @@
               <div class="post-content">
                 <h1 id="基本介绍">基本介绍</h1>
 <p>在使用迭代器对集合对象进行遍历的时候，如果 A 线程对集合进行遍历，正好 B 线程对集合进行修改（增加、删除、修改）则 A 线程会抛出 <code>ConcurrentModificationException</code> 异常。</p>
+<!-- more -->
 <h1 id="原理">原理</h1>
 <p>迭代器在遍历时直接访问集合中的内容，并且在遍历过程中使用一个 modCount 变量。集合在被遍历期间如果内容发生变化，就会改变 modCount 的值。每当迭代器使用 hashNext()/next() 遍历下一个元素之前，都会检测 modCount 变量是否为 expectedmodCount 值，是的话就返回遍历；否则抛出异常，终止遍历。</p>
 <h2 id="为什么-util-中的集合类遍历时不会快速失败">为什么 util 中的集合类遍历时不会快速失败？</h2>

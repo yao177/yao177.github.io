@@ -2,16 +2,32 @@
   <head>
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>York Zhang&#39;s Blog</title>
+<title>Spring 启动加速器 | York Zhang&#39;s Blog</title>
 <link rel="shortcut icon" href="https://yao177.github.io/favicon.ico?v=1646114115719">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://yao177.github.io/styles/main.css">
-<link rel="alternate" type="application/atom+xml" title="York Zhang&#39;s Blog - Atom Feed" href="https://yao177.github.io/atom.xml">
+<link rel="alternate" type="application/atom+xml" title="Spring 启动加速器 | York Zhang&#39;s Blog - Atom Feed" href="https://yao177.github.io/atom.xml">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
 
 
 
-    <meta name="description" content="<b>E</b>·rror = <b>m</b>·ore * <b>c²</b>·ode" />
+    <meta name="description" content="
+写在前面
+项目背景
+知识背景
+
+Spring
+
+Spring 简述
+Spring 关键组件
+
+BeanFactory
+ApplicationContext
+BeanPostProcessor
+InstantiationAwareBeanP..." />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
   </head>
   <body>
     <div class="main">
@@ -88,51 +104,24 @@
   </div>
 </div>
 
-    
-        <div class="post-container">
-  
-    <article class="post">
-      <a href="https://yao177.github.io/post/about/">
-        <h2 class="post-title">关于｜我是谁</h2>
-      </a>
-      <div class="post-info">
-        <span>
-          08-26-2020
-        </span>
-        <span>
-          1 min read
-        </span>
-        
-          <a href="https://yao177.github.io/tag/xlp7QuNLz/" class="post-tag">
-            # Me
-          </a>
-        
-      </div>
-      
-      <div class="post-abstract">
-        <blockquote>
-<p>欢迎来到我的小站呀，很高兴遇见你！🤝</p>
-</blockquote>
-
-      </div>
-    </article>
-  
-    <article class="post">
-      <a href="https://yao177.github.io/post/spring-qi-dong-you-hua/">
-        <h2 class="post-title">Spring 启动加速器</h2>
-      </a>
-      <div class="post-info">
-        <span>
-          11-23-2021
-        </span>
-        <span>
-          16 min read
-        </span>
-        
-      </div>
-      
-      <div class="post-abstract">
-        <p><ul class="markdownIt-TOC">
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Spring 启动加速器
+            </h2>
+            <div class="post-info">
+              <span>
+                11-23-2021
+              </span>
+              <span>
+                16 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <p><ul class="markdownIt-TOC">
 <li><a href="#%E5%86%99%E5%9C%A8%E5%89%8D%E9%9D%A2">写在前面</a></li>
 <li><a href="#%E9%A1%B9%E7%9B%AE%E8%83%8C%E6%99%AF">项目背景</a></li>
 <li><a href="#%E7%9F%A5%E8%AF%86%E8%83%8C%E6%99%AF">知识背景</a>
@@ -466,321 +455,90 @@ public Manger {
 <h1 id="总结">总结</h1>
 <p>至此，项目已介绍完成，想随便聊聊。<br>
 本质上，这个项目就是利用了懒加载特性，先有个壳，再加载真正的 Bean 实体；其实这个思想在算法中也很常见，例如二分思想的经典算法——线段树，利用 lazy propagation (惰性传播) 在父节点打上修改的标记而不直接修改，只有真正访问到时才往子节点进行传递，提升了效率。</p>
+<!-- more -->
 
-      </div>
-    </article>
-  
-    <article class="post">
-      <a href="https://yao177.github.io/post/java-ji-chu-orkuai-su-shi-bai-ji-zhi/">
-        <h2 class="post-title">Java 基础｜快速失败机制</h2>
-      </a>
-      <div class="post-info">
-        <span>
-          09-15-2020
-        </span>
-        <span>
-          2 min read
-        </span>
-        
-          <a href="https://yao177.github.io/tag/tB5cQv6NA/" class="post-tag">
-            # Java Basic
-          </a>
-        
-      </div>
-      
-      <div class="post-abstract">
-        <h1 id="基本介绍">基本介绍</h1>
-<p>在使用迭代器对集合对象进行遍历的时候，如果 A 线程对集合进行遍历，正好 B 线程对集合进行修改（增加、删除、修改）则 A 线程会抛出 <code>ConcurrentModificationException</code> 异常。</p>
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E5%86%99%E5%9C%A8%E5%89%8D%E9%9D%A2">写在前面</a></li>
+<li><a href="#%E9%A1%B9%E7%9B%AE%E8%83%8C%E6%99%AF">项目背景</a></li>
+<li><a href="#%E7%9F%A5%E8%AF%86%E8%83%8C%E6%99%AF">知识背景</a>
+<ul>
+<li><a href="#spring">Spring</a>
+<ul>
+<li><a href="#spring-%E7%AE%80%E8%BF%B0">Spring 简述</a></li>
+<li><a href="#spring-%E5%85%B3%E9%94%AE%E7%BB%84%E4%BB%B6">Spring 关键组件</a>
+<ul>
+<li><a href="#beanfactory">BeanFactory</a></li>
+<li><a href="#applicationcontext">ApplicationContext</a></li>
+<li><a href="#beanpostprocessor">BeanPostProcessor</a></li>
+<li><a href="#instantiationawarebeanpostprocessor">InstantiationAwareBeanPostProcessor</a></li>
+</ul>
+</li>
+<li><a href="#spring-%E5%AE%B9%E5%99%A8%E5%90%AF%E5%8A%A8%E8%BF%87%E7%A8%8B">Spring 容器启动过程</a></li>
+<li><a href="#spring-%E4%B8%8E%E6%9C%AC%E9%A1%B9%E7%9B%AE%E7%9A%84%E8%81%94%E7%B3%BB">Spring 与本项目的联系</a></li>
+</ul>
+</li>
+<li><a href="#cglib">CGLIB</a>
+<ul>
+<li><a href="#cglib-%E7%AE%80%E8%BF%B0">CGLIB 简述</a></li>
+<li><a href="#cglib%E7%9A%84%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B">CGLIB的使用示例</a></li>
+<li><a href="#cglib-%E5%92%8C-jdk-%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86%E7%9A%84%E5%8C%BA%E5%88%AB">CGLIB 和 JDK 动态代理的区别</a></li>
+<li><a href="#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9">注意事项</a></li>
+<li><a href="#cglib-%E4%B8%8E%E6%9C%AC%E9%A1%B9%E7%9B%AE%E7%9A%84%E8%81%94%E7%B3%BB">CGLIB 与本项目的联系</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#%E8%AE%BE%E8%AE%A1%E6%80%9D%E8%B7%AF">设计思路</a>
+<ul>
+<li><a href="#%E6%8F%90%E5%87%BA%E7%9B%AE%E5%89%8D%E7%9A%84%E9%97%AE%E9%A2%98%E5%92%8C%E5%AF%B9%E5%BA%94%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88">提出目前的问题和对应解决方案：</a></li>
+</ul>
+</li>
+<li><a href="#%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D">原理介绍</a>
+<ul>
+<li><a href="#%E9%A1%B9%E7%9B%AE%E6%A6%82%E8%A7%88">项目概览</a></li>
+<li><a href="#%E5%88%9B%E5%BB%BA%E4%BB%A3%E7%90%86%E6%B5%81%E7%A8%8B">创建代理流程</a></li>
+<li><a href="#%E5%89%8D%E7%BD%AE%E6%A0%A1%E9%AA%8C">前置校验</a>
+<ul>
+<li><a href="#%E5%A6%82%E4%BD%95%E8%8E%B7%E5%8F%96bean%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96%E6%96%B9%E6%B3%95">如何获取bean的初始化方法</a></li>
+<li><a href="#%E6%A0%A1%E9%AA%8C%E7%B1%BB%E5%9E%8B">校验类型</a></li>
+</ul>
+</li>
+<li><a href="#%E8%A3%85%E9%85%8D%E4%BB%A3%E7%90%86%E6%96%B9%E6%B3%95%E7%AD%96%E7%95%A5">装配代理方法策略</a></li>
+<li><a href="#%E5%AF%B9-factorybean-%E7%9A%84%E7%89%B9%E6%AE%8A%E5%A4%84%E7%90%86">对 FactoryBean 的特殊处理</a></li>
+<li><a href="#%E5%88%9B%E5%BB%BA%E4%BB%A3%E7%90%86%E5%AF%B9%E8%B1%A1">创建代理对象</a></li>
+<li><a href="#%E5%9C%BA%E6%99%AF%E7%A4%BA%E4%BE%8B">场景示例</a></li>
+</ul>
+</li>
+<li><a href="#%E9%A3%8E%E9%99%A9%E8%AF%84%E4%BC%B0">风险评估</a>
+<ul>
+<li><a href="#%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E4%BB%A3%E7%90%86%E5%AF%B9%E8%B1%A1%E7%9A%84%E8%A1%8C%E4%B8%BA%E5%92%8C%E5%8E%9F%E6%9C%89-bean-%E7%9A%84%E5%B1%9E%E6%80%A7-%E8%A1%8C%E4%B8%BA%E4%B8%80%E8%87%B4">如何保证代理对象的行为和原有 Bean 的属性、行为一致？</a></li>
+<li><a href="#%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E4%BB%A3%E7%90%86%E5%AF%B9%E8%B1%A1%E6%96%B9%E6%B3%95%E6%89%A7%E8%A1%8C%E9%A1%BA%E5%BA%8F%E4%B8%8D%E4%BC%9A%E9%94%99%E4%B9%B1">如何保证代理对象方法执行顺序不会错乱？</a></li>
+<li><a href="#%E5%85%B6%E4%BB%96%E5%8F%AF%E8%83%BD%E7%9A%84%E9%A3%8E%E9%99%A9%E5%A6%82%E4%BD%95%E8%A7%A3%E5%86%B3">其他可能的风险如何解决？</a></li>
+</ul>
+</li>
+<li><a href="#%E6%80%BB%E7%BB%93">总结</a></li>
+</ul>
 
-      </div>
-    </article>
-  
-    <article class="post">
-      <a href="https://yao177.github.io/post/java-ji-chu-orji-ge-xiao-yi-huo/">
-        <h2 class="post-title">Java 基础｜几个小疑惑</h2>
-      </a>
-      <div class="post-info">
-        <span>
-          09-15-2020
-        </span>
-        <span>
-          1 min read
-        </span>
-        
-          <a href="https://yao177.github.io/tag/tB5cQv6NA/" class="post-tag">
-            # Java Basic
-          </a>
-        
-      </div>
-      
-      <div class="post-abstract">
-        
-      </div>
-    </article>
-  
-    <article class="post">
-      <a href="https://yao177.github.io/post/java-ji-chu-ormian-xiang-dui-xiang/">
-        <h2 class="post-title">Java 基础｜OOP 面向对象</h2>
-      </a>
-      <div class="post-info">
-        <span>
-          09-15-2020
-        </span>
-        <span>
-          8 min read
-        </span>
-        
-          <a href="https://yao177.github.io/tag/tB5cQv6NA/" class="post-tag">
-            # Java Basic
-          </a>
-        
-      </div>
-      
-      <div class="post-abstract">
-        
-      </div>
-    </article>
-  
-    <article class="post">
-      <a href="https://yao177.github.io/post/java-ji-chu-orjava-ji-he/">
-        <h2 class="post-title">Java 基础｜Java 集合</h2>
-      </a>
-      <div class="post-info">
-        <span>
-          09-15-2020
-        </span>
-        <span>
-          6 min read
-        </span>
-        
-          <a href="https://yao177.github.io/tag/tB5cQv6NA/" class="post-tag">
-            # Java Basic
-          </a>
-        
-      </div>
-      
-      <div class="post-abstract">
-        
-      </div>
-    </article>
-  
-    <article class="post">
-      <a href="https://yao177.github.io/post/java-ji-chu-orjava-string/">
-        <h2 class="post-title">Java 基础｜Java String</h2>
-      </a>
-      <div class="post-info">
-        <span>
-          09-15-2020
-        </span>
-        <span>
-          5 min read
-        </span>
-        
-          <a href="https://yao177.github.io/tag/tB5cQv6NA/" class="post-tag">
-            # Java Basic
-          </a>
-        
-      </div>
-      
-      <div class="post-abstract">
-        
-      </div>
-    </article>
-  
-    <article class="post">
-      <a href="https://yao177.github.io/post/es-ji-chu/">
-        <h2 class="post-title">数据库｜ES 基础</h2>
-      </a>
-      <div class="post-info">
-        <span>
-          09-15-2020
-        </span>
-        <span>
-          5 min read
-        </span>
-        
-          <a href="https://yao177.github.io/tag/bCBmUE6wN/" class="post-tag">
-            # Database
-          </a>
-        
-      </div>
-      
-      <div class="post-abstract">
-        
-      </div>
-    </article>
-  
-    <article class="post">
-      <a href="https://yao177.github.io/post/integer-zai-hashset-wei-he-you-xu/">
-        <h2 class="post-title">Java 集合｜Integer 在 HashSet 为何“有序”</h2>
-      </a>
-      <div class="post-info">
-        <span>
-          09-15-2020
-        </span>
-        <span>
-          3 min read
-        </span>
-        
-          <a href="https://yao177.github.io/tag/tB5cQv6NA/" class="post-tag">
-            # Java Basic
-          </a>
-        
-      </div>
-      
-      <div class="post-abstract">
-        
-      </div>
-    </article>
-  
-    <article class="post">
-      <a href="https://yao177.github.io/post/hashmap-kuo-rong-shi-de-rehash-guo-cheng/">
-        <h2 class="post-title">Java 集合｜HashMap 扩容时的 rehash 过程</h2>
-      </a>
-      <div class="post-info">
-        <span>
-          09-15-2020
-        </span>
-        <span>
-          2 min read
-        </span>
-        
-          <a href="https://yao177.github.io/tag/tB5cQv6NA/" class="post-tag">
-            # Java Basic
-          </a>
-        
-      </div>
-      
-      <div class="post-abstract">
-        
-      </div>
-    </article>
-  
-    <article class="post">
-      <a href="https://yao177.github.io/post/shi-yan-new-arraylist0-chu-shi-hua/">
-        <h2 class="post-title">Java 集合｜试验 new ArrayList(0) 初始化</h2>
-      </a>
-      <div class="post-info">
-        <span>
-          09-15-2020
-        </span>
-        <span>
-          2 min read
-        </span>
-        
-          <a href="https://yao177.github.io/tag/tB5cQv6NA/" class="post-tag">
-            # Java Basic
-          </a>
-        
-      </div>
-      
-      <div class="post-abstract">
-        
-      </div>
-    </article>
-  
-    <article class="post">
-      <a href="https://yao177.github.io/post/arraylist-kuo-rong-can-shu-wei-shi-me-shi-15/">
-        <h2 class="post-title">Java 集合｜ArrayList 扩容参数为什么是 1.5</h2>
-      </a>
-      <div class="post-info">
-        <span>
-          09-15-2020
-        </span>
-        <span>
-          3 min read
-        </span>
-        
-          <a href="https://yao177.github.io/tag/tB5cQv6NA/" class="post-tag">
-            # Java Basic
-          </a>
-        
-      </div>
-      
-      <div class="post-abstract">
-        
-      </div>
-    </article>
-  
-    <article class="post">
-      <a href="https://yao177.github.io/post/close-relationship-tricks/">
-        <h2 class="post-title">小王子｜「亲密关系」中的一些重要结论</h2>
-      </a>
-      <div class="post-info">
-        <span>
-          09-02-2020
-        </span>
-        <span>
-          2 min read
-        </span>
-        
-          <a href="https://yao177.github.io/tag/BDt7N-7R_/" class="post-tag">
-            # Love
-          </a>
-        
-      </div>
-      
-      <div class="post-abstract">
-        
-      </div>
-    </article>
-  
-    <article class="post">
-      <a href="https://yao177.github.io/post/close-relationship/">
-        <h2 class="post-title">小王子｜《亲密关系》</h2>
-      </a>
-      <div class="post-info">
-        <span>
-          09-01-2020
-        </span>
-        <span>
-          3 min read
-        </span>
-        
-          <a href="https://yao177.github.io/tag/BDt7N-7R_/" class="post-tag">
-            # Love
-          </a>
-        
-      </div>
-      
-      <div class="post-abstract">
-        <p>最近想对广义上的男女之事有个更深入的了解，便开始拜读《亲密关系》这本书，记录了一些内容。</p>
+              </div>
+            </div>
+          </article>
+        </div>
 
-      </div>
-    </article>
-  
-    <article class="post">
-      <a href="https://yao177.github.io/post/bypass-network-verification-by-using-53-port/">
-        <h2 class="post-title">利用53端口绕过网络验证</h2>
-      </a>
-      <div class="post-info">
-        <span>
-          01-01-2018
-        </span>
-        <span>
-          3 min read
-        </span>
         
-          <a href="https://yao177.github.io/tag/itE_k3EuY/" class="post-tag">
-            # Net
-          </a>
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yao177.github.io/post/java-ji-chu-orkuai-su-shi-bai-ji-zhi/">
+              <h3 class="post-title">
+                Java 基础｜快速失败机制
+              </h3>
+            </a>
+          </div>
         
-      </div>
-      
-      <div class="post-abstract">
-        
-      </div>
-    </article>
-  
-</div>
 
-    
-        <div class="pagination-container">
-  
-  
-</div>
+        
 
-    
         <div class="site-footer">
   <b>York</b>'s home | wish you a nice day!
   <a class="rss" href="https://yao177.github.io/atom.xml" target="_blank">
@@ -790,5 +548,46 @@ public Manger {
 
       </div>
     </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
   </body>
 </html>
