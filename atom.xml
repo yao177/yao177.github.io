@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://yao177.github.io</id>
     <title>York Zhang&apos;s Blog</title>
-    <updated>2022-03-01T05:55:18.871Z</updated>
+    <updated>2022-03-01T05:58:25.634Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://yao177.github.io"/>
     <link rel="self" href="https://yao177.github.io/atom.xml"/>
@@ -16,7 +16,8 @@
         <link href="https://yao177.github.io/post/spring-qi-dong-you-hua/">
         </link>
         <updated>2021-11-23T06:20:13.000Z</updated>
-        <summary type="html"><![CDATA[<p><ul class="markdownIt-TOC">
+        <summary type="html"><![CDATA[<!-- more -->
+<p><ul class="markdownIt-TOC">
 <li><a href="#%E5%86%99%E5%9C%A8%E5%89%8D%E9%9D%A2">写在前面</a></li>
 <li><a href="#%E9%A1%B9%E7%9B%AE%E8%83%8C%E6%99%AF">项目背景</a></li>
 <li><a href="#%E7%9F%A5%E8%AF%86%E8%83%8C%E6%99%AF">知识背景</a>
@@ -351,7 +352,8 @@ public Manger {
 <p>至此，项目已介绍完成，想随便聊聊。<br>
 本质上，这个项目就是利用了懒加载特性，先有个壳，再加载真正的 Bean 实体；其实这个思想在算法中也很常见，例如二分思想的经典算法——线段树，利用 lazy propagation (惰性传播) 在父节点打上修改的标记而不直接修改，只有真正访问到时才往子节点进行传递，提升了效率。</p>
 ]]></summary>
-        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC">
+        <content type="html"><![CDATA[<!-- more -->
+<p><ul class="markdownIt-TOC">
 <li><a href="#%E5%86%99%E5%9C%A8%E5%89%8D%E9%9D%A2">写在前面</a></li>
 <li><a href="#%E9%A1%B9%E7%9B%AE%E8%83%8C%E6%99%AF">项目背景</a></li>
 <li><a href="#%E7%9F%A5%E8%AF%86%E8%83%8C%E6%99%AF">知识背景</a>
