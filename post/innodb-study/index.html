@@ -1,0 +1,237 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>数据库｜InnoDB 学习 | York Zhang&#39;s Blog</title>
+<link rel="shortcut icon" href="https://yao177.github.io/favicon.ico?v=1646131663365">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yao177.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="数据库｜InnoDB 学习 | York Zhang&#39;s Blog - Atom Feed" href="https://yao177.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="B+ 树
+
+
+叶子节点真正存储数据
+相邻叶子节点通过双向链表连接
+每个叶子节点存储了1页（page）数据，页通常是 16K，文件系统页通常为 4K，硬盘页通常为 512字节
+
+假设每个数据行大小为rK，主键为bigint（8字节），页指针为..." />
+    <meta name="keywords" content="Database" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yao177.github.io">
+  <img class="avatar" src="https://yao177.github.io/images/avatar.png?v=1646131663365" alt="">
+  </a>
+  <h1 class="site-title">
+    York Zhang&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <b>E</b>·rror = <b>m</b>·ore * <b>c²</b>·ode
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/yao177" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/Tianyao_Z" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com/p/1005055415293764" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.zhihu.com/people/yao-zi-73-1" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com/York.Z9859" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              数据库｜InnoDB 学习
+            </h2>
+            <div class="post-info">
+              <span>
+                02-01-2021
+              </span>
+              <span>
+                5 min read
+              </span>
+              
+                <a href="https://yao177.github.io/tag/bCBmUE6wN/" class="post-tag">
+                  # Database
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h1 id="b-树">B+ 树</h1>
+<figure data-type="image" tabindex="1"><img src="https://yao177.github.io/post-images/1646119612971.png" alt="B+树示意" loading="lazy"></figure>
+<ul>
+<li>叶子节点真正存储数据</li>
+<li>相邻叶子节点通过双向链表连接</li>
+<li>每个叶子节点存储了1页（page）数据，页通常是 16K，文件系统页通常为 4K，硬盘页通常为 512字节<br>
+<img src="https://yao177.github.io/post-images/1646122945576.png" alt="" loading="lazy"><br>
+假设每个数据行大小为rK，主键为bigint（8字节），页指针为6字节，则一个非叶子节点能存储16k/14 = 1170 个字节点信息。（为什么指针大小为6字节）<br>
+<img src="https://yao177.github.io/post-images/1646123070143.png" alt="" loading="lazy"><br>
+<img src="https://yao177.github.io/post-images/1646123090655.png" alt="" loading="lazy"><br>
+<img src="https://yao177.github.io/post-images/1646123151296.png" alt="" loading="lazy"><br>
+<img src="https://yao177.github.io/post-images/1646123173338.png" alt="" loading="lazy"></li>
+</ul>
+<h3 id="虚拟最大最小记录infimum-and-supremum-records">虚拟最大最小记录(Infimum and Supremum Records)</h3>
+<p>最大记录是这个数据页中逻辑上最大的记录，所有用户的记录都小于它。最小记录是数据页上最小的记录，所有用户记录都大于它。他们在数据页被创建的时候创建，而且不能被删除。引入他们主要是方便页内操作。</p>
+<h2 id="user-records">User Records</h2>
+<p>在页的7个组成部分中，存储的记录会按照指定的行格式存储到User Records部分。但是在一开始生成页的时候，其实并没有User Records这个部分，每当插入一条记录，都会从Free Space部分，也就是尚未使用的存储空间中申请一个记录大小的空间划分到User Records部分，当Free Space部分的空间全部被User Records部分替代掉之后，也就意味着这个页使用完了，如果还有新的记录插入的话，就需要去申请新的页了。</p>
+<h2 id="free-space">Free Space</h2>
+<p>从PAGE_HEAP_TOP开始，到最后一个数据目录，这之间的空间就是空闲空间，都被重置为0，当用户需要插入记录时候，首先在被删除的记录的空间中查找，如果没有找到合适的空间，就从这里分配。空间分配给记录后，需要递增PAGE_N_RECS和PAGE_HEAP_TOP。</p>
+<h2 id="page-directory">Page Directory</h2>
+<p>用户的记录是从低地址向高地址扩展，而数据目录则相反。在数据页被初始化的时候，就会在数据页最后(当然在checksum之前)创建两个数据目录，分别指向最大和最小记录。之后插入新的数据的时候，需要维护这个目录，例如必要的时候增加目录的个数。每个数据目录占用两个字节，存储对应记录的页内相对位置，每个目录称为一个槽Slots。假设目录N，这个目录N管理目录N-1(不包括)和目录N之间的记录，我们称目录N own 这些记录。在目录N指向的记录中，字段n-owned会记录own记录的数量。由此可见，目录own的记录不能太多，因为太多的话，即意味着目录太过稀疏，不能很好的提高查询效率，但同时也不能own太少，这会导致目录数量变多，占用过多的空间。在InnoDB的实现中，伪记录Infimum的n_owned值总是1，记录supremum的n_owned的取值范围为[1，8]，其他用户记录n_owned的取值范围是[4，8]，平均是6个记录，如果超过这个数量，就需要重新均衡目录的数量。目录的增加和删除可能需要进行内存拷贝，但是由于目录占用的总体空间很小，开销可以忽略不计。</p>
+<p>由于在InnoDB中Page Directory是稀疏目录，二叉查找的结果只是一个粗略的结果，因此InnoDB必须通过recorder header中的next_record来继续查找相关记录。同时，Page Directory很好地解释了recorder header中n_owned值地含义，因为这些记录并包括在Page Directory中。B+树索引本身并不能找到具体的一条记录，能找到的只是该记录所在的页。数据库把页载入到内存，然后通过Page Directory再进行二分查找。二分查找的时间复杂度很低，同时再内存中的查找很快，因此通常忽略这部分查找所用的时间。</p>
+<h2 id="file-trailer">File Trailer</h2>
+<p>为了检测页是否已经完整的写入磁盘（如可能发生的写入过程中磁盘损坏、机器关机等），InnoDB存储引擎的页中设置了File Trailer部分。</p>
+<p>这个部分处于数据页最后的位置，只有8个字节。低地址的四个字节存储checksum的值，高地址的四个字节和File Header中的FIL_PAGE_LSN的低位四字节相同。注意这里的checksum的值不一定与FIL_PAGE_SPACE_OR_CHKSUM的相同，这个依赖不同的checksum计算方法。</p>
+<p>默认配置下，InnoDB每次从磁盘读取一个页就会检测该页的完整性，即页是否发生Corrupt，这就是通过File Traile部分来进行检测，而该部分的检测会有一定的开销。我们可以通过参数innodb_checksums来开启或关闭对这个页完整性的检查。</p>
+<blockquote>
+<p>参考资料<br>
+《极客时间：B+树：MySQL数据库索引是如何实现的？》</p>
+</blockquote>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#b-%E6%A0%91">B+ 树</a><br>
+*
+<ul>
+<li><a href="#%E8%99%9A%E6%8B%9F%E6%9C%80%E5%A4%A7%E6%9C%80%E5%B0%8F%E8%AE%B0%E5%BD%95infimum-and-supremum-records">虚拟最大最小记录(Infimum and Supremum Records)</a></li>
+<li><a href="#user-records">User Records</a></li>
+<li><a href="#free-space">Free Space</a></li>
+<li><a href="#page-directory">Page Directory</a></li>
+<li><a href="#file-trailer">File Trailer</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yao177.github.io/post/java-ji-chu-orkuai-su-shi-bai-ji-zhi/">
+              <h3 class="post-title">
+                Java 基础｜快速失败机制
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  <b>York</b>'s home | wish you a nice day!
+  <a class="rss" href="https://yao177.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>
