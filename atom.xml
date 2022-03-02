@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://yao177.github.io</id>
     <title>Yao177&apos;s Blog</title>
-    <updated>2022-03-02T17:07:52.167Z</updated>
+    <updated>2022-03-02T17:10:36.857Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://yao177.github.io"/>
     <link rel="self" href="https://yao177.github.io/atom.xml"/>
@@ -12,10 +12,10 @@
     <rights>All rights reserved 2022, Yao177&apos;s Blog</rights>
     <entry>
         <title type="html"><![CDATA[转｜MySQL｜待]]></title>
-        <id>https://yao177.github.io/post/zhuan-ormysqlordai/</id>
-        <link href="https://yao177.github.io/post/zhuan-ormysqlordai/">
+        <id>https://yao177.github.io/post/MySQL/</id>
+        <link href="https://yao177.github.io/post/MySQL/">
         </link>
-        <updated>2022-03-02T14:52:21.000Z</updated>
+        <updated>2022-02-15T14:52:21.000Z</updated>
         <content type="html"><![CDATA[<h1 id="一条查询语句的执行过程">一条查询语句的执行过程</h1>
 <h2 id="基本架构">基本架构</h2>
 <p>MySQL 的基本架构图如下图所示。<br>
