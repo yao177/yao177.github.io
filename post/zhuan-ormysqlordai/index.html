@@ -1,0 +1,590 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>转｜MySQL｜待 | Yao177&#39;s Blog</title>
+<link rel="shortcut icon" href="https://yao177.github.io/favicon.ico?v=1646236875903">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yao177.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="转｜MySQL｜待 | Yao177&#39;s Blog - Atom Feed" href="https://yao177.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-159235176-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-159235176-1');
+</script>
+
+
+    <meta name="description" content="一条查询语句的执行过程
+基本架构
+MySQL 的基本架构图如下图所示。
+
+大体来说，MySQL 可以分为 Server 层和存储引擎层两个部分
+
+Server 层包括：连接器、查询缓存、分析器、优化器、执行器等核心服务功能；所有跨存储引擎的..." />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yao177.github.io">
+  <img class="avatar" src="https://yao177.github.io/images/avatar.png?v=1646236875903" alt="">
+  </a>
+  <h1 class="site-title">
+    Yao177&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <b>E</b>·rror = <b>m</b>·ore * <b>c²</b>·ode
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/yao177" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/Tianyao_Z" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com/p/1005055415293764" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.zhihu.com/people/yao-zi-73-1" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com/York.Z9859" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              转｜MySQL｜待
+            </h2>
+            <div class="post-info">
+              <span>
+                03-02-2022
+              </span>
+              <span>
+                17 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h1 id="一条查询语句的执行过程">一条查询语句的执行过程</h1>
+<h2 id="基本架构">基本架构</h2>
+<p>MySQL 的基本架构图如下图所示。<br>
+<img src="https://yao177.github.io/post-images/1646233619656.svg" alt="" loading="lazy"></p>
+<p>大体来说，MySQL 可以分为 Server 层和存储引擎层两个部分</p>
+<ol>
+<li>Server 层包括：连接器、查询缓存、分析器、优化器、执行器等核心服务功能；所有跨存储引擎的功能都在这一层实现：存储过程、触发器、视图等。
+<ul>
+<li>连接器：负责跟客户端建立连接、维持和管理连接</li>
+<li>查询缓存：以 key-value 的形式存储执行过的语句和结果</li>
+<li>分析器：词法分析、语法分析</li>
+<li>优化器：生成最优的执行计划，包括索引选择、join 表的顺序等</li>
+<li>执行器：操作存储引擎，返回结果</li>
+</ul>
+</li>
+<li>存储引擎层：通过提供读写接口，来负责数据的存储和提取。<br>
+其架构模式是插件式的，支持 Innodb、MyISAM 等存储引擎，其中 Innodb 是最常用的存储引擎。</li>
+</ol>
+<p>下面将简单介绍Server层中的各个组件</p>
+<h3 id="连接器">连接器</h3>
+<p>连接器：负责跟客户端建立连接、获取权限、维持和管理连接。</p>
+<p><em>需要注意的是：由于验证通过之后连接器会获取该用户的权限，之后这个连接里的所有权限判断逻辑都依赖于此权限，因此，一个用户成功建立连接后，即使管理员对这个用户的权限做了修改，也不会影响已经存在连接的权限，修改完后，只有再新建的连接才会使用新的权限设置。</em></p>
+<h3 id="查询缓存">查询缓存</h3>
+<p>查询缓存：以 key-value 的形式存储执行过的语句和结果。<br>
+在解析一个查询语句之前，如果查询缓存是打开的，那么 MySQL 会优先检查这个查询是否命中查询缓存中的数据。<br>
+查询缓存是从 4.1 版本开始支持，默认是关闭的，可以在运行时设置变量<code>set query_cache_type=1</code>开启，也可以重写配置文件中的参数开启。<br>
+通过语句<code>show variables like '%query_cache%';</code>可以查看关于查询缓存相应的信息，例如：通过<s>query_cache_size</s><code>query_cache_type</code>可以知晓查询缓存是否开启等。</p>
+<figure data-type="image" tabindex="1"><img src="https://yao177.github.io/post-images/1646233961964.png" alt="" loading="lazy"></figure>
+<p><em>一般情况下，不建议使用查询缓存，这是因为对于一个表的更新操作，这个表上所有的查询缓存都会被清空。<br>
+因此除了很少更新的配置表外可以使用查询缓存来提供查询速度，其他的一般不建议使用查询缓存。</em></p>
+<p>关于查询缓存的更详细信息可以参考文档 <a href="https://segmentfault.com/a/1190000003039232">MySql 查询缓存笔记</a></p>
+<h3 id="分析器">分析器</h3>
+<p>分析器：包括词法分析、语法分析等。</p>
+<p>这个阶段会检查：</p>
+<ol>
+<li>是否使用了错误的关键字；</li>
+<li>使用的关键字顺序是否正确；</li>
+<li>检查数据表和数据列是否存在等。</li>
+</ol>
+<p>我们经常看到的“You have an error in your SQL syntax”提示，就是在这个阶段判断出来的错误。下面就是一个将“where”关键字写错的例子。</p>
+<figure data-type="image" tabindex="2"><img src="https://yao177.github.io/post-images/1646234188203.png" alt="" loading="lazy"></figure>
+<h3 id="优化器">优化器</h3>
+<p>一般情况下，一条查询可以有多种执行方法，最后都是返回相同结果。优化器的作用就是找到这其中最好的执行计划。<br>
+MySQL使用基于成本的查询优化器。它会根据统计信息和代价模型预测一个查询使用某种执行计划时的成本，并选择其中成本最少的一个。</p>
+<p><em>查询优化器中有两个依赖：统计信息和代价模型。统计信息的准确与否、代价模型的合理与否都会影响优化器选择最优计划。</em></p>
+<p>下面来看两个关于优化器选择索引的例子。</p>
+<h4 id="正确选择索引的例子">正确选择索引的例子</h4>
+<p>构建了一个表，除主键 id 外，还有另外两个字段a、b，分别都有索引，然后插入了100000条数据（注：a值全部为3）。</p>
+<pre><code class="language-Sql">CREATE TABLE `Test` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `a` int(11) DEFAULT NULL,
+  `b` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `IDX_a` (`a`),
+  KEY `IDX_b` (`b`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+DELIMITER // 
+CREATE PROCEDURE proc1()
+BEGIN
+  declare i int;
+  set i = 1;
+  while(i&lt;=100000) do
+  	insert into Test value(i,3,i);
+  	set i=i+1;
+  end while;
+END //
+DELIMITER ;
+call proc1();
+</code></pre>
+<p>当我们执行<code>select * from Test where a = 3 and b = 4</code>有如下两种不同的执行方式：</p>
+<ol>
+<li>选择a这个索引，得到索引值为3的第一条记录的主键Id，然后回表查询出行记录返回给执行器，执行器判断记录中的字段b是否为4，如果为4，则加入结果集并继续遍历依次判断。</li>
+<li>选择b这个索引，得到索引值为4的第一条记录的主键Id，然后回表查询出行记录返回给执行器，执行器判断记录中的字段a是否为3，如果为3，则加入结果集并继续遍历依次判断。</li>
+</ol>
+<p>结合表中的数据和经验我们都知道，选择b作为索引来执行将更合理，因为：b的区分度更好，符合条件的记录要更少，将会更快的找到结果。<br>
+用explain可以看到优化器选择的索引为：IDX_b，而不是选择的IDX_a，这就是优化器基于统计信息和代价模型得到的最优执行计划，符合我们的预期。</p>
+<figure data-type="image" tabindex="3"><img src="https://yao177.github.io/post-images/1646234390390.png" alt="" loading="lazy"></figure>
+<p><em>注：可能有的同学会问：列a就不应该给它创建索引，因为区分度为1/10000，例子虽然极端，但主要想表达这样一种思想。</em></p>
+<p>如果想了解优化器选择每个索引的执行成本，可以观察 optimizer_trace 的<a href="https://gist.githubusercontent.com/yao177/8eb38fd70049793e792db5ac1b506678/raw/optimizer_trace%2520log">输出日志</a></p>
+<p>从日志中，也可以更清晰的看出选择的是索引：IDX_b。</p>
+<h4 id="错误选择索引的例子">错误选择索引的例子</h4>
+<p>一般情况下，优化器会选择出最优的执行计划，但是也存在选取错误的执行计划的情况。</p>
+<p>构建了一个表Test2，除主键id外，还有另外两个字段a、b，分别都有索引，然后插入了100000条数据</p>
+<pre><code class="language-Sql">CREATE TABLE `Test2` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `a` int(11) DEFAULT NULL,
+  `b` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `IDX_a` (`a`),
+  KEY `IDX_b` (`b`)
+) ENGINE=InnoDB AUTO_INCREMENT=100001 DEFAULT CHARSET=utf8mb4;
+DELIMITER // 
+CREATE PROCEDURE proc2()
+BEGIN
+  declare i int;
+  set i = 2;
+  while(i&lt;=100000) do
+  	insert into Test2 value(i,i,i);
+  	set i=i+1;
+  end while;
+END //
+DELIMITER ;
+call proc2();
+</code></pre>
+<p>下面我们来看下这条语句：<code>select * from Test2 where (a between 1 and 1000) and (b between 50000 and 100000) order by b limit 1;</code>。<br>
+从条件上来看，此表Test2中没有符合条件的结果。</p>
+<p><em>但是你觉得MySQL会选择索引a还是索引b呢？先留给大家思考，章节末有相关的分析可以作为参考</em></p>
+<h3 id="执行器">执行器</h3>
+<p>通过调用存储引擎定义好的API，操作存储引擎，并将结果返回给客户端。具体例子见文章第二节。</p>
+<h2 id="一条查询语句的执行过程-2">一条查询语句的执行过程</h2>
+<p>上面介绍了 MySQL 的基本架构以及相应的模块，下面将通过上文中的查询语句作为例子来说明一条查询语句的执行过程。<br>
+假设当客户端和服务端建立连接之后，客户端向服务端发送如下一个「查询」请求：<code>select * from Test where a = 3 and b = 4;</code></p>
+<p>MySQL的执行路径如下：</p>
+<ol>
+<li>如果查询缓存是打开的，服务器端会优先检查查询缓存，如果命中了缓存，则立刻返回存储在缓存中的结果。否则进入下一阶段。</li>
+<li>服务器端的分析器对SQL进行词法分析、语法分析，再由优化器从存储引擎获取统计信息，根据代价模型生成对应的执行计划(索引b就是在这个阶段完成)。</li>
+<li>服务器端根据优化器生成的执行计划，再调用存储引擎的API来执行查询，并将结果返回给客户端，具体如下
+<ol>
+<li>调用InnoDB存储引擎的接口取满足”b=4“条件的第一条记录返回给执行器</li>
+<li>执行器判断该记录中的a字段是否等于3，如果不等于则跳过，否则放入结果集</li>
+<li>调用InnoDB存储引擎的接口取满足“b=4”条件的下一条记录并返回给执行器</li>
+<li>重复第二、三步，直至循环遍历结束</li>
+<li>执行器将结果集返回给客户端</li>
+</ol>
+</li>
+</ol>
+<p>注：MySQL 将结果返回客户端是一个增量、逐步返回的过程，并不一定等到所有的结果集都查出来再返回。<br>
+这样处理有两个好处：</p>
+<ol>
+<li>服务器无需存储太多的结果，也就不会因为要返回太多的结果而消耗太多的内存；</li>
+<li>这样的处理也让 MySQL 客户端第一时间获得返回的结果。</li>
+</ol>
+<p>为方便理解，这里也画了一个流程图，如下图所示：<br>
+<img src="https://yao177.github.io/post-images/1646235043473.svg" alt="" loading="lazy"></p>
+<h2 id="扩展">扩展</h2>
+<p>在查询的过程中，会有如下两种情况：</p>
+<ol>
+<li>所在的数据页已经在内存 (buffer pool) 中了，则直接查询。</li>
+<li>所在的数据页不在内存 (buffer pool) 中
+<ol>
+<li>如果此时 buffer pool 的大小不足，则会淘汰 buffer pool 中的最久不使用的数据页为该数据页腾出位置，如果该数据页为脏页，则会在淘汰之前刷脏页到磁盘。
+<ul>
+<li>如果遇到这种情况且脏页比较多，则可能就导致该次查询会较慢，给我们的直观感受就是MySQL“抖”了一下。为了避免出现这种情况，个人建议：</li>
+<li>在编写 SQL 语句时习惯性使用 limit 字段来加以限制，避免一个查询要淘汰的脏页个数太多。</li>
+</ul>
+</li>
+<li>所在的数据页不在内存中，而如果此时 change buffer 中该数据页有更新，则会在磁盘中读取该数据页之后与 change buffer 中的内容进行 merge 作为新的数据页，然后查询结果并返回。</li>
+</ol>
+</li>
+</ol>
+<p><em>change buffer 是一种重要的数据变更日志。 change buffer 的主要目的是将对二级索引的数据操作缓存下来，以此减少二级索引的随机IO，并达到操作合并的效果。</em></p>
+<p>限于篇幅加上笔者水平有限，至于 buffer pool、change buffer、脏页等内容，如果有兴趣，将会在下一篇总结中呈现。</p>
+<h2 id="问题和思考">问题和思考</h2>
+<h3 id="问题分析">问题分析</h3>
+<p>本文的中间关于优化器选择索引留了一个问题<code>select * from Test2 where (a between 1 and 1000) and (b between 50000 and 100000) order by b limit 1;</code><br>
+此查询语句MySQL会选择哪个索引呢？<br>
+在分析之前，先将查询语句中的order by b去掉我们来分析一下：<code>select * from Test2 where (a between 1 and 1000) and (b between 50000 and 100000) limit 1;</code></p>
+<ul>
+<li>如果选择索引a则最多会扫描1000行，最少1行</li>
+<li>如果选择索引b则最多会扫描50000行，最少1行<br>
+这种情况，毫无疑问，选择索引b所需要扫描的行数要多很多且没有其他因素干扰，因此执行器会选择索引a。<br>
+MySQL下有个了解优化器工作过程的利器，其就是 optimizer_trace。使用方法为：</li>
+</ul>
+<pre><code class="language-Sql">SET OPTIMIZER_TRACE_MAX_MEM_SIZE=268435456; 
+SET optimizer_trace=&quot;enabled=on&quot;; 
+select * from Test2 where (a between 1 and 1000) and (b between 50000 and 100000) limit 1;
+select * from INFORMATION_SCHEMA.OPTIMIZER_TRACE\G
+</code></pre>
+<p>MySQL 5.7.20输出内容如下：从输出内容 rows_estimation 的部分可以看到选择索引a的成本最小，<a href="https://gist.githubusercontent.com/yao177/822d7b7fcfaface2588e35087a2637ff/raw/optimizer_trace%2520log%25202">日志链接</a></p>
+<p>如果查询语句中有<code>order by b</code>呢？情况如下：</p>
+<ul>
+<li>如果选择索引a则最多会扫描1000行，最少1行，而且排序还需要耗时</li>
+<li>和查询语句中没有order by b时一样，如果选择索引b则最多会扫描50000行，最少1行，不需要排序<br>
+这种情况，MySQL会选择索引a还是索引b呢？</li>
+</ul>
+<p><strong>答案是选择了索引b，原因是：order by b 引导了优化器选择了索引b。</strong><br>
+<img src="https://yao177.github.io/post-images/1646235832056.png" alt="" loading="lazy"><br>
+<img src="https://yao177.github.io/post-images/1646235851255.png" alt="" loading="lazy"></p>
+<p>结合<a href="https://gist.githubusercontent.com/yao177/b943fb741ba61037a00f73d46199f8a7/raw/optimizer_trace%2520log%25203">输出内容</a> rows_estimation、reconsidering_access_paths_for_index_ordering 两部分可以看到：最终选择了索引b。</p>
+<p><a href="https://github.com/yao177/self-collection/raw/main/MySQL%2Border%2Bby%E4%BC%98%E5%8C%96bug%E8%A7%A3%E6%9E%90.key">扩展阅读</a></p>
+<h3 id="分析器到查询缓存这条线的作用">分析器到查询缓存这条线的作用</h3>
+<p>问题：架构图中分析器--&gt;查询缓存 这条线(如下图红色标出位置)的作用是什么，是不是箭头画错了？<br>
+答案：失效缓存，当分析器检查出该次操作为更新操作时，如果查询缓存是开启的，则会失效相应的缓存。</p>
+<figure data-type="image" tabindex="4"><img src="https://yao177.github.io/post-images/1646236407126.svg" alt="" loading="lazy"></figure>
+<blockquote>
+<p>这是一位同事在阅读了本文之后提出来的问题，这是一个好问题，督促我更好的了解了该架构图，在此表示感谢。<br>
+在本文的前面部分所介绍的查询流程中，唯独没有涉及到分析器--&gt;查询缓存这一条线，因此笔者觉得有必要在此说明这条线的作用。</p>
+</blockquote>
+<p>除了分析器--&gt;查询缓存这一条线之外，其实：执行器也应该有一条线来指向查询缓存，作用是：如果查询缓存是开启的，则会将查询结果放入缓存。(至于在架构图中都没有画出来，个人猜测是为了架构图更简洁吧)</p>
+<h2 id="参考阅读">参考阅读</h2>
+<ul>
+<li><a href="https://time.geekbang.org/column/article/68319">基础架构：一条SQL查询语句是如何执行的？</a></li>
+<li><a href="https://time.geekbang.org/column/article/71173">MySQL为什么有时候会选错索引？</a></li>
+<li><a href="http://mysql.taobao.org/monthly/2015/11/07/">淘宝 数据库内核月报 2015.11</a></li>
+<li><a href="https://dev.mysql.com/doc/internals/en/tracing-example.html">MySQL official manual - Tracing the Optimizer</a></li>
+<li><a href="https://www.jianshu.com/p/caf5818eca81">MySQL ORDER BY主键id加LIMIT限制走错索引</a></li>
+</ul>
+<hr>
+<h1 id="慢查询引起的车祸线程">慢查询引起的车祸线程</h1>
+<p>这一部分主要是站在老司机的肩膀上从原理总结、mysql慢查询优化方法、case案例分析等几个方面结合自己这段时间在工作上遇到的慢查询谈谈数据库索引的原理和如何优化慢查询。一方面给自己总结，另一方面希望看到的老司机能够指出其中的错误和不足，哈哈哈。</p>
+<h2 id="上车前原理分析">上车前（原理分析）</h2>
+<p>这部分我主要想总结一下数据库索引的原理，可能是老生常谈的东西了，【<strong>慢</strong>查询】这个词主要的重点就是慢，就像我们开车一样，我们发车前最重要的就是了解这部车，而我们要知道我们的SQL语句为什么会慢，我们当然必须对数据的查找过程有所了解。</p>
+<h2 id="上车慢查询优化">上车（慢查询优化）</h2>
+<p><strong>举个例子</strong>：其实对于数据索引这样的例子，在我们日常生活其实也是很多，通常大家都举查字典的例子吧？为了新鲜感，我换一个，比如你找对象，如果你是男的，你最先的目标是女孩子的吧（除个别外），这样我们就排除了一部无效数据，然后咱们再选咱们同一个城市的吧？又剔除了一部分无效数据，最后我们再选年龄等，最后留下了我们目标人群。这种查找过程其实也是一种索引过程。<br>
+<strong>磁盘IO</strong>：我们计算机是怎么查询数据的呢？当计算机把数据保存在磁盘上，而为了提高性能，每次又可以把部分数据读入内存来计算，因为我们知道<em>访问磁盘的成本大概是访问内存的十万倍左右</em>，所以简单的搜索树难以满足复杂的应用场景。考虑到磁盘IO是非常高昂的操作，计算机操作系统做了一些优化，当一次IO时，不光把当前磁盘地址的数据，而是把相邻的数据也都读取到内存缓冲区内，因为局部预读性原理告诉我们，当计算机访问一个地址的数据的时候，与其相邻的数据也会很快被访问到。每一次IO读取的数据我们称之为一页(page)。<em>具体一页有多大数据跟操作系统有关，一般为4k或8k，也就是我们读取一页内的数据时候，实际上才发生了一次IO</em>，所以结合我们的例子以及计算机查询数据的原理，为了提高查询数据的查询速度，需要保证最小的IO次数，B+树的数据结构应运而生。</p>
+<h2 id="翻车explain-字段分析">翻车（explain 字段分析）</h2>
+<h2 id="车祸现场case-分析">车祸现场（case 分析）</h2>
+<h1 id="聊聊-innodb-的那些锁事">聊聊 InnoDB 的那些“锁”事</h1>
+<h2 id="并发事务处理带来的问题">并发事务处理带来的问题</h2>
+<h2 id="事务隔离级别">事务隔离级别</h2>
+<h2 id="事务隔离实现">事务隔离实现</h2>
+<h3 id="数据加锁">数据加锁</h3>
+<h4 id="innodb-的锁">InnoDB 的锁</h4>
+<h5 id="auto-inc-locks-自增锁">Auto-inc Locks 自增锁</h5>
+<h5 id="shared-and-exclusive-locks-共享排他锁">shared and exclusive locks 共享/排他锁</h5>
+<h5 id="intention-locks-意向锁">Intention Locks 意向锁</h5>
+<h4 id="innodb-锁算法">InnoDB 锁算法</h4>
+<h5 id="record-locks-记录锁">Record Locks 记录锁</h5>
+<h5 id="gap-locks-间隙锁">Gap Locks 间隙锁</h5>
+<h5 id="next-key-locks-临键锁">Next-key Locks 临键锁</h5>
+<h5 id="insert-intention-locks-插入意向锁">Insert Intention Locks 插入意向锁</h5>
+<h5 id="mdl-元数据锁">MDL 元数据锁</h5>
+<h3 id="mvcc-多版本并发控制">MVCC 多版本并发控制</h3>
+<h4 id="mvcc-简介">MVCC 简介</h4>
+<h4 id="mvcc-实现原理">MVCC 实现原理</h4>
+<h4 id="mvcc-读分类">MVCC 读分类</h4>
+<h4 id="two-phase-locking-protocol-两阶段锁协议">two-phase locking protocol 两阶段锁协议</h4>
+<h4 id="sql-语句如何加锁rr-级别下">SQL 语句如何加锁（RR 级别下）</h4>
+<h2 id="扩展阅读-参考">扩展阅读 &amp; 参考</h2>
+<h1 id="你真的看懂日志了吗">你真的看懂日志了吗？</h1>
+<h2 id="binlog-详解">Binlog 详解</h2>
+<h3 id="基本概念">基本概念</h3>
+<h3 id="日志结构">日志结构</h3>
+<h3 id="日志格式">日志格式</h3>
+<h3 id="日志时间结构">日志时间结构</h3>
+<h2 id="binlog-应用">Binlog 应用</h2>
+<h3 id="主从同步">主从同步</h3>
+<h3 id="数据恢复">数据恢复</h3>
+<h4 id="对比-redo-log">对比 redo log</h4>
+<h2 id="案例分析">案例分析</h2>
+<h2 id="参考资料">参考资料</h2>
+<h1 id="认识一下主从原理和延迟">认识一下主从原理和延迟</h1>
+<h2 id="主从集群">主从集群</h2>
+<h2 id="主从同步-2">主从同步</h2>
+<h3 id="binlog-是什么有什么用">binlog 是什么？有什么用？</h3>
+<h3 id="主从复制">主从复制</h3>
+<h3 id="puma-databus-应用">Puma &amp; Databus 应用</h3>
+<h2 id="主从延迟">主从延迟</h2>
+<h3 id="主从延迟是怎么回事">主从延迟是怎么回事？</h3>
+<h3 id="为啥会主从延迟">为啥会主从延迟？</h3>
+<h4 id="是-t2-t1-吗">是 T2-T1 吗？</h4>
+<h4 id="是-t3-t2-吗">是 T3-T2 吗？</h4>
+<h4 id="多线程复制">多线程复制</h4>
+<h5 id="按库并行">按库并行</h5>
+<h5 id="redo-log-group-commit-组提交优化">redo log group commit （组提交）优化</h5>
+<h5 id="writeset-的并行复制">WRITESET 的并行复制</h5>
+<h3 id="怎么减少主从延迟">怎么减少主从延迟</h3>
+<h2 id="case-分析">Case 分析</h2>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E4%B8%80%E6%9D%A1%E6%9F%A5%E8%AF%A2%E8%AF%AD%E5%8F%A5%E7%9A%84%E6%89%A7%E8%A1%8C%E8%BF%87%E7%A8%8B">一条查询语句的执行过程</a>
+<ul>
+<li><a href="#%E5%9F%BA%E6%9C%AC%E6%9E%B6%E6%9E%84">基本架构</a>
+<ul>
+<li><a href="#%E8%BF%9E%E6%8E%A5%E5%99%A8">连接器</a></li>
+<li><a href="#%E6%9F%A5%E8%AF%A2%E7%BC%93%E5%AD%98">查询缓存</a></li>
+<li><a href="#%E5%88%86%E6%9E%90%E5%99%A8">分析器</a></li>
+<li><a href="#%E4%BC%98%E5%8C%96%E5%99%A8">优化器</a>
+<ul>
+<li><a href="#%E6%AD%A3%E7%A1%AE%E9%80%89%E6%8B%A9%E7%B4%A2%E5%BC%95%E7%9A%84%E4%BE%8B%E5%AD%90">正确选择索引的例子</a></li>
+<li><a href="#%E9%94%99%E8%AF%AF%E9%80%89%E6%8B%A9%E7%B4%A2%E5%BC%95%E7%9A%84%E4%BE%8B%E5%AD%90">错误选择索引的例子</a></li>
+</ul>
+</li>
+<li><a href="#%E6%89%A7%E8%A1%8C%E5%99%A8">执行器</a></li>
+</ul>
+</li>
+<li><a href="#%E4%B8%80%E6%9D%A1%E6%9F%A5%E8%AF%A2%E8%AF%AD%E5%8F%A5%E7%9A%84%E6%89%A7%E8%A1%8C%E8%BF%87%E7%A8%8B-2">一条查询语句的执行过程</a></li>
+<li><a href="#%E6%89%A9%E5%B1%95">扩展</a></li>
+<li><a href="#%E9%97%AE%E9%A2%98%E5%92%8C%E6%80%9D%E8%80%83">问题和思考</a>
+<ul>
+<li><a href="#%E9%97%AE%E9%A2%98%E5%88%86%E6%9E%90">问题分析</a></li>
+<li><a href="#%E5%88%86%E6%9E%90%E5%99%A8%E5%88%B0%E6%9F%A5%E8%AF%A2%E7%BC%93%E5%AD%98%E8%BF%99%E6%9D%A1%E7%BA%BF%E7%9A%84%E4%BD%9C%E7%94%A8">分析器到查询缓存这条线的作用</a></li>
+</ul>
+</li>
+<li><a href="#%E5%8F%82%E8%80%83%E9%98%85%E8%AF%BB">参考阅读</a></li>
+</ul>
+</li>
+<li><a href="#%E6%85%A2%E6%9F%A5%E8%AF%A2%E5%BC%95%E8%B5%B7%E7%9A%84%E8%BD%A6%E7%A5%B8%E7%BA%BF%E7%A8%8B">慢查询引起的车祸线程</a>
+<ul>
+<li><a href="#%E4%B8%8A%E8%BD%A6%E5%89%8D%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90">上车前（原理分析）</a></li>
+<li><a href="#%E4%B8%8A%E8%BD%A6%E6%85%A2%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96">上车（慢查询优化）</a></li>
+<li><a href="#%E7%BF%BB%E8%BD%A6explain-%E5%AD%97%E6%AE%B5%E5%88%86%E6%9E%90">翻车（explain 字段分析）</a></li>
+<li><a href="#%E8%BD%A6%E7%A5%B8%E7%8E%B0%E5%9C%BAcase-%E5%88%86%E6%9E%90">车祸现场（case 分析）</a></li>
+</ul>
+</li>
+<li><a href="#%E8%81%8A%E8%81%8A-innodb-%E7%9A%84%E9%82%A3%E4%BA%9B%E9%94%81%E4%BA%8B">聊聊 InnoDB 的那些“锁”事</a>
+<ul>
+<li><a href="#%E5%B9%B6%E5%8F%91%E4%BA%8B%E5%8A%A1%E5%A4%84%E7%90%86%E5%B8%A6%E6%9D%A5%E7%9A%84%E9%97%AE%E9%A2%98">并发事务处理带来的问题</a></li>
+<li><a href="#%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB">事务隔离级别</a></li>
+<li><a href="#%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E5%AE%9E%E7%8E%B0">事务隔离实现</a>
+<ul>
+<li><a href="#%E6%95%B0%E6%8D%AE%E5%8A%A0%E9%94%81">数据加锁</a>
+<ul>
+<li><a href="#innodb-%E7%9A%84%E9%94%81">InnoDB 的锁</a>
+<ul>
+<li><a href="#auto-inc-locks-%E8%87%AA%E5%A2%9E%E9%94%81">Auto-inc Locks 自增锁</a></li>
+<li><a href="#shared-and-exclusive-locks-%E5%85%B1%E4%BA%AB%E6%8E%92%E4%BB%96%E9%94%81">shared and exclusive locks 共享/排他锁</a></li>
+<li><a href="#intention-locks-%E6%84%8F%E5%90%91%E9%94%81">Intention Locks 意向锁</a></li>
+</ul>
+</li>
+<li><a href="#innodb-%E9%94%81%E7%AE%97%E6%B3%95">InnoDB 锁算法</a>
+<ul>
+<li><a href="#record-locks-%E8%AE%B0%E5%BD%95%E9%94%81">Record Locks 记录锁</a></li>
+<li><a href="#gap-locks-%E9%97%B4%E9%9A%99%E9%94%81">Gap Locks 间隙锁</a></li>
+<li><a href="#next-key-locks-%E4%B8%B4%E9%94%AE%E9%94%81">Next-key Locks 临键锁</a></li>
+<li><a href="#insert-intention-locks-%E6%8F%92%E5%85%A5%E6%84%8F%E5%90%91%E9%94%81">Insert Intention Locks 插入意向锁</a></li>
+<li><a href="#mdl-%E5%85%83%E6%95%B0%E6%8D%AE%E9%94%81">MDL 元数据锁</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#mvcc-%E5%A4%9A%E7%89%88%E6%9C%AC%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6">MVCC 多版本并发控制</a>
+<ul>
+<li><a href="#mvcc-%E7%AE%80%E4%BB%8B">MVCC 简介</a></li>
+<li><a href="#mvcc-%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86">MVCC 实现原理</a></li>
+<li><a href="#mvcc-%E8%AF%BB%E5%88%86%E7%B1%BB">MVCC 读分类</a></li>
+<li><a href="#two-phase-locking-protocol-%E4%B8%A4%E9%98%B6%E6%AE%B5%E9%94%81%E5%8D%8F%E8%AE%AE">two-phase locking protocol 两阶段锁协议</a></li>
+<li><a href="#sql-%E8%AF%AD%E5%8F%A5%E5%A6%82%E4%BD%95%E5%8A%A0%E9%94%81rr-%E7%BA%A7%E5%88%AB%E4%B8%8B">SQL 语句如何加锁（RR 级别下）</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#%E6%89%A9%E5%B1%95%E9%98%85%E8%AF%BB-%E5%8F%82%E8%80%83">扩展阅读 &amp; 参考</a></li>
+</ul>
+</li>
+<li><a href="#%E4%BD%A0%E7%9C%9F%E7%9A%84%E7%9C%8B%E6%87%82%E6%97%A5%E5%BF%97%E4%BA%86%E5%90%97">你真的看懂日志了吗？</a>
+<ul>
+<li><a href="#binlog-%E8%AF%A6%E8%A7%A3">Binlog 详解</a>
+<ul>
+<li><a href="#%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5">基本概念</a></li>
+<li><a href="#%E6%97%A5%E5%BF%97%E7%BB%93%E6%9E%84">日志结构</a></li>
+<li><a href="#%E6%97%A5%E5%BF%97%E6%A0%BC%E5%BC%8F">日志格式</a></li>
+<li><a href="#%E6%97%A5%E5%BF%97%E6%97%B6%E9%97%B4%E7%BB%93%E6%9E%84">日志时间结构</a></li>
+</ul>
+</li>
+<li><a href="#binlog-%E5%BA%94%E7%94%A8">Binlog 应用</a>
+<ul>
+<li><a href="#%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5">主从同步</a></li>
+<li><a href="#%E6%95%B0%E6%8D%AE%E6%81%A2%E5%A4%8D">数据恢复</a>
+<ul>
+<li><a href="#%E5%AF%B9%E6%AF%94-redo-log">对比 redo log</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#%E6%A1%88%E4%BE%8B%E5%88%86%E6%9E%90">案例分析</a></li>
+<li><a href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99">参考资料</a></li>
+</ul>
+</li>
+<li><a href="#%E8%AE%A4%E8%AF%86%E4%B8%80%E4%B8%8B%E4%B8%BB%E4%BB%8E%E5%8E%9F%E7%90%86%E5%92%8C%E5%BB%B6%E8%BF%9F">认识一下主从原理和延迟</a>
+<ul>
+<li><a href="#%E4%B8%BB%E4%BB%8E%E9%9B%86%E7%BE%A4">主从集群</a></li>
+<li><a href="#%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5-2">主从同步</a>
+<ul>
+<li><a href="#binlog-%E6%98%AF%E4%BB%80%E4%B9%88%E6%9C%89%E4%BB%80%E4%B9%88%E7%94%A8">binlog 是什么？有什么用？</a></li>
+<li><a href="#%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6">主从复制</a></li>
+<li><a href="#puma-databus-%E5%BA%94%E7%94%A8">Puma &amp; Databus 应用</a></li>
+</ul>
+</li>
+<li><a href="#%E4%B8%BB%E4%BB%8E%E5%BB%B6%E8%BF%9F">主从延迟</a>
+<ul>
+<li><a href="#%E4%B8%BB%E4%BB%8E%E5%BB%B6%E8%BF%9F%E6%98%AF%E6%80%8E%E4%B9%88%E5%9B%9E%E4%BA%8B">主从延迟是怎么回事？</a></li>
+<li><a href="#%E4%B8%BA%E5%95%A5%E4%BC%9A%E4%B8%BB%E4%BB%8E%E5%BB%B6%E8%BF%9F">为啥会主从延迟？</a>
+<ul>
+<li><a href="#%E6%98%AF-t2-t1-%E5%90%97">是 T2-T1 吗？</a></li>
+<li><a href="#%E6%98%AF-t3-t2-%E5%90%97">是 T3-T2 吗？</a></li>
+<li><a href="#%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%A4%8D%E5%88%B6">多线程复制</a>
+<ul>
+<li><a href="#%E6%8C%89%E5%BA%93%E5%B9%B6%E8%A1%8C">按库并行</a></li>
+<li><a href="#redo-log-group-commit-%E7%BB%84%E6%8F%90%E4%BA%A4%E4%BC%98%E5%8C%96">redo log group commit （组提交）优化</a></li>
+<li><a href="#writeset-%E7%9A%84%E5%B9%B6%E8%A1%8C%E5%A4%8D%E5%88%B6">WRITESET 的并行复制</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#%E6%80%8E%E4%B9%88%E5%87%8F%E5%B0%91%E4%B8%BB%E4%BB%8E%E5%BB%B6%E8%BF%9F">怎么减少主从延迟</a></li>
+</ul>
+</li>
+<li><a href="#case-%E5%88%86%E6%9E%90">Case 分析</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yao177.github.io/post/log4j2/">
+              <h3 class="post-title">
+                安全｜Log4j2 复现与原理
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  <b>York</b>'s home | wish you a nice day!
+  <a class="rss" href="https://yao177.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

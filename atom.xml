@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://yao177.github.io</id>
     <title>Yao177&apos;s Blog</title>
-    <updated>2022-03-02T09:36:33.276Z</updated>
+    <updated>2022-03-02T16:01:25.421Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://yao177.github.io"/>
     <link rel="self" href="https://yao177.github.io/atom.xml"/>
@@ -10,6 +10,272 @@
     <logo>https://yao177.github.io/images/avatar.png</logo>
     <icon>https://yao177.github.io/favicon.ico</icon>
     <rights>All rights reserved 2022, Yao177&apos;s Blog</rights>
+    <entry>
+        <title type="html"><![CDATA[转｜MySQL｜待]]></title>
+        <id>https://yao177.github.io/post/zhuan-ormysqlordai/</id>
+        <link href="https://yao177.github.io/post/zhuan-ormysqlordai/">
+        </link>
+        <updated>2022-03-02T14:52:21.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="一条查询语句的执行过程">一条查询语句的执行过程</h1>
+<h2 id="基本架构">基本架构</h2>
+<p>MySQL 的基本架构图如下图所示。<br>
+<img src="https://yao177.github.io/post-images/1646233619656.svg" alt="" loading="lazy"></p>
+<p>大体来说，MySQL 可以分为 Server 层和存储引擎层两个部分</p>
+<ol>
+<li>Server 层包括：连接器、查询缓存、分析器、优化器、执行器等核心服务功能；所有跨存储引擎的功能都在这一层实现：存储过程、触发器、视图等。
+<ul>
+<li>连接器：负责跟客户端建立连接、维持和管理连接</li>
+<li>查询缓存：以 key-value 的形式存储执行过的语句和结果</li>
+<li>分析器：词法分析、语法分析</li>
+<li>优化器：生成最优的执行计划，包括索引选择、join 表的顺序等</li>
+<li>执行器：操作存储引擎，返回结果</li>
+</ul>
+</li>
+<li>存储引擎层：通过提供读写接口，来负责数据的存储和提取。<br>
+其架构模式是插件式的，支持 Innodb、MyISAM 等存储引擎，其中 Innodb 是最常用的存储引擎。</li>
+</ol>
+<p>下面将简单介绍Server层中的各个组件</p>
+<h3 id="连接器">连接器</h3>
+<p>连接器：负责跟客户端建立连接、获取权限、维持和管理连接。</p>
+<p><em>需要注意的是：由于验证通过之后连接器会获取该用户的权限，之后这个连接里的所有权限判断逻辑都依赖于此权限，因此，一个用户成功建立连接后，即使管理员对这个用户的权限做了修改，也不会影响已经存在连接的权限，修改完后，只有再新建的连接才会使用新的权限设置。</em></p>
+<h3 id="查询缓存">查询缓存</h3>
+<p>查询缓存：以 key-value 的形式存储执行过的语句和结果。<br>
+在解析一个查询语句之前，如果查询缓存是打开的，那么 MySQL 会优先检查这个查询是否命中查询缓存中的数据。<br>
+查询缓存是从 4.1 版本开始支持，默认是关闭的，可以在运行时设置变量<code>set query_cache_type=1</code>开启，也可以重写配置文件中的参数开启。<br>
+通过语句<code>show variables like '%query_cache%';</code>可以查看关于查询缓存相应的信息，例如：通过<s>query_cache_size</s><code>query_cache_type</code>可以知晓查询缓存是否开启等。</p>
+<figure data-type="image" tabindex="1"><img src="https://yao177.github.io/post-images/1646233961964.png" alt="" loading="lazy"></figure>
+<p><em>一般情况下，不建议使用查询缓存，这是因为对于一个表的更新操作，这个表上所有的查询缓存都会被清空。<br>
+因此除了很少更新的配置表外可以使用查询缓存来提供查询速度，其他的一般不建议使用查询缓存。</em></p>
+<p>关于查询缓存的更详细信息可以参考文档 <a href="https://segmentfault.com/a/1190000003039232">MySql 查询缓存笔记</a></p>
+<h3 id="分析器">分析器</h3>
+<p>分析器：包括词法分析、语法分析等。</p>
+<p>这个阶段会检查：</p>
+<ol>
+<li>是否使用了错误的关键字；</li>
+<li>使用的关键字顺序是否正确；</li>
+<li>检查数据表和数据列是否存在等。</li>
+</ol>
+<p>我们经常看到的“You have an error in your SQL syntax”提示，就是在这个阶段判断出来的错误。下面就是一个将“where”关键字写错的例子。</p>
+<figure data-type="image" tabindex="2"><img src="https://yao177.github.io/post-images/1646234188203.png" alt="" loading="lazy"></figure>
+<h3 id="优化器">优化器</h3>
+<p>一般情况下，一条查询可以有多种执行方法，最后都是返回相同结果。优化器的作用就是找到这其中最好的执行计划。<br>
+MySQL使用基于成本的查询优化器。它会根据统计信息和代价模型预测一个查询使用某种执行计划时的成本，并选择其中成本最少的一个。</p>
+<p><em>查询优化器中有两个依赖：统计信息和代价模型。统计信息的准确与否、代价模型的合理与否都会影响优化器选择最优计划。</em></p>
+<p>下面来看两个关于优化器选择索引的例子。</p>
+<h4 id="正确选择索引的例子">正确选择索引的例子</h4>
+<p>构建了一个表，除主键 id 外，还有另外两个字段a、b，分别都有索引，然后插入了100000条数据（注：a值全部为3）。</p>
+<pre><code class="language-Sql">CREATE TABLE `Test` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `a` int(11) DEFAULT NULL,
+  `b` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `IDX_a` (`a`),
+  KEY `IDX_b` (`b`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+DELIMITER // 
+CREATE PROCEDURE proc1()
+BEGIN
+  declare i int;
+  set i = 1;
+  while(i&lt;=100000) do
+  	insert into Test value(i,3,i);
+  	set i=i+1;
+  end while;
+END //
+DELIMITER ;
+call proc1();
+</code></pre>
+<p>当我们执行<code>select * from Test where a = 3 and b = 4</code>有如下两种不同的执行方式：</p>
+<ol>
+<li>选择a这个索引，得到索引值为3的第一条记录的主键Id，然后回表查询出行记录返回给执行器，执行器判断记录中的字段b是否为4，如果为4，则加入结果集并继续遍历依次判断。</li>
+<li>选择b这个索引，得到索引值为4的第一条记录的主键Id，然后回表查询出行记录返回给执行器，执行器判断记录中的字段a是否为3，如果为3，则加入结果集并继续遍历依次判断。</li>
+</ol>
+<p>结合表中的数据和经验我们都知道，选择b作为索引来执行将更合理，因为：b的区分度更好，符合条件的记录要更少，将会更快的找到结果。<br>
+用explain可以看到优化器选择的索引为：IDX_b，而不是选择的IDX_a，这就是优化器基于统计信息和代价模型得到的最优执行计划，符合我们的预期。</p>
+<figure data-type="image" tabindex="3"><img src="https://yao177.github.io/post-images/1646234390390.png" alt="" loading="lazy"></figure>
+<p><em>注：可能有的同学会问：列a就不应该给它创建索引，因为区分度为1/10000，例子虽然极端，但主要想表达这样一种思想。</em></p>
+<p>如果想了解优化器选择每个索引的执行成本，可以观察 optimizer_trace 的<a href="https://gist.githubusercontent.com/yao177/8eb38fd70049793e792db5ac1b506678/raw/optimizer_trace%2520log">输出日志</a></p>
+<p>从日志中，也可以更清晰的看出选择的是索引：IDX_b。</p>
+<h4 id="错误选择索引的例子">错误选择索引的例子</h4>
+<p>一般情况下，优化器会选择出最优的执行计划，但是也存在选取错误的执行计划的情况。</p>
+<p>构建了一个表Test2，除主键id外，还有另外两个字段a、b，分别都有索引，然后插入了100000条数据</p>
+<pre><code class="language-Sql">CREATE TABLE `Test2` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `a` int(11) DEFAULT NULL,
+  `b` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `IDX_a` (`a`),
+  KEY `IDX_b` (`b`)
+) ENGINE=InnoDB AUTO_INCREMENT=100001 DEFAULT CHARSET=utf8mb4;
+DELIMITER // 
+CREATE PROCEDURE proc2()
+BEGIN
+  declare i int;
+  set i = 2;
+  while(i&lt;=100000) do
+  	insert into Test2 value(i,i,i);
+  	set i=i+1;
+  end while;
+END //
+DELIMITER ;
+call proc2();
+</code></pre>
+<p>下面我们来看下这条语句：<code>select * from Test2 where (a between 1 and 1000) and (b between 50000 and 100000) order by b limit 1;</code>。<br>
+从条件上来看，此表Test2中没有符合条件的结果。</p>
+<p><em>但是你觉得MySQL会选择索引a还是索引b呢？先留给大家思考，章节末有相关的分析可以作为参考</em></p>
+<h3 id="执行器">执行器</h3>
+<p>通过调用存储引擎定义好的API，操作存储引擎，并将结果返回给客户端。具体例子见文章第二节。</p>
+<h2 id="一条查询语句的执行过程-2">一条查询语句的执行过程</h2>
+<p>上面介绍了 MySQL 的基本架构以及相应的模块，下面将通过上文中的查询语句作为例子来说明一条查询语句的执行过程。<br>
+假设当客户端和服务端建立连接之后，客户端向服务端发送如下一个「查询」请求：<code>select * from Test where a = 3 and b = 4;</code></p>
+<p>MySQL的执行路径如下：</p>
+<ol>
+<li>如果查询缓存是打开的，服务器端会优先检查查询缓存，如果命中了缓存，则立刻返回存储在缓存中的结果。否则进入下一阶段。</li>
+<li>服务器端的分析器对SQL进行词法分析、语法分析，再由优化器从存储引擎获取统计信息，根据代价模型生成对应的执行计划(索引b就是在这个阶段完成)。</li>
+<li>服务器端根据优化器生成的执行计划，再调用存储引擎的API来执行查询，并将结果返回给客户端，具体如下
+<ol>
+<li>调用InnoDB存储引擎的接口取满足”b=4“条件的第一条记录返回给执行器</li>
+<li>执行器判断该记录中的a字段是否等于3，如果不等于则跳过，否则放入结果集</li>
+<li>调用InnoDB存储引擎的接口取满足“b=4”条件的下一条记录并返回给执行器</li>
+<li>重复第二、三步，直至循环遍历结束</li>
+<li>执行器将结果集返回给客户端</li>
+</ol>
+</li>
+</ol>
+<p>注：MySQL 将结果返回客户端是一个增量、逐步返回的过程，并不一定等到所有的结果集都查出来再返回。<br>
+这样处理有两个好处：</p>
+<ol>
+<li>服务器无需存储太多的结果，也就不会因为要返回太多的结果而消耗太多的内存；</li>
+<li>这样的处理也让 MySQL 客户端第一时间获得返回的结果。</li>
+</ol>
+<p>为方便理解，这里也画了一个流程图，如下图所示：<br>
+<img src="https://yao177.github.io/post-images/1646235043473.svg" alt="" loading="lazy"></p>
+<h2 id="扩展">扩展</h2>
+<p>在查询的过程中，会有如下两种情况：</p>
+<ol>
+<li>所在的数据页已经在内存 (buffer pool) 中了，则直接查询。</li>
+<li>所在的数据页不在内存 (buffer pool) 中
+<ol>
+<li>如果此时 buffer pool 的大小不足，则会淘汰 buffer pool 中的最久不使用的数据页为该数据页腾出位置，如果该数据页为脏页，则会在淘汰之前刷脏页到磁盘。
+<ul>
+<li>如果遇到这种情况且脏页比较多，则可能就导致该次查询会较慢，给我们的直观感受就是MySQL“抖”了一下。为了避免出现这种情况，个人建议：</li>
+<li>在编写 SQL 语句时习惯性使用 limit 字段来加以限制，避免一个查询要淘汰的脏页个数太多。</li>
+</ul>
+</li>
+<li>所在的数据页不在内存中，而如果此时 change buffer 中该数据页有更新，则会在磁盘中读取该数据页之后与 change buffer 中的内容进行 merge 作为新的数据页，然后查询结果并返回。</li>
+</ol>
+</li>
+</ol>
+<p><em>change buffer 是一种重要的数据变更日志。 change buffer 的主要目的是将对二级索引的数据操作缓存下来，以此减少二级索引的随机IO，并达到操作合并的效果。</em></p>
+<p>限于篇幅加上笔者水平有限，至于 buffer pool、change buffer、脏页等内容，如果有兴趣，将会在下一篇总结中呈现。</p>
+<h2 id="问题和思考">问题和思考</h2>
+<h3 id="问题分析">问题分析</h3>
+<p>本文的中间关于优化器选择索引留了一个问题<code>select * from Test2 where (a between 1 and 1000) and (b between 50000 and 100000) order by b limit 1;</code><br>
+此查询语句MySQL会选择哪个索引呢？<br>
+在分析之前，先将查询语句中的order by b去掉我们来分析一下：<code>select * from Test2 where (a between 1 and 1000) and (b between 50000 and 100000) limit 1;</code></p>
+<ul>
+<li>如果选择索引a则最多会扫描1000行，最少1行</li>
+<li>如果选择索引b则最多会扫描50000行，最少1行<br>
+这种情况，毫无疑问，选择索引b所需要扫描的行数要多很多且没有其他因素干扰，因此执行器会选择索引a。<br>
+MySQL下有个了解优化器工作过程的利器，其就是 optimizer_trace。使用方法为：</li>
+</ul>
+<pre><code class="language-Sql">SET OPTIMIZER_TRACE_MAX_MEM_SIZE=268435456; 
+SET optimizer_trace=&quot;enabled=on&quot;; 
+select * from Test2 where (a between 1 and 1000) and (b between 50000 and 100000) limit 1;
+select * from INFORMATION_SCHEMA.OPTIMIZER_TRACE\G
+</code></pre>
+<p>MySQL 5.7.20输出内容如下：从输出内容 rows_estimation 的部分可以看到选择索引a的成本最小，<a href="https://gist.githubusercontent.com/yao177/822d7b7fcfaface2588e35087a2637ff/raw/optimizer_trace%2520log%25202">日志链接</a></p>
+<p>如果查询语句中有<code>order by b</code>呢？情况如下：</p>
+<ul>
+<li>如果选择索引a则最多会扫描1000行，最少1行，而且排序还需要耗时</li>
+<li>和查询语句中没有order by b时一样，如果选择索引b则最多会扫描50000行，最少1行，不需要排序<br>
+这种情况，MySQL会选择索引a还是索引b呢？</li>
+</ul>
+<p><strong>答案是选择了索引b，原因是：order by b 引导了优化器选择了索引b。</strong><br>
+<img src="https://yao177.github.io/post-images/1646235832056.png" alt="" loading="lazy"><br>
+<img src="https://yao177.github.io/post-images/1646235851255.png" alt="" loading="lazy"></p>
+<p>结合<a href="https://gist.githubusercontent.com/yao177/b943fb741ba61037a00f73d46199f8a7/raw/optimizer_trace%2520log%25203">输出内容</a> rows_estimation、reconsidering_access_paths_for_index_ordering 两部分可以看到：最终选择了索引b。</p>
+<p><a href="https://github.com/yao177/self-collection/raw/main/MySQL%2Border%2Bby%E4%BC%98%E5%8C%96bug%E8%A7%A3%E6%9E%90.key">扩展阅读</a></p>
+<h3 id="分析器到查询缓存这条线的作用">分析器到查询缓存这条线的作用</h3>
+<p>问题：架构图中分析器--&gt;查询缓存 这条线(如下图红色标出位置)的作用是什么，是不是箭头画错了？<br>
+答案：失效缓存，当分析器检查出该次操作为更新操作时，如果查询缓存是开启的，则会失效相应的缓存。</p>
+<figure data-type="image" tabindex="4"><img src="https://yao177.github.io/post-images/1646236407126.svg" alt="" loading="lazy"></figure>
+<blockquote>
+<p>这是一位同事在阅读了本文之后提出来的问题，这是一个好问题，督促我更好的了解了该架构图，在此表示感谢。<br>
+在本文的前面部分所介绍的查询流程中，唯独没有涉及到分析器--&gt;查询缓存这一条线，因此笔者觉得有必要在此说明这条线的作用。</p>
+</blockquote>
+<p>除了分析器--&gt;查询缓存这一条线之外，其实：执行器也应该有一条线来指向查询缓存，作用是：如果查询缓存是开启的，则会将查询结果放入缓存。(至于在架构图中都没有画出来，个人猜测是为了架构图更简洁吧)</p>
+<h2 id="参考阅读">参考阅读</h2>
+<ul>
+<li><a href="https://time.geekbang.org/column/article/68319">基础架构：一条SQL查询语句是如何执行的？</a></li>
+<li><a href="https://time.geekbang.org/column/article/71173">MySQL为什么有时候会选错索引？</a></li>
+<li><a href="http://mysql.taobao.org/monthly/2015/11/07/">淘宝 数据库内核月报 2015.11</a></li>
+<li><a href="https://dev.mysql.com/doc/internals/en/tracing-example.html">MySQL official manual - Tracing the Optimizer</a></li>
+<li><a href="https://www.jianshu.com/p/caf5818eca81">MySQL ORDER BY主键id加LIMIT限制走错索引</a></li>
+</ul>
+<hr>
+<h1 id="慢查询引起的车祸线程">慢查询引起的车祸线程</h1>
+<p>这一部分主要是站在老司机的肩膀上从原理总结、mysql慢查询优化方法、case案例分析等几个方面结合自己这段时间在工作上遇到的慢查询谈谈数据库索引的原理和如何优化慢查询。一方面给自己总结，另一方面希望看到的老司机能够指出其中的错误和不足，哈哈哈。</p>
+<h2 id="上车前原理分析">上车前（原理分析）</h2>
+<p>这部分我主要想总结一下数据库索引的原理，可能是老生常谈的东西了，【<strong>慢</strong>查询】这个词主要的重点就是慢，就像我们开车一样，我们发车前最重要的就是了解这部车，而我们要知道我们的SQL语句为什么会慢，我们当然必须对数据的查找过程有所了解。</p>
+<h2 id="上车慢查询优化">上车（慢查询优化）</h2>
+<p><strong>举个例子</strong>：其实对于数据索引这样的例子，在我们日常生活其实也是很多，通常大家都举查字典的例子吧？为了新鲜感，我换一个，比如你找对象，如果你是男的，你最先的目标是女孩子的吧（除个别外），这样我们就排除了一部无效数据，然后咱们再选咱们同一个城市的吧？又剔除了一部分无效数据，最后我们再选年龄等，最后留下了我们目标人群。这种查找过程其实也是一种索引过程。<br>
+<strong>磁盘IO</strong>：我们计算机是怎么查询数据的呢？当计算机把数据保存在磁盘上，而为了提高性能，每次又可以把部分数据读入内存来计算，因为我们知道<em>访问磁盘的成本大概是访问内存的十万倍左右</em>，所以简单的搜索树难以满足复杂的应用场景。考虑到磁盘IO是非常高昂的操作，计算机操作系统做了一些优化，当一次IO时，不光把当前磁盘地址的数据，而是把相邻的数据也都读取到内存缓冲区内，因为局部预读性原理告诉我们，当计算机访问一个地址的数据的时候，与其相邻的数据也会很快被访问到。每一次IO读取的数据我们称之为一页(page)。<em>具体一页有多大数据跟操作系统有关，一般为4k或8k，也就是我们读取一页内的数据时候，实际上才发生了一次IO</em>，所以结合我们的例子以及计算机查询数据的原理，为了提高查询数据的查询速度，需要保证最小的IO次数，B+树的数据结构应运而生。</p>
+<h2 id="翻车explain-字段分析">翻车（explain 字段分析）</h2>
+<h2 id="车祸现场case-分析">车祸现场（case 分析）</h2>
+<h1 id="聊聊-innodb-的那些锁事">聊聊 InnoDB 的那些“锁”事</h1>
+<h2 id="并发事务处理带来的问题">并发事务处理带来的问题</h2>
+<h2 id="事务隔离级别">事务隔离级别</h2>
+<h2 id="事务隔离实现">事务隔离实现</h2>
+<h3 id="数据加锁">数据加锁</h3>
+<h4 id="innodb-的锁">InnoDB 的锁</h4>
+<h5 id="auto-inc-locks-自增锁">Auto-inc Locks 自增锁</h5>
+<h5 id="shared-and-exclusive-locks-共享排他锁">shared and exclusive locks 共享/排他锁</h5>
+<h5 id="intention-locks-意向锁">Intention Locks 意向锁</h5>
+<h4 id="innodb-锁算法">InnoDB 锁算法</h4>
+<h5 id="record-locks-记录锁">Record Locks 记录锁</h5>
+<h5 id="gap-locks-间隙锁">Gap Locks 间隙锁</h5>
+<h5 id="next-key-locks-临键锁">Next-key Locks 临键锁</h5>
+<h5 id="insert-intention-locks-插入意向锁">Insert Intention Locks 插入意向锁</h5>
+<h5 id="mdl-元数据锁">MDL 元数据锁</h5>
+<h3 id="mvcc-多版本并发控制">MVCC 多版本并发控制</h3>
+<h4 id="mvcc-简介">MVCC 简介</h4>
+<h4 id="mvcc-实现原理">MVCC 实现原理</h4>
+<h4 id="mvcc-读分类">MVCC 读分类</h4>
+<h4 id="two-phase-locking-protocol-两阶段锁协议">two-phase locking protocol 两阶段锁协议</h4>
+<h4 id="sql-语句如何加锁rr-级别下">SQL 语句如何加锁（RR 级别下）</h4>
+<h2 id="扩展阅读-参考">扩展阅读 &amp; 参考</h2>
+<h1 id="你真的看懂日志了吗">你真的看懂日志了吗？</h1>
+<h2 id="binlog-详解">Binlog 详解</h2>
+<h3 id="基本概念">基本概念</h3>
+<h3 id="日志结构">日志结构</h3>
+<h3 id="日志格式">日志格式</h3>
+<h3 id="日志时间结构">日志时间结构</h3>
+<h2 id="binlog-应用">Binlog 应用</h2>
+<h3 id="主从同步">主从同步</h3>
+<h3 id="数据恢复">数据恢复</h3>
+<h4 id="对比-redo-log">对比 redo log</h4>
+<h2 id="案例分析">案例分析</h2>
+<h2 id="参考资料">参考资料</h2>
+<h1 id="认识一下主从原理和延迟">认识一下主从原理和延迟</h1>
+<h2 id="主从集群">主从集群</h2>
+<h2 id="主从同步-2">主从同步</h2>
+<h3 id="binlog-是什么有什么用">binlog 是什么？有什么用？</h3>
+<h3 id="主从复制">主从复制</h3>
+<h3 id="puma-databus-应用">Puma &amp; Databus 应用</h3>
+<h2 id="主从延迟">主从延迟</h2>
+<h3 id="主从延迟是怎么回事">主从延迟是怎么回事？</h3>
+<h3 id="为啥会主从延迟">为啥会主从延迟？</h3>
+<h4 id="是-t2-t1-吗">是 T2-T1 吗？</h4>
+<h4 id="是-t3-t2-吗">是 T3-T2 吗？</h4>
+<h4 id="多线程复制">多线程复制</h4>
+<h5 id="按库并行">按库并行</h5>
+<h5 id="redo-log-group-commit-组提交优化">redo log group commit （组提交）优化</h5>
+<h5 id="writeset-的并行复制">WRITESET 的并行复制</h5>
+<h3 id="怎么减少主从延迟">怎么减少主从延迟</h3>
+<h2 id="case-分析">Case 分析</h2>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[安全｜Log4j2 复现与原理]]></title>
         <id>https://yao177.github.io/post/log4j2/</id>
@@ -1287,182 +1553,6 @@ static class Entry&lt;K,V&gt; extends HashMap.Node&lt;K,V&gt; {
 <li>key 实现 Comparable 接口</li>
 <li>构造时传入比较器</li>
 </ol>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[Java 基础｜Java String]]></title>
-        <id>https://yao177.github.io/post/java-ji-chu-orjava-string/</id>
-        <link href="https://yao177.github.io/post/java-ji-chu-orjava-string/">
-        </link>
-        <updated>2020-09-15T10:05:50.000Z</updated>
-        <content type="html"><![CDATA[<h1 id="string-字符串">String 字符串</h1>
-<p>Unicode 字符序列</p>
-<p>C++ 中的 <code>char*</code></p>
-<pre><code class="language-java">substring(start_index, first_excluded_index)
-length(substring(a, b)) = b - a
-str_a.equals(str_b) = (str_a.compareTo(str_b) == 0)
-str_a.equalsIgnore(str_b)
-</code></pre>
-<h2 id="不可变">不可变</h2>
-<ul>
-<li>用 <code>String.substring()</code> 和 <code>+</code> 拼接后重新赋值</li>
-<li>效率？→ 字符串共享
-<ul>
-<li>仅字符串常量，其他+/substring 生成的不共享 → <code>==</code> 不能用来测试相等性</li>
-</ul>
-</li>
-<li>怎么不可变？（用 C++ 的 <code>char*</code> 比较好理解）</li>
-<li>指向的位置上的字符串内存不可变，</li>
-</ul>
-<h2 id="vs-equals-vs-compareto"><code>==</code> VS <code>equals()</code> VS <code>compareTo()</code></h2>
-<pre><code class="language-java">// equals 源码
-public boolean equals(Object anObject) {
-    if (this == anObject) { // 内存位置一致
-        return true;
-    }
-    if (anObject instanceof String) {
-        String anotherString = (String) anObject; // 其它类型先转换为 String 类型
-        int n = value.length;
-        if (n == anotherString.value.length) {
-            char v1[] = value;
-            char v2[] = anotherString.value;
-            int i = 0;
-            while (n-- != 0) {
-                if (v1[i] != v2[i]) return false;
-                i++;
-            }
-            return true;
-        }
-    }
-    return false;
-}
-
-// compareTo 源码
-public int compareTo(String anotherString) {
-		int len1 = value.length; int len2 = anotherString.value.length; 
-		int lim = Math.min(len1, len2); 
-		char v1[] = value; char v2[] = anotherString.value; 
-		int k = 0; 
-		while (k &lt; lim) { // 字典序大小比较 
-				char c1 = v1[k]; 
-				char c2 = v2[k]; 
-				if (c1 != c2) { 
-							return c1 - c2; 
-				} 
-				k++; 
-		} 
-		return len1 - len2;
-}
-</code></pre>
-<p>equals 类似 C++ 中的 <code>==</code>，compareTo 类似 <code>strcmp</code></p>
-<ul>
-<li>返回值不同
-<ul>
-<li>equals 只判断是否相同</li>
-<li>compareTo 判断大小比较，正大负小=同</li>
-</ul>
-</li>
-<li>比较类型不同
-<ul>
-<li>equals 可以和非字符串进行比较，转换为 String 类型</li>
-<li>compareTo 只能和字符串变量比较</li>
-</ul>
-</li>
-<li>效率
-<ul>
-<li>equals 比 compareTo 稍微快一些（加了一些前置判断），如果只判断是否相等建议使用 equals</li>
-</ul>
-</li>
-<li>使用范围
-<ul>
-<li>Object 自带 equals 方法，基本都可用（默认实现为 <code>==</code>）</li>
-<li>实现了 Comparable 接口的类才有 compareTo 方法</li>
-</ul>
-</li>
-</ul>
-<h2 id="空串和-null-串">空串（&quot;&quot;）和 null 串</h2>
-<p>空串，长度为「0」、内容为「空」的 String 对象</p>
-<p>null 串，无对象（类似于“空指针”），不是 String 对象，不可以使用 String 的方法</p>
-<p><code>if (str != null &amp;&amp; str.length() != 0) {...} if (str != null &amp;&amp; !str.equals(&quot;&quot;)) {...}</code></p>
-<h2 id="码点-代码单元">码点、代码单元</h2>
-<p>char 是「一个采用 UTF-16 编码表示的代码单元」，用来表示 Unicode 码点。</p>
-<p>UTF-16 有一些用两个字节表示一个符号的情况，</p>
-<p>编号为 U+D800 至 U+DBFF 的规定为「High Surrogates」，共 102 4个；编号为 U+DC00 至 U+DFFF 的规定为「Low Surrogates」，也是 1024 个；他们组合出现，就又可以多表示 1048576 种字符。</p>
-<p>一个字符对应一个码点，因此有可能是 1 也有可能是 2 个字节</p>
-<h2 id="stringbuilder-vs-stringbuffer">StringBuilder vs StringBuffer</h2>
-<p>用于 String 拼接的 <code>+</code> 即是 SringBuilder，查看字节码可知</p>
-<pre><code class="language-java">LINENUMBER 28 L3
-NEW java/lang/StringBuilder
-DUP
-INVOKESPECIAL java/lang/StringBuilder.&lt;init&gt; ()V
-ALOAD 0
-INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/String;)Ljava/lang/StringBuilder;
-ALOAD 1
-INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/String;)Ljava/lang/StringBuilder;
-INVOKEVIRTUAL java/lang/StringBuilder.toString ()Ljava/lang/String;
-ASTORE 3
-</code></pre>
-<p>也就是说，调用了</p>
-<pre><code class="language-java">c = a + b;
-c = new StringBuilder().append(a).append(b).toString();
-// 如果有性能需求
-c = new StringBuilder(a.length() + b.length()).append(a).append(b).toString();
-// 可正确调整缓冲区大小，并防止 JVM 重新调整缓冲区大小并创建垃圾以进行收集
-</code></pre>
-<p>顺便看一下StringBuilder.append()的源码：</p>
-<pre><code class="language-java">public AbstractStringBuilder append(String str) {
-    if (str == null) {
-        return appendNull();
-    }
-    int len = str.length();
-    ensureCapacityInternal(count + len);
-    putStringAt(count, str);
-    count += len;
-    return this;
-}
-
-private final void putStringAt(int index, String str) {
-    if (getCoder() != str.coder()) {
-        inflate();
-    }
-    str.getBytes(value, index, coder);
-}
-
-void getBytes(byte dst[], int dstBegin, byte coder) {
-    if (coder() == coder) {
-        System.arraycopy(value, 0, dst, dstBegin &lt;&lt; coder, value.length);
-    } else { // this.coder == LATIN &amp;&amp; coder == UTF16 
-        StringLatin1.inflate(value, 0, dst, dstBegin, value.length);
-    }
-}
-</code></pre>
-<p>有点类似 C++ 中 strcpy 的做法，直接拷贝内存地址上的内容</p>
-<p>关于<em>线程安全</em>，StringBuilder 是不安全的，StringBuffer 是安全的；StringBuffer 源码中每个方法都添加了 <strong>synchronized</strong> 关键字，举个例子</p>
-<pre><code class="language-java">public synchronized StringBuffer append(String str) {
-    toStringCache = null;
-    super.append(str);
-    return this;
-}
-</code></pre>
-<p>~~如果手动添加 <strong>synchronized</strong> 关键字呢？~~不要这样使用</p>
-<pre><code class="language-java">public class Foo { // safe ? 
-    private final static StringBuilder builder;
-
-    public static void foo() { // safe ? 
-        builder = new StringBuilder();
-    }
-
-    public static void foo(final String a) { // unsafe ? 
-        builder.append(a);
-    }
-
-    public synchronized void bar(final String a) { // safe ? 
-        builder.append(a);
-    }
-}
-</code></pre>
-<h1 id="结论">结论</h1>
-<p><strong>直接使用 StringBuilder 局部变量，用完即销毁就可以！</strong></p>
 ]]></content>
     </entry>
 </feed>
