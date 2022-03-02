@@ -1,0 +1,397 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Java 进阶｜线程安全 | Yao177&#39;s Blog</title>
+<link rel="shortcut icon" href="https://yao177.github.io/favicon.ico?v=1646212543820">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yao177.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Java 进阶｜线程安全 | Yao177&#39;s Blog - Atom Feed" href="https://yao177.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-159235176-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-159235176-1');
+</script>
+
+
+    <meta name="description" content="线程安全
+定义
+线程安全并没有统一的定义，这里使用《Java Concurrency In Practice》书中的定义：
+
+当多个线程访问一个对象时，如果不用考虑这些线程在运行时环境下的调度和交替执行，也不需要进行额外的同步，或者在调用方..." />
+    <meta name="keywords" content="Java Advanced" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yao177.github.io">
+  <img class="avatar" src="https://yao177.github.io/images/avatar.png?v=1646212543820" alt="">
+  </a>
+  <h1 class="site-title">
+    Yao177&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <b>E</b>·rror = <b>m</b>·ore * <b>c²</b>·ode
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/yao177" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/Tianyao_Z" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com/p/1005055415293764" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.zhihu.com/people/yao-zi-73-1" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com/York.Z9859" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Java 进阶｜线程安全
+            </h2>
+            <div class="post-info">
+              <span>
+                04-01-2021
+              </span>
+              <span>
+                11 min read
+              </span>
+              
+                <a href="https://yao177.github.io/tag/Zc9QtnBWX/" class="post-tag">
+                  # Java Advanced
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h1 id="线程安全">线程安全</h1>
+<h2 id="定义">定义</h2>
+<p>线程安全并没有统一的定义，这里使用《Java Concurrency In Practice》书中的定义：</p>
+<blockquote>
+<p>当多个线程访问一个对象时，如果不用考虑这些线程在运行时环境下的调度和交替执行，也不需要进行额外的同步，或者在调用方进行任何其他的协调操作，调用这个对象的行为都可以获得正确的结果，那这个对象是线程安全的。</p>
+</blockquote>
+<h2 id="线程安全程度">线程安全程度</h2>
+<p>上面的定义非常严谨，它要求线程安全的代码满足：代码本身封装了所有必要的同步手段，令调用者无须关心多线程的问题，更不需要自己采取措施来保证在多线程环境下的正确调用。</p>
+<p>保证这一点非常难，因此我们常常会另一个角度来理解线程安全，即线程安全程度。</p>
+<p>《深入理解java虚拟机》中将 Java 语言各种共享操作共享的数据可以分为以下5类：<strong>不可变、绝对线程安全、相对线程安全、线程兼容和线程对立</strong>。</p>
+<h3 id="不可变">不可变</h3>
+<p>不可变（Immutable）的对象一定是线程安全的，无论是对象方法的实现还是方法的调用者，都不需要在采取任何的线程安全保障措施。</p>
+<ul>
+<li>如果数据是基本类型，那么定义时使用 final 关键字即可</li>
+<li>如果数据是对象类型，那就需要保证对象的行为不会对其状态产生任何影响（如 String 类，调用其<code>substring()</code>、<code>replace()</code>等方法不会影响原来的值，只会返回一个新构造的字符串对象）。</li>
+</ul>
+<p>保证对象的行为不会对其状态产生任何影响最简单的方法就是把对象中带有状态的变量声明为 final，这样在构造函数结束之后，它就是不可变的，如 Integer。</p>
+<pre><code class="language-Java">    /**
+     * The value of the {@code Integer}.
+     *
+     * @serial
+     */
+    private final int value;
+
+    /**
+     * Constructs a newly allocated {@code Integer} object that
+     * represents the specified {@code int} value.
+     *
+     * @param   value   the value to be represented by the
+     *                  {@code Integer} object.
+     */
+    public Integer(int value) {
+        this.value = value;
+    }
+</code></pre>
+<h3 id="绝对线程安全">绝对线程安全</h3>
+<p>不管运行时环境如何，调用者都不需要任何额外的同步措施。</p>
+<p>要达到绝对线程安全通常付出很大代价，甚至不切实际的代价。</p>
+<p>以 Vector 为例，它是一个线程安全的容器，因为其内部的操作方法都用了 synchronized 关键字作为同步措施，但是即使它所有的方法都被修饰成同步，也不意味着调用它的时候永远不需要同步手段了。请看下面的 demo：</p>
+<pre><code class="language-Java">    private static Vector&lt;Integer&gt; vector = new Vector&lt;&gt;();
+
+    public static void main(String[] args) {
+        while (true) {
+            for (int i = 0; i &lt; 10; i++) {
+                vector.add(i);
+            }
+            Thread removeThread = new Thread(() -&gt; {
+                for (int i = 0; i &lt; vector.size(); i++) {
+                    vector.remove(i);
+                }
+            });
+            Thread printThread = new Thread(() -&gt; {
+                for (int i = 0; i &lt; vector.size(); i++) {
+                    System.out.println(vector.get(i));
+                }
+            });
+            removeThread.start();
+            printThread.start();
+            //避免过多线程
+            while (Thread.activeCount() &gt; 10) ;
+        }
+    }
+</code></pre>
+<p>输出结果如下：<br>
+<img src="https://yao177.github.io/post-images/1646211347456.png" alt="" loading="lazy"></p>
+<p>虽然 Vector 的 add()、remove()、get() 方法都是同步的，但并不能保证调用就是绝对线程安全的。假设打印线程在打印序号为i的元素前，线程被系统调度挂起，切换为删除线程，而这个删除线程刚好把序号为i的元素删除了，系统再切换打印线程运行时，这个序号为i的元素已经被删除，再调用 get(i) 访问时就会得到 ArrayIndexOutOfBoundsException。要保证代码是绝对线程安全的，必须在调用方加一些同步措施：</p>
+<pre><code class="language-Java">  Thread removeThread = new Thread(() -&gt; {
+    synchronized (vector) {
+      for (int i = 0; i &lt; vector.size(); i++) {
+        vector.remove(i);
+      }
+    }
+  });
+  Thread printThread = new Thread(() -&gt; {
+    synchronized (vector) {
+      for (int i = 0; i &lt; vector.size(); i++) {
+        System.out.println(vector.get(i));
+      }
+    }
+  });
+</code></pre>
+<h3 id="相对线程安全">相对线程安全</h3>
+<p>这是通常意义的线程安全，它要求对该对象的单独操作是线程安全的，但是对于特定顺序的连续调用，需要在调用端使用额外的同步手段保证调用的正确性。</p>
+<p>上面的代码就是相对线程安全的案例，在 Java 中大部分线程安全类属于相对线程安全类型，如 Vector、Hashtable 等。</p>
+<h3 id="线程兼容">线程兼容</h3>
+<p>对象本身就不是线程安全的，但是可以通过通过同步手段保证调用端在并发环境下的线程安全。如 ArrayList、HashMap 等。</p>
+<h3 id="线程对立">线程对立</h3>
+<p>无论调用端是否采取同步措施，都无法并发使用。这种类型很少出现，应当尽量避免。</p>
+<p>例如 Thread 类的 suspend()、resume()，这两个方法的功能是中断线程和恢复线程（这两个 API 已被 JDK废弃）。</p>
+<blockquote>
+<p>被废弃是因为 suspend() 在导致线程暂停的同时，并不会去释放任何锁资源。其他线程都无法访问被它占用的锁。直到对应的线程执行 resume() 方法后，被挂起的线程才能继续，从而其它被阻塞在这个锁的线程才可以继续执行。<br>
+但是，如果 resume() 操作出现在 suspend() 之前执行，那么线程将一直处于挂起状态，同时一直占用锁，这就产生了死锁。</p>
+</blockquote>
+<h1 id="线程安全的实现">线程安全的实现</h1>
+<p>线程安全的实现可以分为三类：<strong>阻塞（互斥）同步、非阻塞同步和可重入代码</strong>。</p>
+<h2 id="阻塞同步">阻塞同步</h2>
+<p>互斥同步是常见的一种保障并发正确性的手段。Java 中常用的互斥同步手段就是 synchronized 关键字和 ReentrantLock 类。</p>
+<ul>
+<li>同步是指多个线程并发访问共享数据时，保证其数据在同一个时刻只被一个（或者一些，使用信号量的时候）线程使用</li>
+<li>互斥是实现同步的一种手段</li>
+</ul>
+<h3 id="synchronized">synchronized</h3>
+<p>synchronized 关键字是 Java 原生语法层面的互斥锁。synchronized 关键字经过编译后，会在同步块的前后插入 monitorenter 和 monitorexit 这两个字节码指令，这两个字节码都需要一个 reference 类型参数来指定要加锁和解锁的对象</p>
+<h3 id="reentrantlock">ReentrantLock</h3>
+<p>跟 synchronized 一样，ReentrantLock 也具有可重入性，但在代码写法上表现为 Java API 层面的互斥锁（lock() 和 unlock()方法配合 try/finally 语句来完成）。</p>
+<h3 id="对比">对比</h3>
+<p>与 synchronized 相比，ReentrantLock 拥有一些高级功能：</p>
+<ul>
+<li>等待可中断：当持有锁的线程长期不释放锁的时候，正在等待的线程可以选择放弃等待，改为处理其他事情，这对执行时间很长的同步块很有帮助。</li>
+<li>公平锁：多个线程在等待同一个锁时，必须按照申请锁的时间顺序来依次获得锁（synchronized 中的锁是非公平的）。</li>
+<li>锁可以绑定多个条件：一个 ReentrantLock 对象同时可以绑定多个 Condition 对象。</li>
+</ul>
+<p>从性能上看，synchronized 和 ReentrantLock 之间并没有明显的差异，如果不是需要使用 ReentrantLock 中的高级功能的情况下，一般情况都推荐直接使用 synchronized 关键字。</p>
+<h2 id="非阻塞同步">非阻塞同步</h2>
+<p>互斥同步的最主要的问题就是进行线程阻塞和唤醒带来的性能问题，因此这种同步被称为阻塞同步。</p>
+<p>从处理方式上说，互斥同步是一种悲观的并发策略，无论资源是否真的被竞争，都一定要做正确的同步措施。</p>
+<p>而非阻塞同步是一种基于冲突检测的乐观并发策略，简单来讲是先进行操作，如果没有其他线程争用共享数据，那操作就成功了；如果共享数据有争用，产生了冲突，那就采取其他的补偿措施（最简单的就是不断重试，直到成功为止）。</p>
+<h3 id="乐观并发策略">乐观并发策略</h3>
+<p>乐观并发策略的实现依赖于硬件指令，因为必须要从硬件层面保证冲突检测和操作这两个步骤具有原子性，如果从软件层面保证就会变成互斥同步，没有意义。</p>
+<p>常见的这类指令有：</p>
+<ul>
+<li>测试并设置（Test-and-Set）</li>
+<li>获取并增加（Fetch-and-Increment）</li>
+<li>交换（Swap）</li>
+<li>比较并交换（Compare-and-Swap）</li>
+<li>加载链接/条件存储（Load-Linked/Store-Conditional）</li>
+</ul>
+<p>Java中可以使用 CAS 操作，该操作由 sun.misc.Unsafe 类里面的 compareAndSwapInt() 和 compareAndSwapLong() 等几个方法包装提供，上层有 Atomic 原子包工具类方便使用。</p>
+<h3 id="cas">CAS</h3>
+<p>CAS 操作的“ABA”问题，如果一个变量初始值是A，线程1读到变量值是A，这时候另一个线程2也从也读取到变量值为A，并且线程2进行了一些操作将变量值修改为B，然后线程2又将变量值修改为A，这时候线程1进行CAS操作发现变量的值仍是A，然后线程1操作成功。尽管线程1的CAS操作成功，但是不代表这个过程就是没有问题的，如果链表的头在变化了两次后恢复了原值，但是不代表链表就没有变化。</p>
+<p>J.U.C 包提供了带有标记的原子类 AtomicStampedReference 来解决 CAS 的 ABA 问题，做法是通过控制变量值的版本来保证 CAS 的正确性。</p>
+<h2 id="无同步方案">无同步方案</h2>
+<p>同步时只是保证共享数据争用时的正确性的手段，但是如果方法不涉及共享数据，那它自然不需要任何同步手段去保证正确性，下面是两类无同步的方案。</p>
+<h3 id="可重入代码">可重入代码</h3>
+<p>可重入代码也叫纯代码（Pure Code），其在运行过程中可以被打断，并由开始处再次执行，并且在合理的范围内（多次重入，而不出现错误），程序可以在被打断处继续执行，且执行结果不受影响。可重入性的特点如下：</p>
+<ul>
+<li>不依赖公用的系统资源和数据</li>
+<li>用到的状态都由参数传入</li>
+<li>不调用非可重入的方法</li>
+<li>输出完全由输入决定，只要输入相同的数据，都能返回相同的结果（类似于幂等性）</li>
+</ul>
+<h3 id="线程本地存储">线程本地存储</h3>
+<p>共享数据的可见范围在同一个线程之内，那么无需同步也能保证同一线程内不出现共享数据争用的问题。</p>
+<p>Java 中通过 ThreadLocal 类实现线程本地存储的功能。</p>
+<h4 id="threadlocal">ThreadLocal</h4>
+<p>每个 Thread 对象中有一个 ThreadLocalMap 对象，存储的是以 ThreadLocal.threadLocalHashCode 属性值为 Key 值，以本地线程变量为值的 K-V对。</p>
+<p>每一个 ThreadLocal 对象的 threadLocalHashCode 值是唯一计算出来的，ThreadLocal 类中有一个原子整数类型（AtomicInteger）的静态变量 nextHashCode 来维护 threadLocalHashCode 值，每次计算 threadLocalHashCode 值通过调用 AtomicInteger.getAndAdd() 方法添加一个固定偏移量得到，这里通过 CAS 操作保证唯一性。</p>
+<h1 id="参考资料">参考资料</h1>
+<ul>
+<li>《Java Concurrency In Practice》</li>
+<li>《深入理解java虚拟机》</li>
+</ul>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8">线程安全</a>
+<ul>
+<li><a href="#%E5%AE%9A%E4%B9%89">定义</a></li>
+<li><a href="#%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8%E7%A8%8B%E5%BA%A6">线程安全程度</a>
+<ul>
+<li><a href="#%E4%B8%8D%E5%8F%AF%E5%8F%98">不可变</a></li>
+<li><a href="#%E7%BB%9D%E5%AF%B9%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8">绝对线程安全</a></li>
+<li><a href="#%E7%9B%B8%E5%AF%B9%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8">相对线程安全</a></li>
+<li><a href="#%E7%BA%BF%E7%A8%8B%E5%85%BC%E5%AE%B9">线程兼容</a></li>
+<li><a href="#%E7%BA%BF%E7%A8%8B%E5%AF%B9%E7%AB%8B">线程对立</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8%E7%9A%84%E5%AE%9E%E7%8E%B0">线程安全的实现</a>
+<ul>
+<li><a href="#%E9%98%BB%E5%A1%9E%E5%90%8C%E6%AD%A5">阻塞同步</a>
+<ul>
+<li><a href="#synchronized">synchronized</a></li>
+<li><a href="#reentrantlock">ReentrantLock</a></li>
+<li><a href="#%E5%AF%B9%E6%AF%94">对比</a></li>
+</ul>
+</li>
+<li><a href="#%E9%9D%9E%E9%98%BB%E5%A1%9E%E5%90%8C%E6%AD%A5">非阻塞同步</a>
+<ul>
+<li><a href="#%E4%B9%90%E8%A7%82%E5%B9%B6%E5%8F%91%E7%AD%96%E7%95%A5">乐观并发策略</a></li>
+<li><a href="#cas">CAS</a></li>
+</ul>
+</li>
+<li><a href="#%E6%97%A0%E5%90%8C%E6%AD%A5%E6%96%B9%E6%A1%88">无同步方案</a>
+<ul>
+<li><a href="#%E5%8F%AF%E9%87%8D%E5%85%A5%E4%BB%A3%E7%A0%81">可重入代码</a></li>
+<li><a href="#%E7%BA%BF%E7%A8%8B%E6%9C%AC%E5%9C%B0%E5%AD%98%E5%82%A8">线程本地存储</a>
+<ul>
+<li><a href="#threadlocal">ThreadLocal</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99">参考资料</a></li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yao177.github.io/post/java-volatile/">
+              <h3 class="post-title">
+                Java 进阶｜Java 内存模型
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  <b>York</b>'s home | wish you a nice day!
+  <a class="rss" href="https://yao177.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

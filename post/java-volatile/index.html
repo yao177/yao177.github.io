@@ -1,0 +1,383 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Java 进阶｜Java 内存模型 | Yao177&#39;s Blog</title>
+<link rel="shortcut icon" href="https://yao177.github.io/favicon.ico?v=1646212543820">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yao177.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Java 进阶｜Java 内存模型 | Yao177&#39;s Blog - Atom Feed" href="https://yao177.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-159235176-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-159235176-1');
+</script>
+
+
+    <meta name="description" content="内存模型
+内存模型可以理解为在特定的操作协议下，对特定的内存或高速缓存进行读写访问的过程抽象。
+在多处理器计算机系统中，每个处理器都有自己的高速缓存，且所有处理器都共享同一主存：
+
+缓存一致性（Cache Coherence） 是多处理器系..." />
+    <meta name="keywords" content="Java Advanced" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yao177.github.io">
+  <img class="avatar" src="https://yao177.github.io/images/avatar.png?v=1646212543820" alt="">
+  </a>
+  <h1 class="site-title">
+    Yao177&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <b>E</b>·rror = <b>m</b>·ore * <b>c²</b>·ode
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/yao177" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/Tianyao_Z" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com/p/1005055415293764" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.zhihu.com/people/yao-zi-73-1" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com/York.Z9859" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Java 进阶｜Java 内存模型
+            </h2>
+            <div class="post-info">
+              <span>
+                03-31-2021
+              </span>
+              <span>
+                12 min read
+              </span>
+              
+                <a href="https://yao177.github.io/tag/Zc9QtnBWX/" class="post-tag">
+                  # Java Advanced
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h1 id="内存模型">内存模型</h1>
+<p><strong>内存模型</strong>可以理解为在特定的操作协议下，对特定的内存或高速缓存进行读写访问的过程抽象。<br>
+在多处理器计算机系统中，每个处理器都有自己的高速缓存，且所有处理器都共享同一主存：<br>
+<img src="https://yao177.github.io/post-images/1646200411287.svg" alt="" loading="lazy"></p>
+<p><strong>缓存一致性（Cache Coherence）</strong> 是多处理器系统必须解决的问题，当多个处理器的运算任务都涉及同一块主存区域时，将可能导致各处理器的高速缓存数据不一致，这时如何同步回主存就需要缓存一致性协议来协调；</p>
+<p><strong>乱序执行（Out-Of-Order Execution）</strong> 也是处理器的一项优化，该优化只保证最终结果的一致性，但不保证各语句的执行顺序与代码中的顺序一致。</p>
+<p>Java 内存模型和多处理器计算机系统有着很多相似之处：</p>
+<figure data-type="image" tabindex="1"><img src="https://yao177.github.io/post-images/1646200533914.svg" alt="" loading="lazy"></figure>
+<p><strong>内存一致性</strong>：每条线程都有自己的工作内存，里面保存了被该线程使用到的变量的主内存副本拷贝，线程对变量的所有操作都必须在工作内存中进行，不能直接读写主内存中的变量，相似的，Java 虚拟机也定义了一套内存访问协议来保证内存一致性；</p>
+<p><strong>指令重排序</strong>：对应于处理器乱序执行，Java 虚拟机的即时编译器中也有着类似的优化，同样只保证最终结果的一致性。</p>
+<h1 id="volatile">volatile</h1>
+<p>volatile 是 Java 虚拟机提供的最轻量的同步机制，但很难被正确的理解与使用，通过学习 Java 内存模型对 volatile 专门定义的一些特殊访问规则，或许会对理解 volatile 有一定帮助。</p>
+<p>当一个变量被定义为 volatile 之后，将会具备两种特性：</p>
+<blockquote>
+<p>可见性：当一条线程改变了该变量的值，新值对所有其他线程来说都是可以立即感知的；<br>
+禁止指令重排序优化：volatile 变量赋值完成语句之后的指令不会被重排序到该赋值指令之前。</p>
+</blockquote>
+<h2 id="可见性">可见性</h2>
+<p>大多数开发人员最容易误解的是 volatile的 可见性特性，会从 volatile 变量在各个线程中是一致的，错误的推导出基于 volatile 变量的运算也是并发安全的，下面一段代码对此进行了实验：</p>
+<pre><code class="language-Java">private static volatile int sum = 0;
+
+public static void increase() {
+    ++sum;
+}
+
+/**
+ * 使用10跟线程对sum各累加10000次，理论上返回值为100000
+ */
+public static void test() {
+    try {
+        Thread[] threads = new Thread[10];
+        for (int i = 0; i &lt; 10; ++i) {
+            threads[i] = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    for (int i = 0; i &lt; 10000; ++i) {
+                        increase();
+                    }
+                }
+            });
+            threads[i].start();
+        }
+        //等待所有线程执行完毕
+        for (int i = 0; i &lt; 10; ++i) {
+            threads[i].join();
+        }
+        System.out.println(&quot;sum = &quot; + sum);
+    } catch (Exception e) {
+        //ignore
+    }
+}
+
+
+public static void main(String[] args) {
+    //实验10次
+    for (int i = 0; i &lt; 10; ++i) {
+        sum = 0;
+        test();
+    }
+}
+</code></pre>
+<p>如果基于 volatile 变量的运算也是<em>并发安全</em>的，那输出值应该为 10 个 100000，但事实上返回值均不为 100000。</p>
+<figure data-type="image" tabindex="2"><img src="https://yao177.github.io/post-images/1646200897491.png" alt="" loading="lazy"></figure>
+<p>这是因为，Java 中的运算<code>++sum</code>并不是原子操作，我们可以使用反编译来验证</p>
+<figure data-type="image" tabindex="3"><img src="https://yao177.github.io/post-images/1646200993884.png" alt="" loading="lazy"></figure>
+<p>通过 Javap 反编译测试代码可以看到，<code>++sum</code>操作产生了四条指令，getstatic 指令把 sum 值取到栈顶，volatile 关键字保证了此时该值是正确的，但是在执行后续<code>iconst_1</code>和<code>iadd</code>指令时，其他线程可能已经完成了一次“++sum”，此时栈顶的 sum 值其实已经过期了，当该线程执行<code>putstatic</code>后，其他线程抢先完成的 ++sum 操作就被覆盖了，最终导致 sum 值小于期望的 100000。</p>
+<blockquote>
+<p>准确来说，使用 Javap 反编译来分析并发问题并不是严谨的，因为 Javap 反编译得到的一条字节码指令也未必是一个原子操作，比如字节码解释器可能需要运行多行代码才能实现该一条字节码的语义，如果是编译执行，一条字节码指令可能转化成多条本地机器码指令，有兴趣的同学可以自己试一下运行时反汇编</p>
+</blockquote>
+<p>理解了 volatile 的可见性之后，可以总结出使用场景：</p>
+<ol>
+<li>运算结果并不依赖变量的当前值（如作为状态变量），或仅有单一线程修改变量值</li>
+<li>变量不与其他状态变量共同参与不变约束（因为对其中一个变量值赋值之后并在对其他变量赋值之前，不变约束可能失效）</li>
+</ol>
+<pre><code class="language-Java">// 当shutdown()被调用时，所有线程的doWork()都会立刻停止
+private volatile boolean isShutdown = false;
+public void shutdown() {
+    isShutdown = true;
+}
+public void doWork() {
+    while(!isShutdown) {
+	      // anything
+    }
+}
+</code></pre>
+<p>如果不能同时满足上述两个条件，则必须使用锁来保证并发安全</p>
+<h2 id="禁止指令重排序优化">禁止指令重排序优化</h2>
+<p>在介绍 volatile 的禁止指令重排序优化之前，首先要了解一下线程内表现为串行的语义（Within-Thread As-If-Serial Semantics）和内存屏障（Memory Barrier）</p>
+<blockquote>
+<p>内存屏障：指令重排序时不能把内存屏障之后的指令重排序到内存屏障之前<br>
+线程内表现为串行的语义：普通的变量仅仅会保证在该方法的执行过程中所有依赖赋值结果的地方都能获取到正确的结果，而不能保证变量赋值的操作顺序与程序代码中执行的顺序一致，这在单线程的方法执行过程中是无法感知的，因而表现为线程内串行</p>
+</blockquote>
+<p>举个栗子：</p>
+<pre><code class="language-Java">int a = 1; // L1
+int b = 2; // L2
+a = a + 1; // L3
+a = a * 2; // L4
+int c = a; // L5
+</code></pre>
+<p>以行号代表语句，虚拟机只会保证语句1、3、4顺序执行（四则运算规则），且语句5在语句4之后执行（c对a的依赖关系）；至于语句2，它可能出现在任意位置（以指令重排序优化结果为准），因为它与<code>a</code>和<code>c</code>均没有依赖关系</p>
+<p>指令重排序优化对单线程程序没有负面影响，但会干扰程序的并发执行，再举个栗子：</p>
+<pre><code class="language-Java">static private boolean initialized = false;
+
+/**
+    * 初始化
+    */
+public static void init() {
+    //init task A
+    //init task B
+    //init task C
+    //init task D
+    //...
+    initialized = true;
+}
+
+/**
+    * 工作函数，必须在初始化完成后才能开始工作
+    */
+public static void doWork() {
+    try {
+        //等待初始化完成
+        while (!initialized) {
+        }
+        //do work A
+        //do work B
+        //do work C
+        //do work D
+        //...
+    } catch (Exception ign) {
+        //ignore
+    }
+}
+</code></pre>
+<p>如果<code>init()</code>和<code>doWork()</code>运行在同一线程中，那么可以正常运行，但如果运行在不同线程中，由于指令重排序优化的存在，init() 中的<code>initialized = true;</code>语句可能会被提前执行，这时并发运行在不同线程的 doWork() 就会出现并发问题，而如果将 initialized 定义为 volatile 变量则可以避免这类问题。</p>
+<p>那么，volatile 关键字到底是如何禁止指令重排序优化的呢，我们可以通过运行时反汇编来查看加入 volatile 关键字和未加入 volatile 关键字时所生成的汇编码的差别。</p>
+<p>这是未加 volatile 关键字的汇编码：</p>
+<figure data-type="image" tabindex="4"><img src="https://yao177.github.io/post-images/1646202478210.png" alt="" loading="lazy"></figure>
+<p>这是加了 volatile 关键字的汇编码：</p>
+<figure data-type="image" tabindex="5"><img src="https://yao177.github.io/post-images/1646202518393.png" alt="" loading="lazy"></figure>
+<p>注释显示这是<code>init()</code>函数的第12行代码产生的汇编码，那么第12行做了什么了呢？</p>
+<figure data-type="image" tabindex="6"><img src="https://yao177.github.io/post-images/1646202554738.png" alt="" loading="lazy"></figure>
+<p>这行代码对 initialized 变量进行了赋值，加了 volatile 关键字的赋值操作多了<code>lock addl $0x0,(%rsp)</code>这一指令，<code>addl $0x0,(%rsp)</code>的含义是把 ESP 寄存器的值加 0，显然是一个空操作，那关键点就是 <strong>lock 前缀</strong>了。</p>
+<p>lock 前缀的作用是使得本 CPU 的 Cache、写入内存，同时会引起其他 CPU 或者内核无效化各自的 Cache，该操作使得 volatile 变量的修改对其他 CPU 立即可见，同时，<code>lock addl $0x0,(%rsp)</code>指令把修改同步到内存时，意味着所有之前的操作都已经执行完毕，这便形成了“指令重排序无法越过内存屏障”的效果，之前的指令无法被重排序到该指令之后，同样，之后的指令无法被重排序到该指令之前。</p>
+<h2 id="总结">总结</h2>
+<p>最后，我们再看一下 Java 内存模型对 volatile 变量定义的特殊规则：</p>
+<ul>
+<li>每次使用 volatile 变量之前都必须从主内存刷新最新的值</li>
+<li>每次修改完 volatile 变量都必须立刻同步到主内存中</li>
+<li>volatile 修饰的变量不会被指令重排序优化</li>
+</ul>
+<p>可以看到，这三条规则与反汇编得出结论相一致。</p>
+<h1 id="先行发生原则">先行发生原则</h1>
+<p>Java 内存模型是围绕着如何在并发过程中处理<strong>原子性、可见性和有序性</strong>这三个特征来构建的，前面已经介绍过 volatile 关键字的“禁止指令重排序优化”来保证线程之间操作的有序性，另一个我们常用的保证有序性的手段是 synchronized 关键字；如果 Java 中的所有有序性都要靠这两个关键字来保证，那代码会很繁琐，但我们平时开发时并没有感觉到这一点，这是因为 Java 语言中又一个先行发生原则（happens-before）。</p>
+<blockquote>
+<p>先行发生原则</p>
+</blockquote>
+<ul>
+<li>程序次序规则 (Program Order Rule)：在一个线程内，按照代码顺序，书写在前面的操作先行发生于书写在后面的操作。准确地说应该是控制流顺序而不是代码顺序，因为要考虑分支、循环等结构。</li>
+<li>监视器锁定规则 (Monitor Lock Rule)：一个unlock操作先行发生于后面对同一个对象锁的 lock 操作。这里强调的是同一个锁，而“后面”指的是时间上的先后顺序，如发生在其他线程中的 lock 操作。</li>
+<li>volatile变量规则 (Volatile Variable Rule)：对一个 volatile 变量的写操作发生于后面对这个变量的读操作，这里的“后面”也指的是时间上的先后顺序。</li>
+<li>线程启动规则 (Thread Start Rule)：Thread 独享的<code>start()</code>方法先行于此线程的每一个动作。</li>
+<li>线程终止规则 (Thread Termination Rule)：线程中的每个操作都先行发生于对此线程的终止检测，我们可以通过<code>Thread.join()</code>方法结束、<code>Thread.isAlive()</code>的返回值检测到线程已经终止执行。</li>
+<li>线程中断规则 (Thread Interruption Rule)：对线程<code>interrupte()</code>方法的调用优先于被中断线程的代码检测到中断事件的发生，可以通过<code>Thread.interrupted()</code>方法检测线程是否已中断。</li>
+<li>对象终结原则 (Finalizer Rule)：一个对象的初始化完成 (构造函数执行结束) 先行发生于它的<code>finalize()</code>方法的开始。传递性 (Transitivity)：如果操作A先行发生于操作B，操作B先行发生于操作C，那就可以得出操作A先行发生于操作C的结论。</li>
+</ul>
+<p>先行发生原则最容易被误解的地方是，很多人从字面意思上理解这些规则，以“监视器锁定规则 (Monitor Lock Rule)”为例：</p>
+<p>一个 unlock 操作先行发生于后面对同一个对象锁的 lock 操作，这句话不是字面意义上，针对同一个锁 lock 方法必须在 unlock 方法之后调用（虽然咋看起来没毛病，排他锁确实只能被一个线程lock住。。。），这句话的意思是，<em>当线程A解锁了 monitor，接着线程B锁住了该 monitor，那么，线程A在解锁之前所有的写操作对线程B而言都是可见的</em>。</p>
+<p>同样，对于 volatile 变量规则( Volatile Variable Rule)，<em>如果线程A写入了 volatile 变量v，接着线程B读取了v，那么，线程A写入v以及之前的所有写操作都对线程B可见</em>（无效化了除线程A以外的所有线程的工作内存）。</p>
+<p>其他规则就不一一赘述。</p>
+<p>总之，一句话总结：</p>
+<p><strong>衡量并发安全问题时不要受到时间顺序的干扰，一个操作“时间上的先发生”并不意味着“先行发生”，一切必须以先行发生原则为准，如果不满足任何一条先行发生原则，那么就是线程不安全的（指令重排序会给你足够多的惊喜）。</strong></p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B">内存模型</a></li>
+<li><a href="#volatile">volatile</a>
+<ul>
+<li><a href="#%E5%8F%AF%E8%A7%81%E6%80%A7">可见性</a></li>
+<li><a href="#%E7%A6%81%E6%AD%A2%E6%8C%87%E4%BB%A4%E9%87%8D%E6%8E%92%E5%BA%8F%E4%BC%98%E5%8C%96">禁止指令重排序优化</a></li>
+<li><a href="#%E6%80%BB%E7%BB%93">总结</a></li>
+</ul>
+</li>
+<li><a href="#%E5%85%88%E8%A1%8C%E5%8F%91%E7%94%9F%E5%8E%9F%E5%88%99">先行发生原则</a></li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yao177.github.io/post/innodb-study/">
+              <h3 class="post-title">
+                数据库｜InnoDB 学习
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  <b>York</b>'s home | wish you a nice day!
+  <a class="rss" href="https://yao177.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

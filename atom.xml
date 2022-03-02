@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://yao177.github.io</id>
-    <title>York Zhang&apos;s Blog</title>
-    <updated>2022-03-01T11:47:44.217Z</updated>
+    <title>Yao177&apos;s Blog</title>
+    <updated>2022-03-02T09:15:49.104Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://yao177.github.io"/>
     <link rel="self" href="https://yao177.github.io/atom.xml"/>
     <subtitle>&lt;b&gt;E&lt;/b&gt;·rror = &lt;b&gt;m&lt;/b&gt;·ore * &lt;b&gt;c²&lt;/b&gt;·ode</subtitle>
     <logo>https://yao177.github.io/images/avatar.png</logo>
     <icon>https://yao177.github.io/favicon.ico</icon>
-    <rights>All rights reserved 2022, York Zhang&apos;s Blog</rights>
+    <rights>All rights reserved 2022, Yao177&apos;s Blog</rights>
     <entry>
         <title type="html"><![CDATA[安全｜Log4j2 复现与原理]]></title>
         <id>https://yao177.github.io/post/log4j2/</id>
@@ -419,6 +419,345 @@ public Manger {
 <h1 id="总结">总结</h1>
 <p>至此，项目已介绍完成，想随便聊聊。<br>
 本质上，这个项目就是利用了懒加载特性，先有个壳，再加载真正的 Bean 实体；其实这个思想在算法中也很常见，例如二分思想的经典算法——线段树，利用 lazy propagation (惰性传播) 在父节点打上修改的标记而不直接修改，只有真正访问到时才往子节点进行传递，提升了效率。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Java 进阶｜线程安全]]></title>
+        <id>https://yao177.github.io/post/java-synchronized/</id>
+        <link href="https://yao177.github.io/post/java-synchronized/">
+        </link>
+        <updated>2021-04-01T03:27:31.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="线程安全">线程安全</h1>
+<h2 id="定义">定义</h2>
+<p>线程安全并没有统一的定义，这里使用《Java Concurrency In Practice》书中的定义：</p>
+<blockquote>
+<p>当多个线程访问一个对象时，如果不用考虑这些线程在运行时环境下的调度和交替执行，也不需要进行额外的同步，或者在调用方进行任何其他的协调操作，调用这个对象的行为都可以获得正确的结果，那这个对象是线程安全的。</p>
+</blockquote>
+<h2 id="线程安全程度">线程安全程度</h2>
+<p>上面的定义非常严谨，它要求线程安全的代码满足：代码本身封装了所有必要的同步手段，令调用者无须关心多线程的问题，更不需要自己采取措施来保证在多线程环境下的正确调用。</p>
+<p>保证这一点非常难，因此我们常常会另一个角度来理解线程安全，即线程安全程度。</p>
+<p>《深入理解java虚拟机》中将 Java 语言各种共享操作共享的数据可以分为以下5类：<strong>不可变、绝对线程安全、相对线程安全、线程兼容和线程对立</strong>。</p>
+<h3 id="不可变">不可变</h3>
+<p>不可变（Immutable）的对象一定是线程安全的，无论是对象方法的实现还是方法的调用者，都不需要在采取任何的线程安全保障措施。</p>
+<ul>
+<li>如果数据是基本类型，那么定义时使用 final 关键字即可</li>
+<li>如果数据是对象类型，那就需要保证对象的行为不会对其状态产生任何影响（如 String 类，调用其<code>substring()</code>、<code>replace()</code>等方法不会影响原来的值，只会返回一个新构造的字符串对象）。</li>
+</ul>
+<p>保证对象的行为不会对其状态产生任何影响最简单的方法就是把对象中带有状态的变量声明为 final，这样在构造函数结束之后，它就是不可变的，如 Integer。</p>
+<pre><code class="language-Java">    /**
+     * The value of the {@code Integer}.
+     *
+     * @serial
+     */
+    private final int value;
+
+    /**
+     * Constructs a newly allocated {@code Integer} object that
+     * represents the specified {@code int} value.
+     *
+     * @param   value   the value to be represented by the
+     *                  {@code Integer} object.
+     */
+    public Integer(int value) {
+        this.value = value;
+    }
+</code></pre>
+<h3 id="绝对线程安全">绝对线程安全</h3>
+<p>不管运行时环境如何，调用者都不需要任何额外的同步措施。</p>
+<p>要达到绝对线程安全通常付出很大代价，甚至不切实际的代价。</p>
+<p>以 Vector 为例，它是一个线程安全的容器，因为其内部的操作方法都用了 synchronized 关键字作为同步措施，但是即使它所有的方法都被修饰成同步，也不意味着调用它的时候永远不需要同步手段了。请看下面的 demo：</p>
+<pre><code class="language-Java">    private static Vector&lt;Integer&gt; vector = new Vector&lt;&gt;();
+
+    public static void main(String[] args) {
+        while (true) {
+            for (int i = 0; i &lt; 10; i++) {
+                vector.add(i);
+            }
+            Thread removeThread = new Thread(() -&gt; {
+                for (int i = 0; i &lt; vector.size(); i++) {
+                    vector.remove(i);
+                }
+            });
+            Thread printThread = new Thread(() -&gt; {
+                for (int i = 0; i &lt; vector.size(); i++) {
+                    System.out.println(vector.get(i));
+                }
+            });
+            removeThread.start();
+            printThread.start();
+            //避免过多线程
+            while (Thread.activeCount() &gt; 10) ;
+        }
+    }
+</code></pre>
+<p>输出结果如下：<br>
+<img src="https://yao177.github.io/post-images/1646211347456.png" alt="" loading="lazy"></p>
+<p>虽然 Vector 的 add()、remove()、get() 方法都是同步的，但并不能保证调用就是绝对线程安全的。假设打印线程在打印序号为i的元素前，线程被系统调度挂起，切换为删除线程，而这个删除线程刚好把序号为i的元素删除了，系统再切换打印线程运行时，这个序号为i的元素已经被删除，再调用 get(i) 访问时就会得到 ArrayIndexOutOfBoundsException。要保证代码是绝对线程安全的，必须在调用方加一些同步措施：</p>
+<pre><code class="language-Java">  Thread removeThread = new Thread(() -&gt; {
+    synchronized (vector) {
+      for (int i = 0; i &lt; vector.size(); i++) {
+        vector.remove(i);
+      }
+    }
+  });
+  Thread printThread = new Thread(() -&gt; {
+    synchronized (vector) {
+      for (int i = 0; i &lt; vector.size(); i++) {
+        System.out.println(vector.get(i));
+      }
+    }
+  });
+</code></pre>
+<h3 id="相对线程安全">相对线程安全</h3>
+<p>这是通常意义的线程安全，它要求对该对象的单独操作是线程安全的，但是对于特定顺序的连续调用，需要在调用端使用额外的同步手段保证调用的正确性。</p>
+<p>上面的代码就是相对线程安全的案例，在 Java 中大部分线程安全类属于相对线程安全类型，如 Vector、Hashtable 等。</p>
+<h3 id="线程兼容">线程兼容</h3>
+<p>对象本身就不是线程安全的，但是可以通过通过同步手段保证调用端在并发环境下的线程安全。如 ArrayList、HashMap 等。</p>
+<h3 id="线程对立">线程对立</h3>
+<p>无论调用端是否采取同步措施，都无法并发使用。这种类型很少出现，应当尽量避免。</p>
+<p>例如 Thread 类的 suspend()、resume()，这两个方法的功能是中断线程和恢复线程（这两个 API 已被 JDK废弃）。</p>
+<blockquote>
+<p>被废弃是因为 suspend() 在导致线程暂停的同时，并不会去释放任何锁资源。其他线程都无法访问被它占用的锁。直到对应的线程执行 resume() 方法后，被挂起的线程才能继续，从而其它被阻塞在这个锁的线程才可以继续执行。<br>
+但是，如果 resume() 操作出现在 suspend() 之前执行，那么线程将一直处于挂起状态，同时一直占用锁，这就产生了死锁。</p>
+</blockquote>
+<h1 id="线程安全的实现">线程安全的实现</h1>
+<p>线程安全的实现可以分为三类：<strong>阻塞（互斥）同步、非阻塞同步和可重入代码</strong>。</p>
+<h2 id="阻塞同步">阻塞同步</h2>
+<p>互斥同步是常见的一种保障并发正确性的手段。Java 中常用的互斥同步手段就是 synchronized 关键字和 ReentrantLock 类。</p>
+<ul>
+<li>同步是指多个线程并发访问共享数据时，保证其数据在同一个时刻只被一个（或者一些，使用信号量的时候）线程使用</li>
+<li>互斥是实现同步的一种手段</li>
+</ul>
+<h3 id="synchronized">synchronized</h3>
+<p>synchronized 关键字是 Java 原生语法层面的互斥锁。synchronized 关键字经过编译后，会在同步块的前后插入 monitorenter 和 monitorexit 这两个字节码指令，这两个字节码都需要一个 reference 类型参数来指定要加锁和解锁的对象</p>
+<h3 id="reentrantlock">ReentrantLock</h3>
+<p>跟 synchronized 一样，ReentrantLock 也具有可重入性，但在代码写法上表现为 Java API 层面的互斥锁（lock() 和 unlock()方法配合 try/finally 语句来完成）。</p>
+<h3 id="对比">对比</h3>
+<p>与 synchronized 相比，ReentrantLock 拥有一些高级功能：</p>
+<ul>
+<li>等待可中断：当持有锁的线程长期不释放锁的时候，正在等待的线程可以选择放弃等待，改为处理其他事情，这对执行时间很长的同步块很有帮助。</li>
+<li>公平锁：多个线程在等待同一个锁时，必须按照申请锁的时间顺序来依次获得锁（synchronized 中的锁是非公平的）。</li>
+<li>锁可以绑定多个条件：一个 ReentrantLock 对象同时可以绑定多个 Condition 对象。</li>
+</ul>
+<p>从性能上看，synchronized 和 ReentrantLock 之间并没有明显的差异，如果不是需要使用 ReentrantLock 中的高级功能的情况下，一般情况都推荐直接使用 synchronized 关键字。</p>
+<h2 id="非阻塞同步">非阻塞同步</h2>
+<p>互斥同步的最主要的问题就是进行线程阻塞和唤醒带来的性能问题，因此这种同步被称为阻塞同步。</p>
+<p>从处理方式上说，互斥同步是一种悲观的并发策略，无论资源是否真的被竞争，都一定要做正确的同步措施。</p>
+<p>而非阻塞同步是一种基于冲突检测的乐观并发策略，简单来讲是先进行操作，如果没有其他线程争用共享数据，那操作就成功了；如果共享数据有争用，产生了冲突，那就采取其他的补偿措施（最简单的就是不断重试，直到成功为止）。</p>
+<h3 id="乐观并发策略">乐观并发策略</h3>
+<p>乐观并发策略的实现依赖于硬件指令，因为必须要从硬件层面保证冲突检测和操作这两个步骤具有原子性，如果从软件层面保证就会变成互斥同步，没有意义。</p>
+<p>常见的这类指令有：</p>
+<ul>
+<li>测试并设置（Test-and-Set）</li>
+<li>获取并增加（Fetch-and-Increment）</li>
+<li>交换（Swap）</li>
+<li>比较并交换（Compare-and-Swap）</li>
+<li>加载链接/条件存储（Load-Linked/Store-Conditional）</li>
+</ul>
+<p>Java中可以使用 CAS 操作，该操作由 sun.misc.Unsafe 类里面的 compareAndSwapInt() 和 compareAndSwapLong() 等几个方法包装提供，上层有 Atomic 原子包工具类方便使用。</p>
+<h3 id="cas">CAS</h3>
+<p>CAS 操作的“ABA”问题，如果一个变量初始值是A，线程1读到变量值是A，这时候另一个线程2也从也读取到变量值为A，并且线程2进行了一些操作将变量值修改为B，然后线程2又将变量值修改为A，这时候线程1进行CAS操作发现变量的值仍是A，然后线程1操作成功。尽管线程1的CAS操作成功，但是不代表这个过程就是没有问题的，如果链表的头在变化了两次后恢复了原值，但是不代表链表就没有变化。</p>
+<p>J.U.C 包提供了带有标记的原子类 AtomicStampedReference 来解决 CAS 的 ABA 问题，做法是通过控制变量值的版本来保证 CAS 的正确性。</p>
+<h2 id="无同步方案">无同步方案</h2>
+<p>同步时只是保证共享数据争用时的正确性的手段，但是如果方法不涉及共享数据，那它自然不需要任何同步手段去保证正确性，下面是两类无同步的方案。</p>
+<h3 id="可重入代码">可重入代码</h3>
+<p>可重入代码也叫纯代码（Pure Code），其在运行过程中可以被打断，并由开始处再次执行，并且在合理的范围内（多次重入，而不出现错误），程序可以在被打断处继续执行，且执行结果不受影响。可重入性的特点如下：</p>
+<ul>
+<li>不依赖公用的系统资源和数据</li>
+<li>用到的状态都由参数传入</li>
+<li>不调用非可重入的方法</li>
+<li>输出完全由输入决定，只要输入相同的数据，都能返回相同的结果（类似于幂等性）</li>
+</ul>
+<h3 id="线程本地存储">线程本地存储</h3>
+<p>共享数据的可见范围在同一个线程之内，那么无需同步也能保证同一线程内不出现共享数据争用的问题。</p>
+<p>Java 中通过 ThreadLocal 类实现线程本地存储的功能。</p>
+<h4 id="threadlocal">ThreadLocal</h4>
+<p>每个 Thread 对象中有一个 ThreadLocalMap 对象，存储的是以 ThreadLocal.threadLocalHashCode 属性值为 Key 值，以本地线程变量为值的 K-V对。</p>
+<p>每一个 ThreadLocal 对象的 threadLocalHashCode 值是唯一计算出来的，ThreadLocal 类中有一个原子整数类型（AtomicInteger）的静态变量 nextHashCode 来维护 threadLocalHashCode 值，每次计算 threadLocalHashCode 值通过调用 AtomicInteger.getAndAdd() 方法添加一个固定偏移量得到，这里通过 CAS 操作保证唯一性。</p>
+<h1 id="参考资料">参考资料</h1>
+<ul>
+<li>《Java Concurrency In Practice》</li>
+<li>《深入理解java虚拟机》</li>
+</ul>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Java 进阶｜Java 内存模型]]></title>
+        <id>https://yao177.github.io/post/java-volatile/</id>
+        <link href="https://yao177.github.io/post/java-volatile/">
+        </link>
+        <updated>2021-03-31T03:24:50.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="内存模型">内存模型</h1>
+<p><strong>内存模型</strong>可以理解为在特定的操作协议下，对特定的内存或高速缓存进行读写访问的过程抽象。<br>
+在多处理器计算机系统中，每个处理器都有自己的高速缓存，且所有处理器都共享同一主存：<br>
+<img src="https://yao177.github.io/post-images/1646200411287.svg" alt="" loading="lazy"></p>
+<p><strong>缓存一致性（Cache Coherence）</strong> 是多处理器系统必须解决的问题，当多个处理器的运算任务都涉及同一块主存区域时，将可能导致各处理器的高速缓存数据不一致，这时如何同步回主存就需要缓存一致性协议来协调；</p>
+<p><strong>乱序执行（Out-Of-Order Execution）</strong> 也是处理器的一项优化，该优化只保证最终结果的一致性，但不保证各语句的执行顺序与代码中的顺序一致。</p>
+<p>Java 内存模型和多处理器计算机系统有着很多相似之处：</p>
+<figure data-type="image" tabindex="1"><img src="https://yao177.github.io/post-images/1646200533914.svg" alt="" loading="lazy"></figure>
+<p><strong>内存一致性</strong>：每条线程都有自己的工作内存，里面保存了被该线程使用到的变量的主内存副本拷贝，线程对变量的所有操作都必须在工作内存中进行，不能直接读写主内存中的变量，相似的，Java 虚拟机也定义了一套内存访问协议来保证内存一致性；</p>
+<p><strong>指令重排序</strong>：对应于处理器乱序执行，Java 虚拟机的即时编译器中也有着类似的优化，同样只保证最终结果的一致性。</p>
+<h1 id="volatile">volatile</h1>
+<p>volatile 是 Java 虚拟机提供的最轻量的同步机制，但很难被正确的理解与使用，通过学习 Java 内存模型对 volatile 专门定义的一些特殊访问规则，或许会对理解 volatile 有一定帮助。</p>
+<p>当一个变量被定义为 volatile 之后，将会具备两种特性：</p>
+<blockquote>
+<p>可见性：当一条线程改变了该变量的值，新值对所有其他线程来说都是可以立即感知的；<br>
+禁止指令重排序优化：volatile 变量赋值完成语句之后的指令不会被重排序到该赋值指令之前。</p>
+</blockquote>
+<h2 id="可见性">可见性</h2>
+<p>大多数开发人员最容易误解的是 volatile的 可见性特性，会从 volatile 变量在各个线程中是一致的，错误的推导出基于 volatile 变量的运算也是并发安全的，下面一段代码对此进行了实验：</p>
+<pre><code class="language-Java">private static volatile int sum = 0;
+
+public static void increase() {
+    ++sum;
+}
+
+/**
+ * 使用10跟线程对sum各累加10000次，理论上返回值为100000
+ */
+public static void test() {
+    try {
+        Thread[] threads = new Thread[10];
+        for (int i = 0; i &lt; 10; ++i) {
+            threads[i] = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    for (int i = 0; i &lt; 10000; ++i) {
+                        increase();
+                    }
+                }
+            });
+            threads[i].start();
+        }
+        //等待所有线程执行完毕
+        for (int i = 0; i &lt; 10; ++i) {
+            threads[i].join();
+        }
+        System.out.println(&quot;sum = &quot; + sum);
+    } catch (Exception e) {
+        //ignore
+    }
+}
+
+
+public static void main(String[] args) {
+    //实验10次
+    for (int i = 0; i &lt; 10; ++i) {
+        sum = 0;
+        test();
+    }
+}
+</code></pre>
+<p>如果基于 volatile 变量的运算也是<em>并发安全</em>的，那输出值应该为 10 个 100000，但事实上返回值均不为 100000。</p>
+<figure data-type="image" tabindex="2"><img src="https://yao177.github.io/post-images/1646200897491.png" alt="" loading="lazy"></figure>
+<p>这是因为，Java 中的运算<code>++sum</code>并不是原子操作，我们可以使用反编译来验证</p>
+<figure data-type="image" tabindex="3"><img src="https://yao177.github.io/post-images/1646200993884.png" alt="" loading="lazy"></figure>
+<p>通过 Javap 反编译测试代码可以看到，<code>++sum</code>操作产生了四条指令，getstatic 指令把 sum 值取到栈顶，volatile 关键字保证了此时该值是正确的，但是在执行后续<code>iconst_1</code>和<code>iadd</code>指令时，其他线程可能已经完成了一次“++sum”，此时栈顶的 sum 值其实已经过期了，当该线程执行<code>putstatic</code>后，其他线程抢先完成的 ++sum 操作就被覆盖了，最终导致 sum 值小于期望的 100000。</p>
+<blockquote>
+<p>准确来说，使用 Javap 反编译来分析并发问题并不是严谨的，因为 Javap 反编译得到的一条字节码指令也未必是一个原子操作，比如字节码解释器可能需要运行多行代码才能实现该一条字节码的语义，如果是编译执行，一条字节码指令可能转化成多条本地机器码指令，有兴趣的同学可以自己试一下运行时反汇编</p>
+</blockquote>
+<p>理解了 volatile 的可见性之后，可以总结出使用场景：</p>
+<ol>
+<li>运算结果并不依赖变量的当前值（如作为状态变量），或仅有单一线程修改变量值</li>
+<li>变量不与其他状态变量共同参与不变约束（因为对其中一个变量值赋值之后并在对其他变量赋值之前，不变约束可能失效）</li>
+</ol>
+<pre><code class="language-Java">// 当shutdown()被调用时，所有线程的doWork()都会立刻停止
+private volatile boolean isShutdown = false;
+public void shutdown() {
+    isShutdown = true;
+}
+public void doWork() {
+    while(!isShutdown) {
+	      // anything
+    }
+}
+</code></pre>
+<p>如果不能同时满足上述两个条件，则必须使用锁来保证并发安全</p>
+<h2 id="禁止指令重排序优化">禁止指令重排序优化</h2>
+<p>在介绍 volatile 的禁止指令重排序优化之前，首先要了解一下线程内表现为串行的语义（Within-Thread As-If-Serial Semantics）和内存屏障（Memory Barrier）</p>
+<blockquote>
+<p>内存屏障：指令重排序时不能把内存屏障之后的指令重排序到内存屏障之前<br>
+线程内表现为串行的语义：普通的变量仅仅会保证在该方法的执行过程中所有依赖赋值结果的地方都能获取到正确的结果，而不能保证变量赋值的操作顺序与程序代码中执行的顺序一致，这在单线程的方法执行过程中是无法感知的，因而表现为线程内串行</p>
+</blockquote>
+<p>举个栗子：</p>
+<pre><code class="language-Java">int a = 1; // L1
+int b = 2; // L2
+a = a + 1; // L3
+a = a * 2; // L4
+int c = a; // L5
+</code></pre>
+<p>以行号代表语句，虚拟机只会保证语句1、3、4顺序执行（四则运算规则），且语句5在语句4之后执行（c对a的依赖关系）；至于语句2，它可能出现在任意位置（以指令重排序优化结果为准），因为它与<code>a</code>和<code>c</code>均没有依赖关系</p>
+<p>指令重排序优化对单线程程序没有负面影响，但会干扰程序的并发执行，再举个栗子：</p>
+<pre><code class="language-Java">static private boolean initialized = false;
+
+/**
+    * 初始化
+    */
+public static void init() {
+    //init task A
+    //init task B
+    //init task C
+    //init task D
+    //...
+    initialized = true;
+}
+
+/**
+    * 工作函数，必须在初始化完成后才能开始工作
+    */
+public static void doWork() {
+    try {
+        //等待初始化完成
+        while (!initialized) {
+        }
+        //do work A
+        //do work B
+        //do work C
+        //do work D
+        //...
+    } catch (Exception ign) {
+        //ignore
+    }
+}
+</code></pre>
+<p>如果<code>init()</code>和<code>doWork()</code>运行在同一线程中，那么可以正常运行，但如果运行在不同线程中，由于指令重排序优化的存在，init() 中的<code>initialized = true;</code>语句可能会被提前执行，这时并发运行在不同线程的 doWork() 就会出现并发问题，而如果将 initialized 定义为 volatile 变量则可以避免这类问题。</p>
+<p>那么，volatile 关键字到底是如何禁止指令重排序优化的呢，我们可以通过运行时反汇编来查看加入 volatile 关键字和未加入 volatile 关键字时所生成的汇编码的差别。</p>
+<p>这是未加 volatile 关键字的汇编码：</p>
+<figure data-type="image" tabindex="4"><img src="https://yao177.github.io/post-images/1646202478210.png" alt="" loading="lazy"></figure>
+<p>这是加了 volatile 关键字的汇编码：</p>
+<figure data-type="image" tabindex="5"><img src="https://yao177.github.io/post-images/1646202518393.png" alt="" loading="lazy"></figure>
+<p>注释显示这是<code>init()</code>函数的第12行代码产生的汇编码，那么第12行做了什么了呢？</p>
+<figure data-type="image" tabindex="6"><img src="https://yao177.github.io/post-images/1646202554738.png" alt="" loading="lazy"></figure>
+<p>这行代码对 initialized 变量进行了赋值，加了 volatile 关键字的赋值操作多了<code>lock addl $0x0,(%rsp)</code>这一指令，<code>addl $0x0,(%rsp)</code>的含义是把 ESP 寄存器的值加 0，显然是一个空操作，那关键点就是 <strong>lock 前缀</strong>了。</p>
+<p>lock 前缀的作用是使得本 CPU 的 Cache、写入内存，同时会引起其他 CPU 或者内核无效化各自的 Cache，该操作使得 volatile 变量的修改对其他 CPU 立即可见，同时，<code>lock addl $0x0,(%rsp)</code>指令把修改同步到内存时，意味着所有之前的操作都已经执行完毕，这便形成了“指令重排序无法越过内存屏障”的效果，之前的指令无法被重排序到该指令之后，同样，之后的指令无法被重排序到该指令之前。</p>
+<h2 id="总结">总结</h2>
+<p>最后，我们再看一下 Java 内存模型对 volatile 变量定义的特殊规则：</p>
+<ul>
+<li>每次使用 volatile 变量之前都必须从主内存刷新最新的值</li>
+<li>每次修改完 volatile 变量都必须立刻同步到主内存中</li>
+<li>volatile 修饰的变量不会被指令重排序优化</li>
+</ul>
+<p>可以看到，这三条规则与反汇编得出结论相一致。</p>
+<h1 id="先行发生原则">先行发生原则</h1>
+<p>Java 内存模型是围绕着如何在并发过程中处理<strong>原子性、可见性和有序性</strong>这三个特征来构建的，前面已经介绍过 volatile 关键字的“禁止指令重排序优化”来保证线程之间操作的有序性，另一个我们常用的保证有序性的手段是 synchronized 关键字；如果 Java 中的所有有序性都要靠这两个关键字来保证，那代码会很繁琐，但我们平时开发时并没有感觉到这一点，这是因为 Java 语言中又一个先行发生原则（happens-before）。</p>
+<blockquote>
+<p>先行发生原则</p>
+</blockquote>
+<ul>
+<li>程序次序规则 (Program Order Rule)：在一个线程内，按照代码顺序，书写在前面的操作先行发生于书写在后面的操作。准确地说应该是控制流顺序而不是代码顺序，因为要考虑分支、循环等结构。</li>
+<li>监视器锁定规则 (Monitor Lock Rule)：一个unlock操作先行发生于后面对同一个对象锁的 lock 操作。这里强调的是同一个锁，而“后面”指的是时间上的先后顺序，如发生在其他线程中的 lock 操作。</li>
+<li>volatile变量规则 (Volatile Variable Rule)：对一个 volatile 变量的写操作发生于后面对这个变量的读操作，这里的“后面”也指的是时间上的先后顺序。</li>
+<li>线程启动规则 (Thread Start Rule)：Thread 独享的<code>start()</code>方法先行于此线程的每一个动作。</li>
+<li>线程终止规则 (Thread Termination Rule)：线程中的每个操作都先行发生于对此线程的终止检测，我们可以通过<code>Thread.join()</code>方法结束、<code>Thread.isAlive()</code>的返回值检测到线程已经终止执行。</li>
+<li>线程中断规则 (Thread Interruption Rule)：对线程<code>interrupte()</code>方法的调用优先于被中断线程的代码检测到中断事件的发生，可以通过<code>Thread.interrupted()</code>方法检测线程是否已中断。</li>
+<li>对象终结原则 (Finalizer Rule)：一个对象的初始化完成 (构造函数执行结束) 先行发生于它的<code>finalize()</code>方法的开始。传递性 (Transitivity)：如果操作A先行发生于操作B，操作B先行发生于操作C，那就可以得出操作A先行发生于操作C的结论。</li>
+</ul>
+<p>先行发生原则最容易被误解的地方是，很多人从字面意思上理解这些规则，以“监视器锁定规则 (Monitor Lock Rule)”为例：</p>
+<p>一个 unlock 操作先行发生于后面对同一个对象锁的 lock 操作，这句话不是字面意义上，针对同一个锁 lock 方法必须在 unlock 方法之后调用（虽然咋看起来没毛病，排他锁确实只能被一个线程lock住。。。），这句话的意思是，<em>当线程A解锁了 monitor，接着线程B锁住了该 monitor，那么，线程A在解锁之前所有的写操作对线程B而言都是可见的</em>。</p>
+<p>同样，对于 volatile 变量规则( Volatile Variable Rule)，<em>如果线程A写入了 volatile 变量v，接着线程B读取了v，那么，线程A写入v以及之前的所有写操作都对线程B可见</em>（无效化了除线程A以外的所有线程的工作内存）。</p>
+<p>其他规则就不一一赘述。</p>
+<p>总之，一句话总结：</p>
+<p><strong>衡量并发安全问题时不要受到时间顺序的干扰，一个操作“时间上的先发生”并不意味着“先行发生”，一切必须以先行发生原则为准，如果不满足任何一条先行发生原则，那么就是线程不安全的（指令重排序会给你足够多的惊喜）。</strong></p>
 ]]></content>
     </entry>
     <entry>
@@ -1124,260 +1463,6 @@ void getBytes(byte dst[], int dstBegin, byte coder) {
 </code></pre>
 <h1 id="结论">结论</h1>
 <p><strong>直接使用 StringBuilder 局部变量，用完即销毁就可以！</strong></p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[数据库｜ES 基础]]></title>
-        <id>https://yao177.github.io/post/es-ji-chu/</id>
-        <link href="https://yao177.github.io/post/es-ji-chu/">
-        </link>
-        <updated>2020-09-15T10:00:34.000Z</updated>
-        <content type="html"><![CDATA[<p><a href="https://www.elastic.co/guide/en/elasticsearch/reference/5.1/index.html">Elasticsearch Reference</a></p>
-<h1 id="安装">安装</h1>
-<pre><code class="language-bash">curl -L -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.3.3.tar.gz
-tar -xvf elasticsearch-5.3.3.tar.gz
-cd elasticsearch-5.3.3/bin
-./elasticsearch
-</code></pre>
-<p>当看到 &quot;[node_name] started&quot;，代表 node 已经启动了</p>
-<h1 id="使用">使用</h1>
-<p>node -&gt; indice -&gt; document</p>
-<p>ES 使用 RESTful API 的风格进行操作</p>
-<pre><code class="language-bash">curl -X &lt;action&gt; '&lt;protocol&gt;://:/?&lt;query_string&gt;' -H'&lt;content_type&gt;' -d'&lt;body&gt;'
-</code></pre>
-<p><action> 主要有 GET、PUT、POST、DELETE</p>
-<p><protocol> 服务器 IP/domain+port</p>
-<p>&lt;query_string&gt; 查询语句</p>
-<p>&lt;content_type&gt; 主要是 json 格式</p>
-<body> 一个 json 字符串
-<pre><code class="language-bash"># example
-curl -X PUT &quot;localhost:9200/customer/external/1?pretty&amp;pretty&quot; -H 'Content-Type: application/json' -d'
-{ &quot;name&quot;: &quot;John Doe&quot;
-}
-'
-</code></pre>
-<h2 id="看">看</h2>
-<h3 id="查看节点">查看节点</h3>
-<pre><code class="language-bash">curl -X GET &quot;localhost:9200/_cat/nodes?v&amp;pretty&quot;
-</code></pre>
-<ul>
-<li>green：完全正常，有备份</li>
-<li>yellow：单机状态，可以使用（one node, no replica）</li>
-<li>red：存在故障</li>
-</ul>
-<h3 id="查看索引">查看索引</h3>
-<pre><code class="language-bash">curl -X GET &quot;localhost:9200/_cat/indices?v&amp;pretty&quot;
-</code></pre>
-<h3 id="查看数据">查看数据</h3>
-<p>indice + id</p>
-<pre><code class="language-bash">curl -X GET &quot;localhost:9200/&lt;indice_name&gt;/external/&lt;id&gt;?pretty&amp;pretty&quot;
-</code></pre>
-<h2 id="增">增</h2>
-<h3 id="创建索引">创建索引</h3>
-<pre><code class="language-bash">curl -X PUT &quot;localhost:9200/&lt;indice_name&gt;?pretty&amp;pretty&quot;
-</code></pre>
-<h3 id="存入数据">存入数据</h3>
-<p>indice + id + json</p>
-<pre><code class="language-bash">curl -X PUT &quot;localhost:9200/&lt;indice_name&gt;/external/&lt;id&gt;?pretty&amp;pretty&quot; -H 'Content-Type: application/json' -d'
-{ &quot;name&quot;: &quot;John Doe&quot;
-}
-'
-</code></pre>
-<p>无索引的话 es 会自动生成一个</p>
-<h2 id="删">删</h2>
-<h3 id="删除索引">删除索引</h3>
-<pre><code class="language-bash">curl -X DELETE &quot;localhost:9200/&lt;indice_name&gt;?pretty&amp;pretty&quot;
-</code></pre>
-<h3 id="删除数据">删除数据</h3>
-<p>indice + id</p>
-<pre><code class="language-bash">curl -X DELETE &quot;localhost:9200/&lt;indice_name&gt;/external/&lt;id&gt;?pretty&amp;pretty&quot;
-</code></pre>
-<p>也可使用 delete_by_query API</p>
-<h2 id="改">改</h2>
-<h3 id="修改替换值">修改/替换值</h3>
-<pre><code class="language-bash">curl -X POST &quot;localhost:9200/&lt;indice_name&gt;/external/1/_update?pretty&amp;pretty&quot; -H 'Content-Type: application/json' -d'
-{ &quot;doc&quot;: { &quot;name&quot;: &quot;Jane Doe&quot; }
-}
-'
-</code></pre>
-<p>PUT 也可</p>
-<h3 id="增加-field">增加 field</h3>
-<pre><code class="language-bash">curl -X POST &quot;localhost:9200/customer/external/1/_update?pretty&amp;pretty&quot; -H 'Content-Type: application/json' -d'
-{ &quot;doc&quot;: { &quot;name&quot;: &quot;Jane Doe&quot;, &quot;age&quot;: 20 }
-}
-'
-</code></pre>
-<h3 id="使用-script-修改">使用 script 修改</h3>
-<pre><code class="language-bash">curl -X POST &quot;localhost:9200/customer/external/1/_update?pretty&amp;pretty&quot; -H 'Content-Type: application/json' -d'
-{ &quot;script&quot; : &quot;ctx._source.age += 5&quot;
-}
-'
-</code></pre>
-<h2 id="查">查</h2>
-<h3 id="使用-_bulk-批量操作">使用 _bulk 批量操作</h3>
-<p>POST <indice>/doc/_bulk</p>
-<p>错误不会暂停，返回每个操作的成功与否</p>
-<pre><code class="language-bash">curl -X POST &quot;localhost:9200/customer/external/_bulk?pretty&amp;pretty&quot; -H 'Content-Type: application/json' -d'
-{&quot;index&quot;:{&quot;_id&quot;:&quot;1&quot;}}
-{&quot;name&quot;: &quot;John Doe&quot; }
-{&quot;index&quot;:{&quot;_id&quot;:&quot;2&quot;}}
-{&quot;name&quot;: &quot;Jane Doe&quot; }
-'
-</code></pre>
-<h3 id="_search-查询接口">_search 查询接口</h3>
-<p>GET <indice>/_search</p>
-<ul>
-<li>sort：排序输出</li>
-<li>分页：from + size</li>
-<li>_source：返回指定字段</li>
-<li>must == &amp;，should == |，同理 not，且可嵌套</li>
-</ul>
-<h3 id="query-dsl">Query DSL</h3>
-<p>匹配用</p>
-<ul>
-<li>match_all</li>
-<li>match</li>
-</ul>
-<p>计算出 score（匹配度）也就是相关度</p>
-<pre><code class="language-bash">curl -X GET &quot;localhost:9200/bank/_search?pretty&quot; -H 'Content-Type: application/json' -d'
-{ &quot;query&quot;: { &quot;bool&quot;: { &quot;must&quot;: [ { &quot;match&quot;: { &quot;address&quot;: &quot;mill lane&quot; } } ] } }
-}
-'
-</code></pre>
-<h3 id="filter-dsl">Filter DSL</h3>
-<p>筛选用，速度快效率高，可复用</p>
-<pre><code class="language-bash">curl -X GET &quot;localhost:9200/bank/_search?pretty&quot; -H 'Content-Type: application/json' -d'
-{ &quot;query&quot;: { &quot;bool&quot;: { &quot;filter&quot;: [ { &quot;match&quot;: { &quot;address&quot;: &quot;mill lane&quot; } } ] } }
-}
-'
-</code></pre>
-<h3 id="agg-聚合搜索">agg 聚合搜索</h3>
-<p>类似 group by，可嵌套</p>
-<p>排序在 agg 里进行实现</p>
-<pre><code class="language-bash">PUT /ecommerce/_mapping/product
-{ &quot;properties&quot;: { &quot;tags&quot;:{ &quot;type&quot;: &quot;text&quot;, &quot;fielddata&quot;: true } }
-}
-GET /ecommerce/product/_search
-{ &quot;size&quot;: 0, &quot;aggs&quot;: { &quot;all_tags&quot;: { &quot;terms&quot;: { &quot;field&quot;: &quot;tags&quot;, &quot;order&quot;: { &quot;avg_price&quot;: &quot;asc&quot; } }, &quot;aggs&quot;: { &quot;avg_price&quot;: { &quot;avg&quot;: { &quot;field&quot;: &quot;price&quot; } } } } }
-}
-</code></pre>
-<p>tag 需要先自定义 fielddata / keyword</p>
-<p>在 order 里进行排序，asc/desc</p>
-<p>可实现「分组-统计-排序」</p>
-<h1 id="解惑">解惑</h1>
-<h2 id="version-的作用">version 的作用</h2>
-<ul>
-<li><s>保留历史记录</s></li>
-<li><s>版本控制</s></li>
-<li>解决数据冲突——乐观锁（更新时判断数据有没有被修改，即无锁）</li>
-</ul>
-<p>通过**「引用计数」**解决 CAS（内存位置值 == 预期原值 ? 更新值 : 不操作）机制导致的 ABA（值更改后再变回原值）问题（还可以使用时间戳）。</p>
-<h2 id="多种查询语句">多种查询语句</h2>
-<ul>
-<li>match：分词后模糊搜索</li>
-<li>term：不分词，精确查找</li>
-<li>match_phase：包含所有分词 + 顺序一致</li>
-<li>query_string：所有字段进行 match</li>
-</ul>
-<h2 id="agg-聚合搜索后排序">agg 聚合搜索后排序</h2>
-<p>排序选项在 agg 内：&quot;order&quot;</p>
-<p>ElasticSearch</p>
-<p>ElasticSearch</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[Java 集合｜Integer 在 HashSet 为何“有序”]]></title>
-        <id>https://yao177.github.io/post/integer-zai-hashset-wei-he-you-xu/</id>
-        <link href="https://yao177.github.io/post/integer-zai-hashset-wei-he-you-xu/">
-        </link>
-        <updated>2020-09-15T07:54:55.000Z</updated>
-        <content type="html"><![CDATA[<h1 id="现象">现象</h1>
-<p>今天试着把 Integer 作为 key 添加进 HashSet，居然……</p>
-<pre><code class="language-java">import java.util.*;
-  
-public class HashSetDemo {
-    public static void main(String[] args) {
-        
-        Set&lt;Integer&gt; hs = new HashSet&lt;Integer&gt;();
-
-        for (int i = 0; i &lt; 10000; i++) {
-            hs.add(i);
-        }
-
-        for (Integer s : hs) {
-            System.out.print(s + &quot; &quot;);
-        }
-    }
-}
-  
-// Results
-0 1 2 3 ... 9997 9998 9999
-</code></pre>
-<h1 id="分析">分析</h1>
-<p>很奇怪！</p>
-<p>Integer 的 hashCode 方法返回值就是本身（整数的值与整数本身一样唯一，所以它是一个足够好的散列）</p>
-<p>因此 (h = key.hashCode()) ^ (h &gt;&gt; 16) 和 key ^ (key &gt;&gt; 16) 的值是一样的，经过扰动函数（低位的随机性加强，更好地避免冲突）后。</p>
-<pre><code>a = 2         | 0000 0000 0000 0000 0000 0000 0000 0010
-a.hashCode()  | 0000 0000 0000 0000 0000 0000 0000 0010
-a &gt;&gt; 16       |                     0000 0000 0000 0000
-a ^ (a &gt;&gt; 16) | 0000 0000 0000 0000 0000 0000 0000 0010
-n = 2 ^ 4 - 1 | 0000 0000 0000 0000 0000 0000 0000 1111
-a &amp; n         | 0000 0000 0000 0000 0000 0000 0000 0010 ---- 2
------
-a = 18        | 0000 0000 0000 0000 0000 0000 0001 0010
-a.hashCode()  | 0000 0000 0000 0000 0000 0000 0001 0010
-a &gt;&gt; 16       |                     0000 0000 0000 0000
-a ^ (a &gt;&gt; 16) | 0000 0000 0000 0000 0000 0000 0001 0010
-n = 2 ^ 4 - 1 | 0000 0000 0000 0000 0000 0000 0000 1111
-a &amp; n         | 0000 0000 0000 0000 0000 0000 0000 0010 ---- 2
-</code></pre>
-<p>发现 2 和 18 的 hash 值都是 2，按理说应该要冲突的，却正常输出了</p>
-<pre><code class="language-java">import java.util.*;
-  
-public class HashSetDemo {
-    public static void main(String[] args) {
-        
-        Set&lt;Integer&gt; hs = new HashSet&lt;Integer&gt;();
-
-        for (int i = 0; i &lt;= 18; i++) {
-            hs.add(i);
-        
-        for (Integer s : hs) {
-            System.out.print(s + &quot; &quot;);
-        }
-    }
-}
-  
-// Results
-0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18
-</code></pre>
-<p>再试试</p>
-<pre><code class="language-java">import java.util.*;
-  
-public class HashSetDemo {
-    public static void main(String[] args) {
-        
-        Set&lt;Integer&gt; hs = new HashSet&lt;Integer&gt;();
-
-        hs.add(1);
-		hs.add(2);
-		hs.add(3);
-		hs.add(4);
-		hs.add(18);
-        
-        for (Integer s : hs) {
-            System.out.print(s + &quot; &quot;);
-        }
-    }
-}
-  
-// Results
-1 18 2 3 4
-</code></pre>
-<p>恍然大悟，我忽略了数组长度问题</p>
-<p>重新计算了下，扩容之后 2 和 18 就没有 hash 碰撞了</p>
-<h1 id="结论">结论</h1>
-<p>其实 HashSet 就是无序的，插入 1-n 后有序输出其实就是因为 Integer 的 hashCode 就是自身，取模后自然按照自然序在数组中排列，也就出现了开头「有序输出」的现象</p>
 ]]></content>
     </entry>
 </feed>
