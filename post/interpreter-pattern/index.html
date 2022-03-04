@@ -1,0 +1,702 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>设计模式｜解释器模式 | Yao177&#39;s Blog</title>
+<link rel="shortcut icon" href="https://yao177.github.io/favicon.ico?v=1646363535609">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yao177.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="设计模式｜解释器模式 | Yao177&#39;s Blog - Atom Feed" href="https://yao177.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-159235176-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-159235176-1');
+</script>
+
+
+    <meta name="description" content="
+轮子是如何变圆的
+
+麻烦的需求
+场景1：
+张三喜欢为同事们造轮子。现在有同事小王需要计算“1+2*3”，如何最快速度提供轮子？
+public class CalUtil {
+    public static int getValue..." />
+    <meta name="keywords" content="Design Pattern" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yao177.github.io">
+  <img class="avatar" src="https://yao177.github.io/images/avatar.png?v=1646363535609" alt="">
+  </a>
+  <h1 class="site-title">
+    Yao177&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <b>E</b>·rror = <b>m</b>·ore * <b>c²</b>·ode
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/yao177" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/Tianyao_Z" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com/p/1005055415293764" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.zhihu.com/people/yao-zi-73-1" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com/York.Z9859" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              设计模式｜解释器模式
+            </h2>
+            <div class="post-info">
+              <span>
+                08-20-2021
+              </span>
+              <span>
+                17 min read
+              </span>
+              
+                <a href="https://yao177.github.io/tag/twEU2-hML/" class="post-tag">
+                  # Design Pattern
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <blockquote>
+<p>轮子是如何变圆的</p>
+</blockquote>
+<h2 id="麻烦的需求">麻烦的需求</h2>
+<h3 id="场景1">场景1：</h3>
+<p>张三喜欢为同事们造轮子。现在有同事小王需要计算“1+2*3”，如何最快速度提供轮子？</p>
+<pre><code class="language-Java">public class CalUtil {
+    public static int getValue(){
+        return 1+2*3;
+    }
+}
+</code></pre>
+<h3 id="场景2">场景2：</h3>
+<p>小王表示他还需要计算“1+2*3”或者“1+2/3”或者“2-5”，如何提供运行效率最高的轮子？</p>
+<pre><code class="language-Java">/*利用操作数栈和符号栈，取自大学课设代码*/
+public class CalUtil {
+
+    private static Stack&lt;Character&gt; opeStack = new Stack&lt;Character&gt;();
+    private static Stack&lt;Integer&gt; numStack = new Stack&lt;Integer&gt;();
+
+    private static StringBuilder in = new StringBuilder();
+    private static StringBuilder number = new StringBuilder();
+
+    public static void main(String[] args) {
+        System.out.println(cal(&quot;4+6*8-5+2*11&quot;));
+    }
+
+    public static int cal(String input) {
+        in.append(input);
+        while (in.length() &gt; 0) {
+            char temp = in.charAt(0);
+            in.delete(0, 1);
+            if (temp &gt; '0' &amp;&amp; temp &lt; '9') {
+                number.append(temp);
+            } else {
+                if (!&quot;&quot;.equals(number.toString())) {
+                    int num = Integer.parseInt(number.toString());
+                    numStack.push(num);
+                    number.delete(0, number.length());
+                }
+                while (!opeStack.isEmpty() &amp;&amp; !compare(temp)) {
+                    int num2 = numStack.pop();
+                    int num1 = numStack.pop();
+                    char ope = opeStack.pop();
+                    cal0(ope,num1,num2);
+                }
+                opeStack.push(temp);
+            }
+        }
+        if(number.length()&gt;0){
+            int num = Integer.parseInt(number.toString());
+            numStack.push(num);
+        }
+        while(!opeStack.isEmpty()){
+            int num2= numStack.pop();
+            int num1= numStack.pop();
+            cal0(opeStack.pop(),num1,num2);
+        }
+
+        return numStack.pop();
+    }
+    // 根据操作符计算两数运算结果
+    public static void cal0(char ope,int num1 ,int num2){
+        switch (ope) {
+            case '+':
+                numStack.push(num1 + num2);
+                break;
+            case '-':
+                numStack.push(num1 - num2);
+                break;
+            case '*':
+                numStack.push(num1 * num2);
+                break;
+            case '/':
+                numStack.push(num1 / num2);
+                break;
+        }
+    }
+    // 比较操作符优先级
+    public static boolean compare(char operation) {
+        char last = opeStack.peek();
+
+        switch (operation) {
+            case '+':
+                return false;
+            case '-':
+                return false;
+            case '*':
+                if (last == '+' || last == '-')
+                    return true;
+                return false;
+            case '/':
+                if (last == '+' || last == '-')
+                    return true;
+                return false;
+            default:
+                return false;
+        }
+    }
+}
+</code></pre>
+<p>这种方式实则通过堆栈来实现对表达式的解析和运算，且这两部分是同步进行的。</p>
+<h3 id="场景3">场景3：</h3>
+<p>小王表示他有时候会复用特定的运算模式，例如计税、计价等，会重复按照同一个计算过程对不同入参进行计算，例如“5*8+1”、“2*7+3”、“4*2+5”……。<br>
+此时，前面的方案虽然可用，但是相同计算模式时，每次调用依然会重复构造操作数栈、操作符栈等，效率并不高。<br>
+张三急需<strong>更先进的轮子</strong>。</p>
+<h2 id="更先进的轮子">更先进的轮子</h2>
+<p>我们可以看到此时场景2已经无法满足功能要求了。场景2的解决方案所用的思维方式是面向过程的，而面向过程很少有复用和建模，因此从根本上它解决不了场景3的问题。</p>
+<p>自然而然，我们想到了可以公式化输入，将计算过程分为两步：</p>
+<ol>
+<li>导入“?*?+?”这样的公式；</li>
+<li>传入(5,8,1)进行填充并获得计算结果。<br>
+目前要解决问题的第一步是将“?+?*?”这样的表达式（Expression）进行存储，并要考虑它们的计算顺序和优先级。</li>
+</ol>
+<p>我们先定义一个接口，命名为Expression：</p>
+<pre><code class="language-Java">public interface Expression {
+    //计算该表达式的值
+	double excute();
+}
+</code></pre>
+<p>而我们注意到，最终计算的表达式中将会存在数字和操作符两种“符号”，而我们可以根据它们的特点定义两种表达式：</p>
+<ol>
+<li>对于数字，它的计算值就是本身；</li>
+<li>对于操作符，由于它不能单独存在，所以它至少需要两个子表达式；而它的计算值需要先计算左右两个表达式的值，再按照自身符号进行运算。例如对于1+2*3中的“+”，它需要先计算1，再计算2*3，最后计算本身。</li>
+</ol>
+<p>数字表达式定义：</p>
+<pre><code class="language-Java">public class NumExpression implements Expression{
+    private double value;
+  
+    public double execute() {
+        return this.value;
+    }
+
+    public void setValue(double value) {
+        this.value = value;
+    }
+}
+</code></pre>
+<p>操作符表达式抽象类定义：</p>
+<pre><code class="language-Java">public abstract class OptExpression implements Expression {
+    protected OptExpression parent;
+    protected Expression left;
+    protected Expression right;
+
+    public void setLeft(Expression left) {
+        this.left = left;
+    }
+
+    public void setRight(Expression right) {
+        this.right = right;
+    }
+
+    public void setParent(OptExpression parent) {
+        this.parent = parent;
+    }
+}
+</code></pre>
+<p>各个运算符表达式类定义：</p>
+<pre><code class="language-Java">public class AddExpression extends OptExpression {
+    AddExpression(Expression left, Expression right) {
+        super(left, right);
+    }
+
+    public double execute() {
+        return super.left.execute()+this.right.execute();
+    }
+}
+
+public class SubExpression extends OptExpression {
+    SubExpression(Expression left, Expression right) {
+        super(left, right);
+    }
+
+    public double execute() {
+        return super.left.execute()-this.right.execute();
+    }
+}
+
+public class MulExpression extends OptExpression {
+    MulExpression(Expression left, Expression right) {
+        super(left, right);
+    }
+
+    public double execute() {
+        return super.left.execute()*this.right.execute();
+    }
+}
+
+public class DivExpression extends OptExpression {
+    DivExpression(Expression left, Expression right) {
+        super(left, right);
+    }
+
+    public double execute() {
+        return super.left.execute()/this.right.execute();
+    }
+}
+</code></pre>
+<p>类图：<br>
+<img src="https://yao177.github.io/post-images/1646362542909.svg" alt="" loading="lazy"></p>
+<p>通过各个 Expression 的组合，我们可以将例如“1+2*3”构造成一颗由表达式组成的树（即语法树）：<br>
+<img src="https://yao177.github.io/post-images/1646362779501.svg" alt="" loading="lazy"></p>
+<p>而要获得计算结果，只需简单的执行 AddExpression 对象的 execute() 方法就行。<br>
+于是我们的思路已经有了：先通过公式构造这颗语法树，等用户需要计算的时候让他填入空缺的数字，并计算这颗树的根结点即可。<br>
+那么如何实现一个解释器引擎，来完成公式的“树化”和计算呢？直接上代码：</p>
+<pre><code class="language-Java">package org.example;
+
+import java.util.ArrayList;
+import java.util.List;
+
+
+public class Calculator {
+    private List&lt;OptExpression&gt; optExpressions; //顺序存储公式的操作符号
+    private List&lt;NumExpression&gt;  numExpressions; //顺序放入公式中待填的数字，即NumExpression
+    private OptExpression top; //语法树的顶部，用于直接获取结果
+
+    Calculator(String exp) { //构造方法，传入一个公式
+        String[] expStrings = exp.split(&quot;\\?&quot;);
+        optExpressions = new ArrayList&lt;OptExpression&gt;();
+        numExpressions = new ArrayList&lt;NumExpression&gt;();
+        for (String expString : expStrings) { //初始化操作符号数组
+            if (expString.equals(&quot;+&quot;)) {
+                optExpressions.add(new AddExpression());
+            } else if (expString.equals(&quot;-&quot;)) {
+                optExpressions.add(new SubExpression());
+            } else if (expString.equals(&quot;*&quot;)) {
+                optExpressions.add(new MulExpression());
+            } else if (expString.equals(&quot;/&quot;)) {
+                optExpressions.add(new DivExpression());
+            }
+        }
+        compile(); //构造语法树
+    }
+
+    public void compile() {
+        top = optExpressions.get(0); //设置树顶为第一个操作符
+        top.setLeft(new NumExpression()); //第一个操作符表达式左侧一定是数字，因此可以直接设定
+        numExpressions.add((NumExpression) top.left);
+        OptExpression oldExpression = optExpressions.get(0);
+        for (int curIndex = 1; curIndex &lt; optExpressions.size(); curIndex++) { //遍历剩余的操作符
+            OptExpression curExpression = optExpressions.get(curIndex);
+            if (getLevel(oldExpression) &lt; getLevel(curExpression)) { //如果当前的操作符优先级高于前一个操作符，则直接成为其右子表达式
+                oldExpression.right = curExpression;
+                curExpression.parent = oldExpression;
+                curExpression.left = new NumExpression(); // 当前操作符表达式左侧不会再有新操作符，因此直接设定数字
+                numExpressions.add((NumExpression) curExpression.left);
+            } else if (getLevel(oldExpression) &gt;= getLevel(curExpression)) { // 如果前一个操作符优先级不小于当前操作符，则当前操作符需要“向上冒泡”
+                OptExpression parent = oldExpression;
+                while (parent.parent != null &amp;&amp; getLevel(parent.parent) &gt;= getLevel(curExpression)) {
+                    parent = parent.parent;
+                }
+                if (parent.parent != null) { //无法向上继续冒泡，只能取代此刻的操作符，并将其置为当前操作符的左子表达式
+                    curExpression.left = parent.parent.right;
+                    curExpression.parent = parent.parent;
+                    parent.parent.right = curExpression;
+                } else {
+                    curExpression.left = parent; //已经冒泡到顶，因此直接成为新的top表达式
+                    top = curExpression;
+                }
+                parent.parent = curExpression;
+                oldExpression.right = new NumExpression(); //在这类冒泡的情况中，当前操作符左子表达式有其他表达式填充，而oldExpression的右侧将永远置空，因此直接设定数字表达式
+                numExpressions.add((NumExpression) oldExpression.right);
+            }
+            oldExpression = curExpression;
+        }
+        oldExpression.right = new NumExpression(); //最后一个操作符右侧一定是最后一个数字表达式
+        numExpressions.add((NumExpression) oldExpression.right);
+    }
+
+    private int getLevel(OptExpression exp) {
+        if (exp instanceof AddExpression || exp instanceof SubExpression) { //优先级判定
+            return 1;
+        } else {return 2;}
+    }
+
+    private double calculate(double... num) { //只需按照顺序设定数字表达式的值即可
+        for (int i = 0; i &lt; numExpressions.size(); i++) {
+            numExpressions.get(i).setValue(num[i]);
+        }
+        return top.execute(); //计算顶部节点的值即可
+    }
+
+    public static void main(String[] args) {
+        Calculator calculator = new Calculator(&quot;?+?/?*?-?&quot;);
+        System.out.println(calculator.calculate(1,2,3,4,5));
+        // 实际计算：1+2/3*4-5  运行结果：-1.33333
+    }
+}
+</code></pre>
+<p>可以通过图解来看程序运行过程（操作符表达式由符号简写，数字表达式由“num+编号”简写）：<br>
+<img src="https://yao177.github.io/post-images/1646362899413.svg" alt="" loading="lazy"></p>
+<p>compile 方法结束后，程序建立了如第四张结构图的语法树，并已经顺序填充了公式中?代表的数字表达式。当用户调用<code>calculator.calculate(1,2,3,4,5)</code>时，程序会以 O(n) 的时间复杂度完成结果运算。</p>
+<p>此时，我们实际上已经完成了一个较为复杂的解释器模式的实现。</p>
+<h2 id="解释器模式">解释器模式</h2>
+<p>在介绍解释器模式之前，我们需要回顾下《编译原理》的知识：<br>
+<strong>终结符</strong>： 通俗的说就是不能单独出现在推导式左边的符号，也就是说终结符不能再进行推导。即不可再分的符号。NumExpression 便是终结符，它的值就是自身。<br>
+<strong>非终结符</strong>： 不是终结符的都是非终结符。非终结符可理解为一个可拆分元素，而终结符是不可拆分的最小元素。OptExpression 的值需要子表达式的计算，因此它是非终结符。<br>
+<strong>文法</strong>：文法是用于描述语言的语法结构的形式规则。本例中文法实际上由张三定义的操作符种类和优先级、用户输入的公式共同构成。<br>
+根据网上的资料，解释器模式包含以下主要角色。</p>
+<ul>
+<li>抽象表达式（Abstract Expression）角色：定义解释器的接口，约定解释器的解释操作，主要包含解释方法。例如本例中的Expression接口。</li>
+<li>终结符表达式（Terminal Expression）角色：是抽象表达式的子类，用来实现文法中与终结符相关的操作，文法中的每一个终结符都有一个具体终结表达式与之相对应。例如本例中的NumExpression。</li>
+<li>非终结符表达式（Nonterminal Expression）角色：也是抽象表达式的子类，用来实现文法中与非终结符相关的操作，文法中的每条规则都对应于一个非终结符表达式。例如本例中的OptExpression。</li>
+<li>环境（Context）角色：通常包含各个解释器需要的数据或是公共的功能，一般用来传递被所有解释器共享的数据，后面的解释器可以从这里获取这些值。例如本例中的getLevel函数。</li>
+<li>客户端（Client）：主要任务是将需要分析的句子或表达式转换成使用解释器对象描述的抽象语法树，然后调用解释器的解释方法，当然也可以通过环境角色间接访问解释器的解释方法。例如本例中的Calculator类。</li>
+</ul>
+<p>其实我们不难发现，解释器模式的定义中只有“解释”的部分，没有“解析”的部分。在我看来，解释器模式的亮点在于它能将一个语法进行抽象，能把一个复杂表达式的计算解耦为建立语法树（即解析）、计算结果（即解释）两个过程。<br>
+上述例子证明了解释器模式有“一次编译，终身使用”的良好复用性。而设计模式对事物进行抽象的目的往往是为了复用和扩展。让我们来看看解释器模式的扩展性如何。</p>
+<h2 id="轻而易举地扩展">轻而易举地扩展</h2>
+<p>机灵的小王又提出了新需求，他要加入位运算，即“|”和&quot;&amp;&quot;，且优先级最低。此时的张三早已胸有成竹。<br>
+只需新增操作符：</p>
+<pre><code class="language-Java">public class BitAndExpression extends OptExpression {
+    BitAndExpression(Expression left, Expression right) {
+        super(left, right);
+    }
+
+    public double execute() {
+        return super.left.execute()&amp;this.right.execute();
+    }
+}
+
+public class BitOrExpression extends OptExpression {
+    BitOrExpression(Expression left, Expression right) {
+        super(left, right);
+    }
+
+    public double execute() {
+        return super.left.execute()|this.right.execute();
+    }
+}
+</code></pre>
+<p>并赋予新的优先级和读取方式：</p>
+<pre><code class="language-Java">public class Calculator {
+    Calculator(String exp) {
+        String[] expStrings = exp.split(&quot;\\?&quot;);
+        optExpressions = new ArrayList&lt;OptExpression&gt;();
+        numExpressions = new ArrayList&lt;NumExpression&gt;();
+        for (String expString : expStrings) {
+            if (expString.equals(&quot;+&quot;)) {
+                optExpressions.add(new AddExpression());
+            } else if (expString.equals(&quot;-&quot;)) {
+                optExpressions.add(new SubExpression());
+            } else if (expString.equals(&quot;*&quot;)) {
+                optExpressions.add(new MulExpression());
+            } else if (expString.equals(&quot;/&quot;)) {
+                optExpressions.add(new DivExpression());
+            }
+            /*新增*/
+            else if (expString.equals(&quot;|&quot;)) {
+                optExpressions.add(new BitOrExpression());
+            } else if (expString.equals(&quot;&amp;&quot;)) {
+                optExpressions.add(new BitAndExpression());
+            }
+        }
+        compile();
+    }
+
+    private int getLevel(OptExpression exp) {
+        //新增
+        if (exp instanceof BitOrExpression || exp instanceof BitAndExpression) {
+            return 0;
+        }
+        if (exp instanceof AddExpression || exp instanceof SubExpression) {
+            return 1;
+        } else {
+            return 2;
+        }
+    }
+}
+</code></pre>
+<p>此时便已经大功告成。“真是个好轮子”，小王称赞道。</p>
+<h2 id="应用场景">应用场景</h2>
+<p>虽然这个模式名称叫做解释器模式，但无论是 Java 编译器、Python 解释器都不会实际采用这个模式，因为这些基于虚拟机的语言会将代码翻译为字节码而非语法树。语法树的计算采用递归，而字节码的运行一般采用栈的方式，后者性能更好。<br>
+而一些看起来使用了解释器模式的地方，例如 Java 的 Pattern、Spring 的 Spel 引擎，它们虽然采用了「构建+解析」的计算模式，但其实质并没有按照解释器模式的规范去实现一个具体的语法树，而是采用各自的手段（例如数组等）去避免这类递归运算。</p>
+<p>经过地毯式搜索，我终于在 JVM 分析工具—— sun 提供的 Jstat 的源码中发现了解释器模式的影子：<br>
+下列出主要代码（已简化）</p>
+<pre><code class="language-Java">package sun.tools.jstat;
+
+public class Expression {
+    private static int nextOrdinal;
+    private Expression left;
+    private Expression right;
+    private Operator operator;
+    private int ordinal;
+
+    Expression() {
+        this.ordinal = nextOrdinal++;
+    }
+
+    void setLeft(Expression var1) {
+        this.left = var1;
+    }
+
+    Expression getLeft() {
+        return this.left;
+    }
+
+    void setRight(Expression var1) {
+        this.right = var1;
+    }
+
+    Expression getRight() {
+        return this.right;
+    }
+
+    void setOperator(Operator var1) {
+        this.operator = var1;
+    }
+
+    Operator getOperator() {
+        return this.operator;
+    }
+  	
+}
+</code></pre>
+<p>它和张三的解释器模式实现高度相似。表达式的计算在这个类中：</p>
+<pre><code class="language-Java">package sun.tools.jstat;
+
+import java.util.HashMap;
+import sun.jvmstat.monitor.Monitor;
+import sun.jvmstat.monitor.MonitoredVm;
+
+public class ExpressionExecuter implements ExpressionEvaluator {
+    private static final boolean debug = Boolean.getBoolean(&quot;ExpressionEvaluator.debug&quot;);
+    private MonitoredVm vm;
+    private HashMap&lt;String, Object&gt; map = new HashMap();
+
+    ExpressionExecuter(MonitoredVm var1) {
+        this.vm = var1;
+    }
+
+    public Object evaluate(Expression var1) {
+        if (var1 == null) {
+            return null;
+        } else {
+            if (debug) {
+                System.out.println(&quot;Evaluating expression: &quot; + var1);
+            }
+
+            if (var1 instanceof Literal) {
+                return ((Literal)var1).getValue();
+            } else if (var1 instanceof Identifier) {
+                Identifier var9 = (Identifier)var1;
+                if (this.map.containsKey(var9.getName())) {
+                    return this.map.get(var9.getName());
+                } else {
+                    Monitor var10 = (Monitor)var9.getValue();
+                    Object var11 = var10.getValue();
+                    this.map.put(var9.getName(), var11);
+                    return var11;
+                }
+            } else {
+                Expression var2 = var1.getLeft();
+                Expression var3 = var1.getRight();
+                Operator var4 = var1.getOperator();
+                if (var4 == null) {
+                    return this.evaluate(var2);
+                } else {
+                    Double var5 = new Double(((Number)this.evaluate(var2)).doubleValue());
+                    Double var6 = new Double(((Number)this.evaluate(var3)).doubleValue());
+                    double var7 = var4.eval(var5, var6);
+                    if (debug) {
+                        System.out.println(&quot;Performed Operation: &quot; + var5 + var4 + var6 + &quot; = &quot; + var7);
+                    }
+
+                    return new Double(var7);
+                }
+            }
+        }
+    }
+}
+</code></pre>
+<p>可以看到它也是一个递归运算。而经过查看 Operator 的定义，发现其也是定义了加减乘除四则运算。由此得知此处也是利用解释器模式来解析四则运算。</p>
+<h2 id="一些思考">一些思考</h2>
+<p>虽然解释器模式在日常生活中几乎无法遇到，在工具源码中也出现甚少，但其高度抽象的思想其实有着不少的作用。<br>
+首先，解释器模式从它的定义到使用，就是编译原理的直观体现，它能帮助我们深刻理解文法、语法树、终结符等的含义，也有助于我们自行实现一些自定义表达式的功能（如本文示例）。<br>
+另外，解释器模式如果经过扩展，其实可以为流水线（pipeline）与函数式编程的结合提供思路。例如如果我们将非终结符和终结符做新的定义：<br>
+<code>+表示顺序执行，| 表示并行执行，()表示一组子流水线；</code><br>
+终结符变为多个Lambda；</p>
+<p>对于“?+((?+?)|?)+?”表达式，我们顺序输入future1、future2、future3、future4、future5，可获得一个多线程流水线：</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E9%BA%BB%E7%83%A6%E7%9A%84%E9%9C%80%E6%B1%82">麻烦的需求</a>
+<ul>
+<li><a href="#%E5%9C%BA%E6%99%AF1">场景1：</a></li>
+<li><a href="#%E5%9C%BA%E6%99%AF2">场景2：</a></li>
+<li><a href="#%E5%9C%BA%E6%99%AF3">场景3：</a></li>
+</ul>
+</li>
+<li><a href="#%E6%9B%B4%E5%85%88%E8%BF%9B%E7%9A%84%E8%BD%AE%E5%AD%90">更先进的轮子</a></li>
+<li><a href="#%E8%A7%A3%E9%87%8A%E5%99%A8%E6%A8%A1%E5%BC%8F">解释器模式</a></li>
+<li><a href="#%E8%BD%BB%E8%80%8C%E6%98%93%E4%B8%BE%E5%9C%B0%E6%89%A9%E5%B1%95">轻而易举地扩展</a></li>
+<li><a href="#%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF">应用场景</a></li>
+<li><a href="#%E4%B8%80%E4%BA%9B%E6%80%9D%E8%80%83">一些思考</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yao177.github.io/post/java-synchronized/">
+              <h3 class="post-title">
+                Java 进阶｜线程安全
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  <b>York</b>'s home | wish you a nice day!
+  <a class="rss" href="https://yao177.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>
