@@ -1,0 +1,342 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Java 框架｜Spring AOP 实践 | Yao177&#39;s Blog</title>
+<link rel="shortcut icon" href="https://yao177.github.io/favicon.ico?v=1646379155314">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://yao177.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Java 框架｜Spring AOP 实践 | Yao177&#39;s Blog - Atom Feed" href="https://yao177.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-159235176-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-159235176-1');
+</script>
+
+
+    <meta name="description" content="
+Cat 是集团通用打点上报系统，而 Cat Transaction 就是一个标准的 AOP 实践场景。
+
+因此想尝试通过「注解 + Srping」的方式降低 Cat Transaction 对业务代码的侵入（官方已有 Sample，也是学..." />
+    <meta name="keywords" content="Java Spring" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://yao177.github.io">
+  <img class="avatar" src="https://yao177.github.io/images/avatar.png?v=1646379155314" alt="">
+  </a>
+  <h1 class="site-title">
+    Yao177&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <b>E</b>·rror = <b>m</b>·ore * <b>c²</b>·ode
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/yao177" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/Tianyao_Z" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com/p/1005055415293764" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.zhihu.com/people/yao177" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com/York.Z9859" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Java 框架｜Spring AOP 实践
+            </h2>
+            <div class="post-info">
+              <span>
+                07-15-2021
+              </span>
+              <span>
+                4 min read
+              </span>
+              
+                <a href="https://yao177.github.io/tag/2iA-2Lp2n/" class="post-tag">
+                  # Java Spring
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <blockquote>
+<p>Cat 是集团通用打点上报系统，而 Cat Transaction 就是一个标准的 AOP 实践场景。</p>
+</blockquote>
+<p>因此想尝试通过「注解 + Srping」的方式降低 Cat Transaction 对业务代码的侵入（官方已有 Sample，也是学习模仿尝试）。</p>
+<h1 id="现状">现状</h1>
+<p>一般我们写 Cat Transaction 都是下面这样的写法：</p>
+<pre><code class="language-java">public void test(String input) {
+  Transaction transaction = Cat.newTransaction(CAT_TYPE, METHOD_NAME);
+  try {
+    	// 业务逻辑
+    	String a = input;
+      ...
+      transaction.setSuccessStatus();
+  } catch (Exception e) {
+    	Cat.logError(CAT_TYPE,e);
+    	transaction.setStatus(e);
+  } finally {
+    	transaction.complete();
+  }
+}
+</code></pre>
+<p>目前这样的写法可能有2点不太方便：</p>
+<ul>
+<li>大量重复工作：每一个需要记录 transaction 的地方都需要写这样一套模板代码</li>
+<li>对业务代码有较大侵入性：使得业务模块不仅要关注业务逻辑，还需要关注日志逻辑</li>
+</ul>
+<h1 id="aop-编程">AOP 编程</h1>
+<p>下图是一个简易的 AOP 编程思路：<br>
+<img src="https://yao177.github.io/post-images/1646378109416.svg" alt="" loading="lazy"></p>
+<h1 id="aop-实现">AOP 实现</h1>
+<p>我们希望利用「Spring AOP + 注解」的形式，抽象出一个专门用于记录 Cat Transaction 的切面，将通用日志逻辑与业务代码进行剥离，如下图所示：<br>
+<img src="https://yao177.github.io/post-images/1646378161096.svg" alt="" loading="lazy"></p>
+<p>首先，我们需要定义一个自定义注解，用于标识我们的切点（即只对加了注解的方法做切面）</p>
+<pre><code class="language-java">/**
+ * 自定义注解
+ * @date 2021/7/10
+ */
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface CatAopTest {
+
+}
+</code></pre>
+<p>然后，我们需要定义一个切面类，定义我们在切点的什么时间需要做什么事（参考<a href="https://blog.csdn.net/lang_niu/article/details/51559994">Spring Aspect 的 Execution 表达式</a>）</p>
+<pre><code class="language-java">/** 1.定义切面类
+ * @date 2021/7/10
+ */
+@Aspect
+@Component
+public class CatAspect {
+    // 2.定义切点，仅对有 CatAopTest 注解的方法做切面
+    @Pointcut(&quot;@annotation(com.meituan.baobab.crm.annotation.CatAopTest)&quot;)
+    public void pointCut(){
+    }
+
+    // 3.创建一个环绕通知
+    @Around(&quot;pointCut()&quot;)
+    public Object around(ProceedingJoinPoint jp){
+        String className = jp.getSignature().getDeclaringType().getSimpleName();
+        String methodName = jp.getSignature().getName();
+        Transaction transaction = Cat.newTransaction(className ,methodName);
+        Object result = null;
+        try {
+            // 执行切点的方法（即真正的业务逻辑）
+            result = jp.proceed();
+            transaction.setStatus(Message.SUCCESS);
+        } catch (Throwable e) {
+            Cat.logError(className, e);
+            transaction.setStatus(e);
+        }
+        finally {
+            transaction.complete();
+        }
+        return result;
+    }
+}
+</code></pre>
+<p>然后，对我们需要做日志切面的方法加上 CatAopTest 注解用以标识切点<br>
+本文中，我选取了 JDK 动态代理 及 CGLIB 动态代理这2种代理模式做测试，分别对应下方的 JdkProxyTestImpl.java 与 CglibProxyTest.java</p>
+<pre><code class="language-java">/** JDK动态代理测试类
+ * @date 2021/7/10
+ */
+@Service
+public class JdkProxyTestImpl implements JdkProxyTest {
+
+    @Autowired
+    private CglibProxyTest cglibProxyTest;
+    
+    @CatAopTest
+    @Override
+    public void testJdk(int i){
+
+    }
+
+    @Override
+    public String testCglib(){
+        return cglibProxyTest.print();
+    }
+}
+</code></pre>
+<pre><code class="language-java">/** CGLIB动态代理测试类
+ * @date 2021/7/10
+ */
+@Service
+public class CglibProxyTest {
+
+    @CatAopTest
+    public String print(){
+        return &quot;cglib&quot;;
+    }
+}
+</code></pre>
+<p>最后，在xml中开启AOP。</p>
+<h1 id="spring-aop-验证">Spring AOP 验证</h1>
+<p>之后，对代码进行编译，由于 Spring AOP 是运行时织入的，目标文件生成的“.class”不会包含切面的逻辑；随后开启 debug 之旅，对这两种动态代理模式进行验证：</p>
+<h2 id="jdk-动态代理">JDK 动态代理</h2>
+<p>由于 optimize 与 proxyTargetClass 默认为 false，且 JdkProxyTestImpl 实现了接口 JdkProxyTest，因此 JdkProxyTestImpl 的切面织入选取了 JDK 动态代理模式。</p>
+<h2 id="cglib-动态代理">CGLIB 动态代理</h2>
+<p>由于我是通过 CglibProxyTest 没有实现任何接口，因此该切面的织入选择了 CGLIB 动态代理代理模式。</p>
+<h1 id="效果验证">效果验证</h1>
+<p><img src="https://yao177.github.io/post-images/1646379070524.png" alt="" loading="lazy"><br>
+<img src="https://yao177.github.io/post-images/1646379123469.png" alt="" loading="lazy"></p>
+<h1 id="思考">思考</h1>
+<p>这种方式虽然以「注解+切面」的形式代替了手写 Transaction，降低了部分工作量，但仍存在以下问题：</p>
+<ul>
+<li>性能损耗：当大量使用切面时，动态代理模式会存在一定的性能开销</li>
+<li>方法粒度的注解粒度过细，仍有大量工作</li>
+</ul>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E7%8E%B0%E7%8A%B6">现状</a></li>
+<li><a href="#aop-%E7%BC%96%E7%A8%8B">AOP 编程</a></li>
+<li><a href="#aop-%E5%AE%9E%E7%8E%B0">AOP 实现</a></li>
+<li><a href="#spring-aop-%E9%AA%8C%E8%AF%81">Spring AOP 验证</a>
+<ul>
+<li><a href="#jdk-%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86">JDK 动态代理</a></li>
+<li><a href="#cglib-%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86">CGLIB 动态代理</a></li>
+</ul>
+</li>
+<li><a href="#%E6%95%88%E6%9E%9C%E9%AA%8C%E8%AF%81">效果验证</a></li>
+<li><a href="#%E6%80%9D%E8%80%83">思考</a></li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://yao177.github.io/post/java-synchronized/">
+              <h3 class="post-title">
+                Java 进阶｜线程安全
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  <b>York</b>'s home | wish you a nice day!
+  <a class="rss" href="https://yao177.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>
