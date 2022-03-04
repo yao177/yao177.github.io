@@ -3,7 +3,7 @@
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Java 框架｜Spring 启动加速器 | Yao177&#39;s Blog</title>
-<link rel="shortcut icon" href="https://yao177.github.io/favicon.ico?v=1646363535609">
+<link rel="shortcut icon" href="https://yao177.github.io/favicon.ico?v=1646364026883">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://yao177.github.io/styles/main.css">
 <link rel="alternate" type="application/atom+xml" title="Java 框架｜Spring 启动加速器 | Yao177&#39;s Blog - Atom Feed" href="https://yao177.github.io/atom.xml">
@@ -43,7 +43,7 @@ InstantiationAwareBeanP..." />
       <div class="main-content">
         <div class="site-header">
   <a href="https://yao177.github.io">
-  <img class="avatar" src="https://yao177.github.io/images/avatar.png?v=1646363535609" alt="">
+  <img class="avatar" src="https://yao177.github.io/images/avatar.png?v=1646364026883" alt="">
   </a>
   <h1 class="site-title">
     Yao177&#39;s Blog
@@ -265,7 +265,7 @@ Spring 的启动过程涉及非常多的逻辑。本文围绕 Bean 的生命周�
 CGLIB 可以用来为某个类创建一个子类，并在其方法（非全部）被调用时进行拦截，执行自己的逻辑。<br>
 在 Spring 的 AOP 场景中，CGLIB 被大量使用。</p>
 <h3 id="cglib-的使用示例">CGLIB 的使用示例</h3>
-<pre><code class="language-Java">public class CglibTest {
+<pre><code class="language-java">public class CglibTest {
     public void print() {
         System.out.println(&quot;CglibTest#print be invoked&quot;);
     }
@@ -414,7 +414,7 @@ CglibTest#print invoked
 </ol>
 <h2 id="场景示例">场景示例</h2>
 <p>假设有如下两个 Bean：</p>
-<pre><code class="language-Java">@Bean
+<pre><code class="language-java">@Bean
 public class RpcClient implements FactoryBean, InitializingBean {
     RpcClient() {
     }
@@ -430,7 +430,7 @@ public class RpcClient implements FactoryBean, InitializingBean {
     // other method
 }
 </code></pre>
-<pre><code class="language-Java">@Bean
+<pre><code class="language-java">@Bean
 public Manger {
   @Resource
   RpcService rpcService;
@@ -439,7 +439,7 @@ public Manger {
     return rpcService.getName(int id);
 }
 </code></pre>
-<pre><code class="language-Java">public interface RpcService {
+<pre><code class="language-java">public interface RpcService {
   String getName(int id);
 }
 </code></pre>

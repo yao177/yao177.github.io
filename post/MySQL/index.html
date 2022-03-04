@@ -3,7 +3,7 @@
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>转｜MySQL｜待 | Yao177&#39;s Blog</title>
-<link rel="shortcut icon" href="https://yao177.github.io/favicon.ico?v=1646363535609">
+<link rel="shortcut icon" href="https://yao177.github.io/favicon.ico?v=1646364026883">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://yao177.github.io/styles/main.css">
 <link rel="alternate" type="application/atom+xml" title="转｜MySQL｜待 | Yao177&#39;s Blog - Atom Feed" href="https://yao177.github.io/atom.xml">
@@ -36,7 +36,7 @@ Server 层包括：连接器、查询缓存、分析器、优化器、执行器�
       <div class="main-content">
         <div class="site-header">
   <a href="https://yao177.github.io">
-  <img class="avatar" src="https://yao177.github.io/images/avatar.png?v=1646363535609" alt="">
+  <img class="avatar" src="https://yao177.github.io/images/avatar.png?v=1646364026883" alt="">
   </a>
   <h1 class="site-title">
     Yao177&#39;s Blog
@@ -171,7 +171,7 @@ MySQL使用基于成本的查询优化器。它会根据统计信息和代价模
 <p>下面来看两个关于优化器选择索引的例子。</p>
 <h4 id="正确选择索引的例子">正确选择索引的例子</h4>
 <p>构建了一个表，除主键 id 外，还有另外两个字段a、b，分别都有索引，然后插入了100000条数据（注：a值全部为3）。</p>
-<pre><code class="language-Sql">CREATE TABLE `Test` (
+<pre><code class="language-sql">CREATE TABLE `Test` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `a` int(11) DEFAULT NULL,
   `b` int(11) NOT NULL,
@@ -206,7 +206,7 @@ call proc1();
 <h4 id="错误选择索引的例子">错误选择索引的例子</h4>
 <p>一般情况下，优化器会选择出最优的执行计划，但是也存在选取错误的执行计划的情况。</p>
 <p>构建了一个表Test2，除主键id外，还有另外两个字段a、b，分别都有索引，然后插入了100000条数据</p>
-<pre><code class="language-Sql">CREATE TABLE `Test2` (
+<pre><code class="language-sql">CREATE TABLE `Test2` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `a` int(11) DEFAULT NULL,
   `b` int(11) DEFAULT NULL,
@@ -286,7 +286,7 @@ call proc2();
 这种情况，毫无疑问，选择索引b所需要扫描的行数要多很多且没有其他因素干扰，因此执行器会选择索引a。<br>
 MySQL下有个了解优化器工作过程的利器，其就是 optimizer_trace。使用方法为：</li>
 </ul>
-<pre><code class="language-Sql">SET OPTIMIZER_TRACE_MAX_MEM_SIZE=268435456; 
+<pre><code class="language-sql">SET OPTIMIZER_TRACE_MAX_MEM_SIZE=268435456; 
 SET optimizer_trace=&quot;enabled=on&quot;; 
 select * from Test2 where (a between 1 and 1000) and (b between 50000 and 100000) limit 1;
 select * from INFORMATION_SCHEMA.OPTIMIZER_TRACE\G

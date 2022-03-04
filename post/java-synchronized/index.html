@@ -3,7 +3,7 @@
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Java 进阶｜线程安全 | Yao177&#39;s Blog</title>
-<link rel="shortcut icon" href="https://yao177.github.io/favicon.ico?v=1646363535609">
+<link rel="shortcut icon" href="https://yao177.github.io/favicon.ico?v=1646364026883">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://yao177.github.io/styles/main.css">
 <link rel="alternate" type="application/atom+xml" title="Java 进阶｜线程安全 | Yao177&#39;s Blog - Atom Feed" href="https://yao177.github.io/atom.xml">
@@ -34,7 +34,7 @@
       <div class="main-content">
         <div class="site-header">
   <a href="https://yao177.github.io">
-  <img class="avatar" src="https://yao177.github.io/images/avatar.png?v=1646363535609" alt="">
+  <img class="avatar" src="https://yao177.github.io/images/avatar.png?v=1646364026883" alt="">
   </a>
   <h1 class="site-title">
     Yao177&#39;s Blog
@@ -134,7 +134,7 @@
 <h2 id="线程安全程度">线程安全程度</h2>
 <p>上面的定义非常严谨，它要求线程安全的代码满足：代码本身封装了所有必要的同步手段，令调用者无须关心多线程的问题，更不需要自己采取措施来保证在多线程环境下的正确调用。</p>
 <p>保证这一点非常难，因此我们常常会另一个角度来理解线程安全，即线程安全程度。</p>
-<p>《深入理解java虚拟机》中将 Java 语言各种共享操作共享的数据可以分为以下5类：<strong>不可变、绝对线程安全、相对线程安全、线程兼容和线程对立</strong>。</p>
+<p>《深入理解java虚拟机》中将java 语言各种共享操作共享的数据可以分为以下5类：<strong>不可变、绝对线程安全、相对线程安全、线程兼容和线程对立</strong>。</p>
 <h3 id="不可变">不可变</h3>
 <p>不可变（Immutable）的对象一定是线程安全的，无论是对象方法的实现还是方法的调用者，都不需要在采取任何的线程安全保障措施。</p>
 <ul>
@@ -142,7 +142,7 @@
 <li>如果数据是对象类型，那就需要保证对象的行为不会对其状态产生任何影响（如 String 类，调用其<code>substring()</code>、<code>replace()</code>等方法不会影响原来的值，只会返回一个新构造的字符串对象）。</li>
 </ul>
 <p>保证对象的行为不会对其状态产生任何影响最简单的方法就是把对象中带有状态的变量声明为 final，这样在构造函数结束之后，它就是不可变的，如 Integer。</p>
-<pre><code class="language-Java">    /**
+<pre><code class="language-java">    /**
      * The value of the {@code Integer}.
      *
      * @serial
@@ -164,7 +164,7 @@
 <p>不管运行时环境如何，调用者都不需要任何额外的同步措施。</p>
 <p>要达到绝对线程安全通常付出很大代价，甚至不切实际的代价。</p>
 <p>以 Vector 为例，它是一个线程安全的容器，因为其内部的操作方法都用了 synchronized 关键字作为同步措施，但是即使它所有的方法都被修饰成同步，也不意味着调用它的时候永远不需要同步手段了。请看下面的 demo：</p>
-<pre><code class="language-Java">    private static Vector&lt;Integer&gt; vector = new Vector&lt;&gt;();
+<pre><code class="language-java">    private static Vector&lt;Integer&gt; vector = new Vector&lt;&gt;();
 
     public static void main(String[] args) {
         while (true) {
@@ -191,7 +191,7 @@
 <p>输出结果如下：<br>
 <img src="https://yao177.github.io/post-images/1646211347456.png" alt="" loading="lazy"></p>
 <p>虽然 Vector 的 add()、remove()、get() 方法都是同步的，但并不能保证调用就是绝对线程安全的。假设打印线程在打印序号为i的元素前，线程被系统调度挂起，切换为删除线程，而这个删除线程刚好把序号为i的元素删除了，系统再切换打印线程运行时，这个序号为i的元素已经被删除，再调用 get(i) 访问时就会得到 ArrayIndexOutOfBoundsException。要保证代码是绝对线程安全的，必须在调用方加一些同步措施：</p>
-<pre><code class="language-Java">  Thread removeThread = new Thread(() -&gt; {
+<pre><code class="language-java">  Thread removeThread = new Thread(() -&gt; {
     synchronized (vector) {
       for (int i = 0; i &lt; vector.size(); i++) {
         vector.remove(i);
@@ -208,7 +208,7 @@
 </code></pre>
 <h3 id="相对线程安全">相对线程安全</h3>
 <p>这是通常意义的线程安全，它要求对该对象的单独操作是线程安全的，但是对于特定顺序的连续调用，需要在调用端使用额外的同步手段保证调用的正确性。</p>
-<p>上面的代码就是相对线程安全的案例，在 Java 中大部分线程安全类属于相对线程安全类型，如 Vector、Hashtable 等。</p>
+<p>上面的代码就是相对线程安全的案例，在java 中大部分线程安全类属于相对线程安全类型，如 Vector、Hashtable 等。</p>
 <h3 id="线程兼容">线程兼容</h3>
 <p>对象本身就不是线程安全的，但是可以通过通过同步手段保证调用端在并发环境下的线程安全。如 ArrayList、HashMap 等。</p>
 <h3 id="线程对立">线程对立</h3>
@@ -227,9 +227,9 @@
 <li>互斥是实现同步的一种手段</li>
 </ul>
 <h3 id="synchronized">synchronized</h3>
-<p>synchronized 关键字是 Java 原生语法层面的互斥锁。synchronized 关键字经过编译后，会在同步块的前后插入 monitorenter 和 monitorexit 这两个字节码指令，这两个字节码都需要一个 reference 类型参数来指定要加锁和解锁的对象</p>
+<p>synchronized 关键字是java 原生语法层面的互斥锁。synchronized 关键字经过编译后，会在同步块的前后插入 monitorenter 和 monitorexit 这两个字节码指令，这两个字节码都需要一个 reference 类型参数来指定要加锁和解锁的对象</p>
 <h3 id="reentrantlock">ReentrantLock</h3>
-<p>跟 synchronized 一样，ReentrantLock 也具有可重入性，但在代码写法上表现为 Java API 层面的互斥锁（lock() 和 unlock()方法配合 try/finally 语句来完成）。</p>
+<p>跟 synchronized 一样，ReentrantLock 也具有可重入性，但在代码写法上表现为java API 层面的互斥锁（lock() 和 unlock()方法配合 try/finally 语句来完成）。</p>
 <h3 id="对比">对比</h3>
 <p>与 synchronized 相比，ReentrantLock 拥有一些高级功能：</p>
 <ul>
@@ -268,7 +268,7 @@
 </ul>
 <h3 id="线程本地存储">线程本地存储</h3>
 <p>共享数据的可见范围在同一个线程之内，那么无需同步也能保证同一线程内不出现共享数据争用的问题。</p>
-<p>Java 中通过 ThreadLocal 类实现线程本地存储的功能。</p>
+<p>java 中通过 ThreadLocal 类实现线程本地存储的功能。</p>
 <h4 id="threadlocal">ThreadLocal</h4>
 <p>每个 Thread 对象中有一个 ThreadLocalMap 对象，存储的是以 ThreadLocal.threadLocalHashCode 属性值为 Key 值，以本地线程变量为值的 K-V对。</p>
 <p>每一个 ThreadLocal 对象的 threadLocalHashCode 值是唯一计算出来的，ThreadLocal 类中有一个原子整数类型（AtomicInteger）的静态变量 nextHashCode 来维护 threadLocalHashCode 值，每次计算 threadLocalHashCode 值通过调用 AtomicInteger.getAndAdd() 方法添加一个固定偏移量得到，这里通过 CAS 操作保证唯一性。</p>

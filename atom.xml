@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://yao177.github.io</id>
     <title>Yao177&apos;s Blog</title>
-    <updated>2022-03-04T03:14:32.209Z</updated>
+    <updated>2022-03-04T03:20:51.516Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://yao177.github.io"/>
     <link rel="self" href="https://yao177.github.io/atom.xml"/>
@@ -64,7 +64,7 @@ MySQL使用基于成本的查询优化器。它会根据统计信息和代价模
 <p>下面来看两个关于优化器选择索引的例子。</p>
 <h4 id="正确选择索引的例子">正确选择索引的例子</h4>
 <p>构建了一个表，除主键 id 外，还有另外两个字段a、b，分别都有索引，然后插入了100000条数据（注：a值全部为3）。</p>
-<pre><code class="language-Sql">CREATE TABLE `Test` (
+<pre><code class="language-sql">CREATE TABLE `Test` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `a` int(11) DEFAULT NULL,
   `b` int(11) NOT NULL,
@@ -99,7 +99,7 @@ call proc1();
 <h4 id="错误选择索引的例子">错误选择索引的例子</h4>
 <p>一般情况下，优化器会选择出最优的执行计划，但是也存在选取错误的执行计划的情况。</p>
 <p>构建了一个表Test2，除主键id外，还有另外两个字段a、b，分别都有索引，然后插入了100000条数据</p>
-<pre><code class="language-Sql">CREATE TABLE `Test2` (
+<pre><code class="language-sql">CREATE TABLE `Test2` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `a` int(11) DEFAULT NULL,
   `b` int(11) DEFAULT NULL,
@@ -179,7 +179,7 @@ call proc2();
 这种情况，毫无疑问，选择索引b所需要扫描的行数要多很多且没有其他因素干扰，因此执行器会选择索引a。<br>
 MySQL下有个了解优化器工作过程的利器，其就是 optimizer_trace。使用方法为：</li>
 </ul>
-<pre><code class="language-Sql">SET OPTIMIZER_TRACE_MAX_MEM_SIZE=268435456; 
+<pre><code class="language-sql">SET OPTIMIZER_TRACE_MAX_MEM_SIZE=268435456; 
 SET optimizer_trace=&quot;enabled=on&quot;; 
 select * from Test2 where (a between 1 and 1000) and (b between 50000 and 100000) limit 1;
 select * from INFORMATION_SCHEMA.OPTIMIZER_TRACE\G
@@ -437,7 +437,7 @@ select * from INFORMATION_SCHEMA.OPTIMIZER_TRACE\G
 <p>任意未更新 log4j 至最新版的服务，以 crm（本人负责服务）为例。</p>
 <h2 id="codebase服务器">CodeBase服务器</h2>
 <p>直接用 python 自带的 SimpleHttpServer 即可。将恶意 class 放入目录下。</p>
-<pre><code class="language-Java">public class Exploit {
+<pre><code class="language-java">public class Exploit {
     static {
 //        try {
 //            Runtime.getRuntime().exec(&quot;reboot&quot;); 可以是任意代码，例如关机指令、进程关闭、将服务器文件外传、将内网拓扑结构外传、嵌入挖矿软件，any
@@ -483,7 +483,7 @@ select * from INFORMATION_SCHEMA.OPTIMIZER_TRACE\G
 <p>这个ref便是我们的HTTP服务器：http://127.0.0.1:1234/，至此完成攻击。</p>
 <h1 id="example">Example</h1>
 <p>*ppo login、5*8 online</p>
-<pre><code class="language-Java"> com.bj58.spat.wcs.consultstatistics.modules.kafka.KafkaConsumerTool.printLog(KafkaConsumerTool.java:42), 
+<pre><code class="language-java"> com.bj58.spat.wcs.consultstatistics.modules.kafka.KafkaConsumerTool.printLog(KafkaConsumerTool.java:42), 
  com.bj58.spat.wcs.consultstatistics.modules.kafka.consumers.MsgLogConsumer$2.run$original$J2L3KrD0(MsgLogConsumer.java:78), com.bj58.spat.w')
 (['Sat Dec 11 21:06:39 2021'], ':', 'ender.append(AbstractOutputStreamAppender.java:108), org.apache.logging.log4j.core.appender.RollingFileAppender.append(RollingFileAppender.java:88), org.apache.logging.log4j.core.config.AppenderControl.callAppender(AppenderControl.java:99), org.apache.logging.log4j.core.config.LoggerConfig.callAppenders(LoggerConfig.java:430), org.apache.logging.log4j.core.config.LoggerConfig.log(LoggerConfig.java:409), org.apache.logging.log4j.core.config.LoggerConfig.log(LoggerConfig.java:367), org.apache.logging.log4j.core.Logger.logMessage(Logger.java:112), org.apache.logging.log4j.spi.AbstractLogger.logMessage(AbstractLogger.java:738), org.apache.logging.log4j.spi.AbstractLogger.logIfEnabled(AbstractLogger.java:708), org.apache.logging.slf4j.Log4jLogger.info(Log4jLogger.java:193), com.bj58.spat.wcs.consultstatistics.modules.kafka.KafkaConsumerTool.printLog(KafkaConsumerTool.java:42), com.bj58.spat.wcs.consultstatistics.modules.kafka.consumers.MsgLogConsumer$2.run$original$J2L3KrD0(MsgLogConsumer.java:78), com.bj58.spat.w')
 ('receive from 2:', 'cs.consultstatistics.modules.kafka.consumers.MsgLogConsumer$2.run$original$J2L3KrD0$accessor$LturF6aU(MsgLogConsumer.java), com.bj58.spat.wcs.consultstatistics.modules.kafka.consumers.MsgLogConsumer$2$auxiliary$DWlZw7JW.call(Unknown Source), org.apache.skywalking.apm.plugin.jdk.threading.ThreadingMethodInterceptor_internal.intercept(InstanceMethodInterTemplate.java:93), com.bj58.spat.wcs.consultstatistics.modules.kafka.consumers.MsgLogConsumer$2.run(MsgLogConsumer.java)]\n')
@@ -630,7 +630,7 @@ Spring 的启动过程涉及非常多的逻辑。本文围绕 Bean 的生命周�
 CGLIB 可以用来为某个类创建一个子类，并在其方法（非全部）被调用时进行拦截，执行自己的逻辑。<br>
 在 Spring 的 AOP 场景中，CGLIB 被大量使用。</p>
 <h3 id="cglib-的使用示例">CGLIB 的使用示例</h3>
-<pre><code class="language-Java">public class CglibTest {
+<pre><code class="language-java">public class CglibTest {
     public void print() {
         System.out.println(&quot;CglibTest#print be invoked&quot;);
     }
@@ -779,7 +779,7 @@ CglibTest#print invoked
 </ol>
 <h2 id="场景示例">场景示例</h2>
 <p>假设有如下两个 Bean：</p>
-<pre><code class="language-Java">@Bean
+<pre><code class="language-java">@Bean
 public class RpcClient implements FactoryBean, InitializingBean {
     RpcClient() {
     }
@@ -795,7 +795,7 @@ public class RpcClient implements FactoryBean, InitializingBean {
     // other method
 }
 </code></pre>
-<pre><code class="language-Java">@Bean
+<pre><code class="language-java">@Bean
 public Manger {
   @Resource
   RpcService rpcService;
@@ -804,7 +804,7 @@ public Manger {
     return rpcService.getName(int id);
 }
 </code></pre>
-<pre><code class="language-Java">public interface RpcService {
+<pre><code class="language-java">public interface RpcService {
   String getName(int id);
 }
 </code></pre>
@@ -847,7 +847,7 @@ public Manger {
 <h2 id="麻烦的需求">麻烦的需求</h2>
 <h3 id="场景1">场景1：</h3>
 <p>张三喜欢为同事们造轮子。现在有同事小王需要计算“1+2*3”，如何最快速度提供轮子？</p>
-<pre><code class="language-Java">public class CalUtil {
+<pre><code class="language-java">public class CalUtil {
     public static int getValue(){
         return 1+2*3;
     }
@@ -855,7 +855,7 @@ public Manger {
 </code></pre>
 <h3 id="场景2">场景2：</h3>
 <p>小王表示他还需要计算“1+2*3”或者“1+2/3”或者“2-5”，如何提供运行效率最高的轮子？</p>
-<pre><code class="language-Java">/*利用操作数栈和符号栈，取自大学课设代码*/
+<pre><code class="language-java">/*利用操作数栈和符号栈，取自大学课设代码*/
 public class CalUtil {
 
     private static Stack&lt;Character&gt; opeStack = new Stack&lt;Character&gt;();
@@ -956,7 +956,7 @@ public class CalUtil {
 目前要解决问题的第一步是将“?+?*?”这样的表达式（Expression）进行存储，并要考虑它们的计算顺序和优先级。</li>
 </ol>
 <p>我们先定义一个接口，命名为Expression：</p>
-<pre><code class="language-Java">public interface Expression {
+<pre><code class="language-java">public interface Expression {
     //计算该表达式的值
 	double excute();
 }
@@ -967,7 +967,7 @@ public class CalUtil {
 <li>对于操作符，由于它不能单独存在，所以它至少需要两个子表达式；而它的计算值需要先计算左右两个表达式的值，再按照自身符号进行运算。例如对于1+2*3中的“+”，它需要先计算1，再计算2*3，最后计算本身。</li>
 </ol>
 <p>数字表达式定义：</p>
-<pre><code class="language-Java">public class NumExpression implements Expression{
+<pre><code class="language-java">public class NumExpression implements Expression{
     private double value;
   
     public double execute() {
@@ -980,7 +980,7 @@ public class CalUtil {
 }
 </code></pre>
 <p>操作符表达式抽象类定义：</p>
-<pre><code class="language-Java">public abstract class OptExpression implements Expression {
+<pre><code class="language-java">public abstract class OptExpression implements Expression {
     protected OptExpression parent;
     protected Expression left;
     protected Expression right;
@@ -999,7 +999,7 @@ public class CalUtil {
 }
 </code></pre>
 <p>各个运算符表达式类定义：</p>
-<pre><code class="language-Java">public class AddExpression extends OptExpression {
+<pre><code class="language-java">public class AddExpression extends OptExpression {
     AddExpression(Expression left, Expression right) {
         super(left, right);
     }
@@ -1046,7 +1046,7 @@ public class DivExpression extends OptExpression {
 <p>而要获得计算结果，只需简单的执行 AddExpression 对象的 execute() 方法就行。<br>
 于是我们的思路已经有了：先通过公式构造这颗语法树，等用户需要计算的时候让他填入空缺的数字，并计算这颗树的根结点即可。<br>
 那么如何实现一个解释器引擎，来完成公式的“树化”和计算呢？直接上代码：</p>
-<pre><code class="language-Java">package org.example;
+<pre><code class="language-java">package org.example;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -1152,7 +1152,7 @@ public class Calculator {
 <h2 id="轻而易举地扩展">轻而易举地扩展</h2>
 <p>机灵的小王又提出了新需求，他要加入位运算，即“|”和&quot;&amp;&quot;，且优先级最低。此时的张三早已胸有成竹。<br>
 只需新增操作符：</p>
-<pre><code class="language-Java">public class BitAndExpression extends OptExpression {
+<pre><code class="language-java">public class BitAndExpression extends OptExpression {
     BitAndExpression(Expression left, Expression right) {
         super(left, right);
     }
@@ -1173,7 +1173,7 @@ public class BitOrExpression extends OptExpression {
 }
 </code></pre>
 <p>并赋予新的优先级和读取方式：</p>
-<pre><code class="language-Java">public class Calculator {
+<pre><code class="language-java">public class Calculator {
     Calculator(String exp) {
         String[] expStrings = exp.split(&quot;\\?&quot;);
         optExpressions = new ArrayList&lt;OptExpression&gt;();
@@ -1213,11 +1213,11 @@ public class BitOrExpression extends OptExpression {
 </code></pre>
 <p>此时便已经大功告成。“真是个好轮子”，小王称赞道。</p>
 <h2 id="应用场景">应用场景</h2>
-<p>虽然这个模式名称叫做解释器模式，但无论是 Java 编译器、Python 解释器都不会实际采用这个模式，因为这些基于虚拟机的语言会将代码翻译为字节码而非语法树。语法树的计算采用递归，而字节码的运行一般采用栈的方式，后者性能更好。<br>
-而一些看起来使用了解释器模式的地方，例如 Java 的 Pattern、Spring 的 Spel 引擎，它们虽然采用了「构建+解析」的计算模式，但其实质并没有按照解释器模式的规范去实现一个具体的语法树，而是采用各自的手段（例如数组等）去避免这类递归运算。</p>
+<p>虽然这个模式名称叫做解释器模式，但无论是 java 编译器、Python 解释器都不会实际采用这个模式，因为这些基于虚拟机的语言会将代码翻译为字节码而非语法树。语法树的计算采用递归，而字节码的运行一般采用栈的方式，后者性能更好。<br>
+而一些看起来使用了解释器模式的地方，例如 java 的 Pattern、Spring 的 Spel 引擎，它们虽然采用了「构建+解析」的计算模式，但其实质并没有按照解释器模式的规范去实现一个具体的语法树，而是采用各自的手段（例如数组等）去避免这类递归运算。</p>
 <p>经过地毯式搜索，我终于在 JVM 分析工具—— sun 提供的 Jstat 的源码中发现了解释器模式的影子：<br>
 下列出主要代码（已简化）</p>
-<pre><code class="language-Java">package sun.tools.jstat;
+<pre><code class="language-java">package sun.tools.jstat;
 
 public class Expression {
     private static int nextOrdinal;
@@ -1257,7 +1257,7 @@ public class Expression {
 }
 </code></pre>
 <p>它和张三的解释器模式实现高度相似。表达式的计算在这个类中：</p>
-<pre><code class="language-Java">package sun.tools.jstat;
+<pre><code class="language-java">package sun.tools.jstat;
 
 import java.util.HashMap;
 import sun.jvmstat.monitor.Monitor;
@@ -1338,7 +1338,7 @@ public class ExpressionExecuter implements ExpressionEvaluator {
 <h2 id="线程安全程度">线程安全程度</h2>
 <p>上面的定义非常严谨，它要求线程安全的代码满足：代码本身封装了所有必要的同步手段，令调用者无须关心多线程的问题，更不需要自己采取措施来保证在多线程环境下的正确调用。</p>
 <p>保证这一点非常难，因此我们常常会另一个角度来理解线程安全，即线程安全程度。</p>
-<p>《深入理解java虚拟机》中将 Java 语言各种共享操作共享的数据可以分为以下5类：<strong>不可变、绝对线程安全、相对线程安全、线程兼容和线程对立</strong>。</p>
+<p>《深入理解java虚拟机》中将java 语言各种共享操作共享的数据可以分为以下5类：<strong>不可变、绝对线程安全、相对线程安全、线程兼容和线程对立</strong>。</p>
 <h3 id="不可变">不可变</h3>
 <p>不可变（Immutable）的对象一定是线程安全的，无论是对象方法的实现还是方法的调用者，都不需要在采取任何的线程安全保障措施。</p>
 <ul>
@@ -1346,7 +1346,7 @@ public class ExpressionExecuter implements ExpressionEvaluator {
 <li>如果数据是对象类型，那就需要保证对象的行为不会对其状态产生任何影响（如 String 类，调用其<code>substring()</code>、<code>replace()</code>等方法不会影响原来的值，只会返回一个新构造的字符串对象）。</li>
 </ul>
 <p>保证对象的行为不会对其状态产生任何影响最简单的方法就是把对象中带有状态的变量声明为 final，这样在构造函数结束之后，它就是不可变的，如 Integer。</p>
-<pre><code class="language-Java">    /**
+<pre><code class="language-java">    /**
      * The value of the {@code Integer}.
      *
      * @serial
@@ -1368,7 +1368,7 @@ public class ExpressionExecuter implements ExpressionEvaluator {
 <p>不管运行时环境如何，调用者都不需要任何额外的同步措施。</p>
 <p>要达到绝对线程安全通常付出很大代价，甚至不切实际的代价。</p>
 <p>以 Vector 为例，它是一个线程安全的容器，因为其内部的操作方法都用了 synchronized 关键字作为同步措施，但是即使它所有的方法都被修饰成同步，也不意味着调用它的时候永远不需要同步手段了。请看下面的 demo：</p>
-<pre><code class="language-Java">    private static Vector&lt;Integer&gt; vector = new Vector&lt;&gt;();
+<pre><code class="language-java">    private static Vector&lt;Integer&gt; vector = new Vector&lt;&gt;();
 
     public static void main(String[] args) {
         while (true) {
@@ -1395,7 +1395,7 @@ public class ExpressionExecuter implements ExpressionEvaluator {
 <p>输出结果如下：<br>
 <img src="https://yao177.github.io/post-images/1646211347456.png" alt="" loading="lazy"></p>
 <p>虽然 Vector 的 add()、remove()、get() 方法都是同步的，但并不能保证调用就是绝对线程安全的。假设打印线程在打印序号为i的元素前，线程被系统调度挂起，切换为删除线程，而这个删除线程刚好把序号为i的元素删除了，系统再切换打印线程运行时，这个序号为i的元素已经被删除，再调用 get(i) 访问时就会得到 ArrayIndexOutOfBoundsException。要保证代码是绝对线程安全的，必须在调用方加一些同步措施：</p>
-<pre><code class="language-Java">  Thread removeThread = new Thread(() -&gt; {
+<pre><code class="language-java">  Thread removeThread = new Thread(() -&gt; {
     synchronized (vector) {
       for (int i = 0; i &lt; vector.size(); i++) {
         vector.remove(i);
@@ -1412,7 +1412,7 @@ public class ExpressionExecuter implements ExpressionEvaluator {
 </code></pre>
 <h3 id="相对线程安全">相对线程安全</h3>
 <p>这是通常意义的线程安全，它要求对该对象的单独操作是线程安全的，但是对于特定顺序的连续调用，需要在调用端使用额外的同步手段保证调用的正确性。</p>
-<p>上面的代码就是相对线程安全的案例，在 Java 中大部分线程安全类属于相对线程安全类型，如 Vector、Hashtable 等。</p>
+<p>上面的代码就是相对线程安全的案例，在java 中大部分线程安全类属于相对线程安全类型，如 Vector、Hashtable 等。</p>
 <h3 id="线程兼容">线程兼容</h3>
 <p>对象本身就不是线程安全的，但是可以通过通过同步手段保证调用端在并发环境下的线程安全。如 ArrayList、HashMap 等。</p>
 <h3 id="线程对立">线程对立</h3>
@@ -1431,9 +1431,9 @@ public class ExpressionExecuter implements ExpressionEvaluator {
 <li>互斥是实现同步的一种手段</li>
 </ul>
 <h3 id="synchronized">synchronized</h3>
-<p>synchronized 关键字是 Java 原生语法层面的互斥锁。synchronized 关键字经过编译后，会在同步块的前后插入 monitorenter 和 monitorexit 这两个字节码指令，这两个字节码都需要一个 reference 类型参数来指定要加锁和解锁的对象</p>
+<p>synchronized 关键字是java 原生语法层面的互斥锁。synchronized 关键字经过编译后，会在同步块的前后插入 monitorenter 和 monitorexit 这两个字节码指令，这两个字节码都需要一个 reference 类型参数来指定要加锁和解锁的对象</p>
 <h3 id="reentrantlock">ReentrantLock</h3>
-<p>跟 synchronized 一样，ReentrantLock 也具有可重入性，但在代码写法上表现为 Java API 层面的互斥锁（lock() 和 unlock()方法配合 try/finally 语句来完成）。</p>
+<p>跟 synchronized 一样，ReentrantLock 也具有可重入性，但在代码写法上表现为java API 层面的互斥锁（lock() 和 unlock()方法配合 try/finally 语句来完成）。</p>
 <h3 id="对比">对比</h3>
 <p>与 synchronized 相比，ReentrantLock 拥有一些高级功能：</p>
 <ul>
@@ -1472,7 +1472,7 @@ public class ExpressionExecuter implements ExpressionEvaluator {
 </ul>
 <h3 id="线程本地存储">线程本地存储</h3>
 <p>共享数据的可见范围在同一个线程之内，那么无需同步也能保证同一线程内不出现共享数据争用的问题。</p>
-<p>Java 中通过 ThreadLocal 类实现线程本地存储的功能。</p>
+<p>java 中通过 ThreadLocal 类实现线程本地存储的功能。</p>
 <h4 id="threadlocal">ThreadLocal</h4>
 <p>每个 Thread 对象中有一个 ThreadLocalMap 对象，存储的是以 ThreadLocal.threadLocalHashCode 属性值为 Key 值，以本地线程变量为值的 K-V对。</p>
 <p>每一个 ThreadLocal 对象的 threadLocalHashCode 值是唯一计算出来的，ThreadLocal 类中有一个原子整数类型（AtomicInteger）的静态变量 nextHashCode 来维护 threadLocalHashCode 值，每次计算 threadLocalHashCode 值通过调用 AtomicInteger.getAndAdd() 方法添加一个固定偏移量得到，这里通过 CAS 操作保证唯一性。</p>
@@ -1495,12 +1495,12 @@ public class ExpressionExecuter implements ExpressionEvaluator {
 <img src="https://yao177.github.io/post-images/1646200411287.svg" alt="" loading="lazy"></p>
 <p><strong>缓存一致性（Cache Coherence）</strong> 是多处理器系统必须解决的问题，当多个处理器的运算任务都涉及同一块主存区域时，将可能导致各处理器的高速缓存数据不一致，这时如何同步回主存就需要缓存一致性协议来协调；</p>
 <p><strong>乱序执行（Out-Of-Order Execution）</strong> 也是处理器的一项优化，该优化只保证最终结果的一致性，但不保证各语句的执行顺序与代码中的顺序一致。</p>
-<p>Java 内存模型和多处理器计算机系统有着很多相似之处：</p>
+<p>java 内存模型和多处理器计算机系统有着很多相似之处：</p>
 <figure data-type="image" tabindex="1"><img src="https://yao177.github.io/post-images/1646200533914.svg" alt="" loading="lazy"></figure>
 <p><strong>内存一致性</strong>：每条线程都有自己的工作内存，里面保存了被该线程使用到的变量的主内存副本拷贝，线程对变量的所有操作都必须在工作内存中进行，不能直接读写主内存中的变量，相似的，Java 虚拟机也定义了一套内存访问协议来保证内存一致性；</p>
 <p><strong>指令重排序</strong>：对应于处理器乱序执行，Java 虚拟机的即时编译器中也有着类似的优化，同样只保证最终结果的一致性。</p>
 <h1 id="volatile">volatile</h1>
-<p>volatile 是 Java 虚拟机提供的最轻量的同步机制，但很难被正确的理解与使用，通过学习 Java 内存模型对 volatile 专门定义的一些特殊访问规则，或许会对理解 volatile 有一定帮助。</p>
+<p>volatile 是java 虚拟机提供的最轻量的同步机制，但很难被正确的理解与使用，通过学习java 内存模型对 volatile 专门定义的一些特殊访问规则，或许会对理解 volatile 有一定帮助。</p>
 <p>当一个变量被定义为 volatile 之后，将会具备两种特性：</p>
 <blockquote>
 <p>可见性：当一条线程改变了该变量的值，新值对所有其他线程来说都是可以立即感知的；<br>
@@ -1508,7 +1508,7 @@ public class ExpressionExecuter implements ExpressionEvaluator {
 </blockquote>
 <h2 id="可见性">可见性</h2>
 <p>大多数开发人员最容易误解的是 volatile的 可见性特性，会从 volatile 变量在各个线程中是一致的，错误的推导出基于 volatile 变量的运算也是并发安全的，下面一段代码对此进行了实验：</p>
-<pre><code class="language-Java">private static volatile int sum = 0;
+<pre><code class="language-java">private static volatile int sum = 0;
 
 public static void increase() {
     ++sum;
@@ -1563,7 +1563,7 @@ public static void main(String[] args) {
 <li>运算结果并不依赖变量的当前值（如作为状态变量），或仅有单一线程修改变量值</li>
 <li>变量不与其他状态变量共同参与不变约束（因为对其中一个变量值赋值之后并在对其他变量赋值之前，不变约束可能失效）</li>
 </ol>
-<pre><code class="language-Java">// 当shutdown()被调用时，所有线程的doWork()都会立刻停止
+<pre><code class="language-java">// 当shutdown()被调用时，所有线程的doWork()都会立刻停止
 private volatile boolean isShutdown = false;
 public void shutdown() {
     isShutdown = true;
@@ -1582,7 +1582,7 @@ public void doWork() {
 线程内表现为串行的语义：普通的变量仅仅会保证在该方法的执行过程中所有依赖赋值结果的地方都能获取到正确的结果，而不能保证变量赋值的操作顺序与程序代码中执行的顺序一致，这在单线程的方法执行过程中是无法感知的，因而表现为线程内串行</p>
 </blockquote>
 <p>举个栗子：</p>
-<pre><code class="language-Java">int a = 1; // L1
+<pre><code class="language-java">int a = 1; // L1
 int b = 2; // L2
 a = a + 1; // L3
 a = a * 2; // L4
@@ -1590,7 +1590,7 @@ int c = a; // L5
 </code></pre>
 <p>以行号代表语句，虚拟机只会保证语句1、3、4顺序执行（四则运算规则），且语句5在语句4之后执行（c对a的依赖关系）；至于语句2，它可能出现在任意位置（以指令重排序优化结果为准），因为它与<code>a</code>和<code>c</code>均没有依赖关系</p>
 <p>指令重排序优化对单线程程序没有负面影响，但会干扰程序的并发执行，再举个栗子：</p>
-<pre><code class="language-Java">static private boolean initialized = false;
+<pre><code class="language-java">static private boolean initialized = false;
 
 /**
     * 初始化
@@ -1633,7 +1633,7 @@ public static void doWork() {
 <p>这行代码对 initialized 变量进行了赋值，加了 volatile 关键字的赋值操作多了<code>lock addl $0x0,(%rsp)</code>这一指令，<code>addl $0x0,(%rsp)</code>的含义是把 ESP 寄存器的值加 0，显然是一个空操作，那关键点就是 <strong>lock 前缀</strong>了。</p>
 <p>lock 前缀的作用是使得本 CPU 的 Cache、写入内存，同时会引起其他 CPU 或者内核无效化各自的 Cache，该操作使得 volatile 变量的修改对其他 CPU 立即可见，同时，<code>lock addl $0x0,(%rsp)</code>指令把修改同步到内存时，意味着所有之前的操作都已经执行完毕，这便形成了“指令重排序无法越过内存屏障”的效果，之前的指令无法被重排序到该指令之后，同样，之后的指令无法被重排序到该指令之前。</p>
 <h2 id="总结">总结</h2>
-<p>最后，我们再看一下 Java 内存模型对 volatile 变量定义的特殊规则：</p>
+<p>最后，我们再看一下java 内存模型对 volatile 变量定义的特殊规则：</p>
 <ul>
 <li>每次使用 volatile 变量之前都必须从主内存刷新最新的值</li>
 <li>每次修改完 volatile 变量都必须立刻同步到主内存中</li>
@@ -1641,7 +1641,7 @@ public static void doWork() {
 </ul>
 <p>可以看到，这三条规则与反汇编得出结论相一致。</p>
 <h1 id="先行发生原则">先行发生原则</h1>
-<p>Java 内存模型是围绕着如何在并发过程中处理<strong>原子性、可见性和有序性</strong>这三个特征来构建的，前面已经介绍过 volatile 关键字的“禁止指令重排序优化”来保证线程之间操作的有序性，另一个我们常用的保证有序性的手段是 synchronized 关键字；如果 Java 中的所有有序性都要靠这两个关键字来保证，那代码会很繁琐，但我们平时开发时并没有感觉到这一点，这是因为 Java 语言中又一个先行发生原则（happens-before）。</p>
+<p>java 内存模型是围绕着如何在并发过程中处理<strong>原子性、可见性和有序性</strong>这三个特征来构建的，前面已经介绍过 volatile 关键字的“禁止指令重排序优化”来保证线程之间操作的有序性，另一个我们常用的保证有序性的手段是 synchronized 关键字；如果java 中的所有有序性都要靠这两个关键字来保证，那代码会很繁琐，但我们平时开发时并没有感觉到这一点，这是因为java 语言中又一个先行发生原则（happens-before）。</p>
 <blockquote>
 <p>先行发生原则</p>
 </blockquote>
@@ -1733,7 +1733,7 @@ public static void doWork() {
 <p>子类引用赋给超类时，OK</p>
 <p>超类引用赋给子类时，必须进行类型转换（类似 C++ 中的 dynamic_cast 操作）；先用 instanceof 检验一下是否可以转换</p>
 <pre><code class="language-java">if (staff[1] instanceof Manager) {	
-		boss = (Manager) staff[1]; // OK	...
+    boss = (Manager) staff[1]; // OK	...
 }
 String c = (String) staff[1]; // Fail
 </code></pre>
